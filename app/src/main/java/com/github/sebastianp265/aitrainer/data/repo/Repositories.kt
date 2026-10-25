@@ -1,6 +1,8 @@
 package com.github.sebastianp265.aitrainer.data.repo
 
 import com.github.sebastianp265.aitrainer.domain.model.Exercise
+import com.github.sebastianp265.aitrainer.domain.model.ExercisePreference
+import com.github.sebastianp265.aitrainer.domain.model.ProfilePrefs
 import com.github.sebastianp265.aitrainer.domain.model.SessionSummary
 import com.github.sebastianp265.aitrainer.domain.model.SetEntry
 import com.github.sebastianp265.aitrainer.domain.model.WorkoutSession
@@ -10,6 +12,22 @@ interface ExerciseRepository {
     fun observeExercises(): Flow<List<Exercise>>
 
     suspend fun ensureSeeded()
+
+    suspend fun setPreference(exerciseId: Long, preference: ExercisePreference)
+}
+
+interface ProfileRepository {
+    fun observe(): Flow<ProfilePrefs>
+    suspend fun modify(change: (ProfilePrefs) -> ProfilePrefs)
+}
+
+interface AppSettingsRepository {
+    fun observeClaudeModel(): Flow<String>
+    suspend fun setClaudeModel(modelId: String)
+
+    companion object {
+        const val DEFAULT_CLAUDE_MODEL = "claude-sonnet-5-5"
+    }
 }
 
 interface WorkoutRepository {

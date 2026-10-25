@@ -10,11 +10,11 @@ import com.github.sebastianp265.aitrainer.domain.model.SetEntry
 import com.github.sebastianp265.aitrainer.domain.model.WorkoutSession
 import com.github.sebastianp265.aitrainer.domain.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.domain.workout.adjustReps
+import com.github.sebastianp265.aitrainer.ui.WhileUiSubscribed
 import com.github.sebastianp265.aitrainer.domain.workout.adjustWeight
 import com.github.sebastianp265.aitrainer.domain.workout.groupSetsByExerciseInLoggingOrder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
@@ -72,7 +72,7 @@ class LogWorkoutViewModel(
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(KEEP_QUERIES_ALIVE_AFTER_UI_STOPS_MS),
+        started = WhileUiSubscribed,
         initialValue = LogUiState(),
     )
 
@@ -137,6 +137,5 @@ class LogWorkoutViewModel(
 
     private companion object {
         const val DEFAULT_REPS = 10
-        const val KEEP_QUERIES_ALIVE_AFTER_UI_STOPS_MS = 5_000L
     }
 }

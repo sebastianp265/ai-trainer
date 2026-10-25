@@ -2,12 +2,16 @@ package com.github.sebastianp265.aitrainer.data.repo
 
 import com.github.sebastianp265.aitrainer.data.db.SeedExercises
 import com.github.sebastianp265.aitrainer.data.db.dao.ExerciseDao
+import com.github.sebastianp265.aitrainer.data.db.dao.ProfilePrefsDao
 import com.github.sebastianp265.aitrainer.data.db.dao.SessionSummaryRow
 import com.github.sebastianp265.aitrainer.data.db.dao.WorkoutDao
 import com.github.sebastianp265.aitrainer.data.db.entity.ExerciseEntity
+import com.github.sebastianp265.aitrainer.data.db.entity.ProfilePrefsEntity
 import com.github.sebastianp265.aitrainer.data.db.entity.SetEntryEntity
 import com.github.sebastianp265.aitrainer.data.db.entity.WorkoutSessionEntity
 import com.github.sebastianp265.aitrainer.domain.model.Exercise
+import com.github.sebastianp265.aitrainer.domain.model.ExercisePreference
+import com.github.sebastianp265.aitrainer.domain.model.ProfilePrefs
 import com.github.sebastianp265.aitrainer.domain.model.SessionSummary
 import com.github.sebastianp265.aitrainer.domain.model.SetEntry
 import com.github.sebastianp265.aitrainer.domain.model.WorkoutSession
@@ -24,6 +28,18 @@ class RoomExerciseRepository(
         dao.observeAll().map { list -> list.map { it.toDomain() } }
 
     override suspend fun ensureSeeded() = dao.insertAllIgnoringExisting(SeedExercises.all)
+
+    override suspend fun setPreference(exerciseId: Long, preference: ExercisePreference) =
+        dao.setPreference(exerciseId, preference)
+}
+
+class RoomProfileRepository(
+    private val dao: ProfilePrefsDao,
+) : ProfileRepository {
+    override fun observe(): Flow<ProfilePrefs> = dao.observe().map { it?.toDomain() ?: ProfilePrefs.DEFAULT }
+
+    override suspend fun modify(change: (ProfilePrefs) -> ProfilePrefs) =
+        dao.modifyInTransaction(ProfilePrefs.DEFAULT.toEntity()) { change(it.toDomain()).toEntity() }
 }
 
 class RoomWorkoutRepository(
@@ -91,5 +107,23 @@ internal fun WorkoutSessionEntity.toDomain() = WorkoutSession(id, date, startedA
 internal fun SetEntryEntity.toDomain() = SetEntry(id, sessionId, exerciseId, positionInSession, reps, weightKg, rpe, isWarmup)
 
 internal fun SetEntry.toEntity() = SetEntryEntity(id, sessionId, exerciseId, positionInSession, reps, weightKg, rpe, isWarmup)
+
+internal fun ProfilePrefsEntity.toDomain() = ProfilePrefs(
+    goal = goal,
+    sessionsPerWeek = sessionsPerWeek,
+    sessionLengthMin = sessionLengthMin,
+    weakMuscleGroups = weakMuscleGroups.toSet(),
+    availableEquipment = availableEquipment.toSet(),
+    notes = notes,
+)
+
+internal fun ProfilePrefs.toEntity() = ProfilePrefsEntity(
+    goal = goal,
+    sessionsPerWeek = sessionsPerWeek,
+    sessionLengthMin = sessionLengthMin,
+    weakMuscleGroups = weakMuscleGroups.sorted(),
+    availableEquipment = availableEquipment.sorted(),
+    notes = notes,
+)
 
 internal fun SessionSummaryRow.toDomain() = SessionSummary(id, date, startedAt, finishedAt, exerciseCount, setCount)
