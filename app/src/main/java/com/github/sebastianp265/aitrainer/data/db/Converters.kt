@@ -7,12 +7,11 @@ import kotlinx.datetime.LocalDate
 import kotlin.time.Instant
 
 class Converters {
-    // ISO text so date ranges can be compared with BETWEEN.
     @TypeConverter
-    fun localDateToString(value: LocalDate?): String? = value?.toString()
+    fun localDateToIsoString(value: LocalDate?): String? = value?.toString()
 
     @TypeConverter
-    fun stringToLocalDate(value: String?): LocalDate? = value?.let(LocalDate::parse)
+    fun isoStringToLocalDate(value: String?): LocalDate? = value?.let(LocalDate::parse)
 
     @TypeConverter
     fun instantToEpochMillis(value: Instant?): Long? = value?.toEpochMilliseconds()

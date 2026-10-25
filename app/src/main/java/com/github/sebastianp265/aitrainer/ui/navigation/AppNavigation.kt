@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.ui.navigation
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -15,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -23,6 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.ui.log.LogWorkoutRoute
 import com.github.sebastianp265.aitrainer.ui.plan.PlanScreen
 import com.github.sebastianp265.aitrainer.ui.progress.ProgressScreen
@@ -35,11 +38,16 @@ import kotlin.reflect.KClass
 @Serializable object ProgressRoute
 @Serializable object SettingsRoute
 
-private enum class TopLevelDestination(val route: Any, val routeClass: KClass<*>, val label: String, val icon: ImageVector) {
-    LOG(LogRoute, LogRoute::class, "Log", Icons.Default.Edit),
-    PLAN(PlanRoute, PlanRoute::class, "Plan", Icons.Default.DateRange),
-    PROGRESS(ProgressRoute, ProgressRoute::class, "Progress", Icons.Default.Star),
-    SETTINGS(SettingsRoute, SettingsRoute::class, "Settings", Icons.Default.Settings),
+private enum class TopLevelDestination(
+    val route: Any,
+    val routeClass: KClass<*>,
+    @StringRes val label: Int,
+    val icon: ImageVector,
+) {
+    LOG(LogRoute, LogRoute::class, R.string.nav_log, Icons.Default.Edit),
+    PLAN(PlanRoute, PlanRoute::class, R.string.nav_plan, Icons.Default.DateRange),
+    PROGRESS(ProgressRoute, ProgressRoute::class, R.string.nav_progress, Icons.Default.Star),
+    SETTINGS(SettingsRoute, SettingsRoute::class, R.string.nav_settings, Icons.Default.Settings),
 }
 
 @Composable
@@ -63,7 +71,7 @@ fun AppNavigation() {
                             }
                         },
                         icon = { Icon(destination.icon, contentDescription = null) },
-                        label = { Text(destination.label) },
+                        label = { Text(stringResource(destination.label)) },
                     )
                 }
             }
@@ -72,7 +80,6 @@ fun AppNavigation() {
         NavHost(
             navController = navController,
             startDestination = LogRoute,
-            // Inner screens have their own Scaffold; avoid applying the insets twice.
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
             composable<LogRoute> { LogWorkoutRoute() }

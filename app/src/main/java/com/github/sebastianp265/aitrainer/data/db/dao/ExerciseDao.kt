@@ -16,7 +16,6 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercise WHERE id = :id")
     suspend fun getById(id: Long): ExerciseEntity?
 
-    /** IGNORE keeps the user's preferences on existing rows when re-seeding. */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAllIgnoringExisting(exercises: List<ExerciseEntity>)
 

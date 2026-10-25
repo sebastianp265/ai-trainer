@@ -21,6 +21,17 @@ The project was created with Android Studio's **Empty Activity (Compose)** templ
 - **Disable Android cloud backup** for the app (`android:allowBackup="false"`, plus `dataExtractionRules` excluding everything). Provide manual DB export/import instead.
 - Single user, personal use only. No accounts, no login of our own. I may share the app with a few similar users later, so don't hardcode anything specific to me: each user enters their own API key and Polar credentials in Settings.
 
+## Localization
+
+The app follows the device language. Supported: **English** (`res/values/`, the fallback for any unsupported language) and **Polish** (`res/values-pl/`). Supported languages are listed in `res/xml/locales_config.xml` (referenced from the manifest via `android:localeConfig`), so the app appears in Android's per-app language settings; add new languages there. Don't use AGP's `generateLocaleConfig` (incubating API).
+
+- Every user-facing string (including content descriptions and snackbar messages) goes in `strings.xml`, with both an English and a Polish version. No hardcoded UI text in Kotlin. Lint's `MissingTranslation` must stay clean.
+- Counts use `<plurals>` (Polish has one/few/many/other forms). Numbers and dates are formatted for the current locale (`ui/Localization.kt`: `formatWeight`, `formatDate`), e.g. `7,5` in Polish.
+- ViewModels expose typed messages (e.g. a sealed `LogMessage`), not text; the UI turns them into strings.
+- Exercise names: `exercise.name` is the stable English key (stored in the DB, used by Claude). Seed exercises have a translated name resource (`SeedExercises.translatedNameRes`), shown via `Exercise.displayName(resources)`. Sort and search by the displayed name.
+- Muscle groups and other enums are shown through string resources (e.g. `MuscleGroup.labelRes()`), never `enum.name`.
+- Claude (phase 5): ask for free text (rationale, notes, "adjust today" replies) in the app's current language; exercise names in the plan JSON stay the English keys.
+
 ## Secrets handling (important)
 
 - **No secrets anywhere in the project directory.** The Claude API key, Polar client ID/secret and Polar tokens are entered by me at runtime on the Settings screen and stored on the device only, encrypted with a key held in the Android Keystore (see `SecretStore` below).
@@ -109,7 +120,7 @@ di/               Koin modules (e.g. dataModule, networkModule, viewModelModule,
 
 - `exercise` — id, name, primaryMuscles, secondaryMuscles, equipment, preference (FAVOURITE / NEUTRAL / AVOID)
 - `workout_session` — id, date, startedAt, finishedAt, planSessionRef (nullable), notes
-- `set_entry` — id, sessionId, exerciseId, order, reps, weightKg, rpe (nullable), isWarmup
+- `set_entry` — id, sessionId, exerciseId, positionInSession, reps, weightKg, rpe (nullable), isWarmup
 - `daily_energy` — date (PK), kcalBurned, kcalBurnedSource, kcalEaten, proteinG, carbsG, fatG, updatedAt
 - `body_weight` — id, measuredAt, weightKg, source (POLAR / MANUAL), unique on (measuredAt, source) so repeated syncs don't duplicate entries
 - `profile_prefs` — goal (CUT / MAINTAIN / BULK / RECOMP), sessionsPerWeek, sessionLengthMin, weakMuscleGroups, availableEquipment, free-text notes
@@ -117,7 +128,7 @@ di/               Koin modules (e.g. dataModule, networkModule, viewModelModule,
 
 Implementation notes:
 
-- `set_entry.order` is stored in a column named `setOrder` (`order` is an SQL keyword). In Kotlin the property is still `order`.
+- `set_entry.positionInSession` is the set's position within the whole session (not within the exercise). Schema v2 renamed it from `setOrder` via an auto-migration.
 - `profile_prefs` is a single-row table (`id = 1`).
 - Dates (`LocalDate`) are stored as ISO text, instants as epoch milliseconds, and enum lists as comma-separated names (see `data/db/Converters.kt`).
 - The seed exercise library (`SeedExercises`) is inserted on every app start with "ignore if the name exists". New seed entries reach existing installs and user preferences are never overwritten. Don't rename seed exercises: a renamed one is inserted again as a duplicate.
@@ -168,8 +179,11 @@ Compute these in `domain/`. Claude should not do the arithmetic.
 ## Testing
 
 - **Prefer integration tests that follow a user flow**: Compose UI tests in `androidTest/` that launch the real app (real Koin graph, real Room database) and tap through a screen the way I would, then check what's shown. Use fakes only at external boundaries (Claude, Polar, Health Connect), never for our own classes. Use the `androidx.compose.ui.test.junit4.v2` rules (the non-v2 ones are deprecated).
+- UI tests run in **English only** (the test sets the app locale to `en`); don't repeat them per language. Translations are covered by lint's `MissingTranslation`.
 - **Keep unit tests few and meaningful** (`./gradlew test`): only for non-trivial pure logic where a bug would be subtle (e.g. domain stats like TDEE and weight trend, plan JSON validation). No tests that only add coverage (trivial mappings, converters, getters, data lists). Don't mock our own code; use the real implementations.
 - Run the relevant tests after changes. Instrumented tests (`./gradlew connectedDebugAndroidTest`) uninstall the app afterwards, which deletes its data, so run them on the emulator, not on my phone.
+- **Expected values are literals, never computed.** Decide the expected outcome first (the exact text, numbers, order), write it into the test as a literal, then run the test. Tests contain only technical logic: setup, clicking/typing, waiting, reading what's shown, asserting. Don't build expected values from string resources, plural rules, formatters or the production code under test.
+- **Test class naming**: integration tests end with `ITest` (e.g. `LogWorkoutFlowITest`), unit tests with `UTest` (e.g. `ExercisePickerUTest`).
 - Write tests with **`kotlin.test`** (`kotlin.test.Test`, `assertEquals`, `@BeforeTest`, …), running on JUnit 4 via `kotlin-test-junit`, in both `test/` and `androidTest/`. Don't use JUnit 5. Only use `org.junit` for things `kotlin.test` lacks (`@RunWith`, `@get:Rule`).
 - **Koin check**: a unit test that verifies the Koin module graph (`verify()` / `checkModules`), so missing dependencies fail in tests instead of crashing at runtime.
 - **Build check** (`./gradlew assembleDebug`) after each meaningful change; fix compile errors before reporting done.
@@ -192,6 +206,6 @@ Finish each phase in a working, runnable state (builds, tests pass, app launches
 ## Conventions
 
 - Kotlin coding conventions; small composables; UI state as immutable data classes exposed via `StateFlow`.
-- **No unnecessary comments.** Comment only a non-obvious *why* (a workaround, a security reason, a surprising constraint). Don't comment what the code already says, and don't explain Android concepts in code (do that in your reply).
+- **No comments in code** (Kotlin, XML, Gradle, tests). Names and structure must explain the code: when something isn't clear, rename, extract a well-named function/constant/type, or restructure instead of commenting. Explain Android concepts and design reasons in your reply, not in code.
 - Commit-sized changes; don't refactor unrelated code.
 - Never commit secrets, keystores or `local.properties`.

@@ -52,10 +52,10 @@ interface WorkoutDao {
     )
     fun observeRecentSessions(limit: Int): Flow<List<SessionSummaryRow>>
 
-    @Query("SELECT * FROM set_entry WHERE sessionId = :sessionId ORDER BY setOrder")
+    @Query("SELECT * FROM set_entry WHERE sessionId = :sessionId ORDER BY positionInSession")
     fun observeSets(sessionId: Long): Flow<List<SetEntryEntity>>
 
-    @Query("SELECT COALESCE(MAX(setOrder) + 1, 0) FROM set_entry WHERE sessionId = :sessionId")
+    @Query("SELECT COALESCE(MAX(positionInSession) + 1, 0) FROM set_entry WHERE sessionId = :sessionId")
     suspend fun nextSetOrder(sessionId: Long): Int
 
     @Insert
@@ -63,7 +63,7 @@ interface WorkoutDao {
 
     @Transaction
     suspend fun insertSetAtEnd(set: SetEntryEntity): Long =
-        insertSet(set.copy(order = nextSetOrder(set.sessionId)))
+        insertSet(set.copy(positionInSession = nextSetOrder(set.sessionId)))
 
     @Query("SELECT * FROM set_entry WHERE id = :id")
     suspend fun getSet(id: Long): SetEntryEntity?
@@ -71,16 +71,14 @@ interface WorkoutDao {
     @Update
     suspend fun updateSet(set: SetEntryEntity)
 
-    /** Reads the current row inside the transaction, so rapid taps don't overwrite each other. */
     @Transaction
-    suspend fun modifySet(id: Long, change: (SetEntryEntity) -> SetEntryEntity) {
+    suspend fun modifySetInTransaction(id: Long, change: (SetEntryEntity) -> SetEntryEntity) {
         getSet(id)?.let { updateSet(change(it)) }
     }
 
     @Query("DELETE FROM set_entry WHERE id = :id")
     suspend fun deleteSet(id: Long)
 
-    /** Sets of [exerciseId] from the most recent other session that contains it. */
     @Query(
         """
         SELECT * FROM set_entry
@@ -91,7 +89,7 @@ interface WorkoutDao {
             ORDER BY s.startedAt DESC
             LIMIT 1
         )
-        ORDER BY setOrder
+        ORDER BY positionInSession
         """
     )
     suspend fun lastSetsForExercise(exerciseId: Long, excludingSessionId: Long): List<SetEntryEntity>

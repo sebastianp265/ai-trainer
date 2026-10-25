@@ -29,7 +29,6 @@ class RoomExerciseRepository(
 class RoomWorkoutRepository(
     private val dao: WorkoutDao,
     private val clock: Clock,
-    private val timeZone: TimeZone,
 ) : WorkoutRepository {
     override fun observeActiveSession(): Flow<WorkoutSession?> =
         dao.observeActiveSession().map { it?.toDomain() }
@@ -43,7 +42,7 @@ class RoomWorkoutRepository(
     override suspend fun startSession(planSessionRef: String?): Long =
         dao.insertSession(
             WorkoutSessionEntity(
-                date = clock.todayIn(timeZone),
+                date = clock.todayIn(TimeZone.currentSystemDefault()),
                 startedAt = clock.now(),
                 finishedAt = null,
                 planSessionRef = planSessionRef,
@@ -68,7 +67,7 @@ class RoomWorkoutRepository(
         SetEntryEntity(
             sessionId = sessionId,
             exerciseId = exerciseId,
-            order = 0,
+            positionInSession = 0,
             reps = reps,
             weightKg = weightKg,
             rpe = null,
@@ -77,7 +76,7 @@ class RoomWorkoutRepository(
     )
 
     override suspend fun modifySet(setId: Long, change: (SetEntry) -> SetEntry) =
-        dao.modifySet(setId) { change(it.toDomain()).toEntity() }
+        dao.modifySetInTransaction(setId) { change(it.toDomain()).toEntity() }
 
     override suspend fun deleteSet(setId: Long) = dao.deleteSet(setId)
 
@@ -89,8 +88,8 @@ internal fun ExerciseEntity.toDomain() = Exercise(id, name, primaryMuscles, seco
 
 internal fun WorkoutSessionEntity.toDomain() = WorkoutSession(id, date, startedAt, finishedAt, planSessionRef, notes)
 
-internal fun SetEntryEntity.toDomain() = SetEntry(id, sessionId, exerciseId, order, reps, weightKg, rpe, isWarmup)
+internal fun SetEntryEntity.toDomain() = SetEntry(id, sessionId, exerciseId, positionInSession, reps, weightKg, rpe, isWarmup)
 
-internal fun SetEntry.toEntity() = SetEntryEntity(id, sessionId, exerciseId, order, reps, weightKg, rpe, isWarmup)
+internal fun SetEntry.toEntity() = SetEntryEntity(id, sessionId, exerciseId, positionInSession, reps, weightKg, rpe, isWarmup)
 
 internal fun SessionSummaryRow.toDomain() = SessionSummary(id, date, startedAt, finishedAt, exerciseCount, setCount)

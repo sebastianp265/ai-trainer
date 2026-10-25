@@ -9,6 +9,7 @@ import com.github.sebastianp265.aitrainer.data.repo.RoomWorkoutRepository
 import com.github.sebastianp265.aitrainer.data.repo.WorkoutRepository
 import com.github.sebastianp265.aitrainer.ui.log.LogWorkoutViewModel
 import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.ANDROID
@@ -17,7 +18,6 @@ import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.datetime.TimeZone
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.singleOf
@@ -28,8 +28,6 @@ import kotlin.time.Clock
 
 val coreModule = module {
     single<Clock> { Clock.System }
-    // Captured once: a timezone change takes effect after an app restart.
-    single { TimeZone.currentSystemDefault() }
     single {
         Json {
             ignoreUnknownKeys = true
@@ -57,15 +55,16 @@ val networkModule = module {
     single {
         HttpClient(OkHttp) {
             install(ContentNegotiation) { json(get<Json>()) }
-            if (BuildConfig.DEBUG) {
-                install(Logging) {
-                    logger = Logger.ANDROID
-                    // Never log bodies: they may contain OAuth tokens.
-                    level = LogLevel.HEADERS
-                    sanitizeHeader { it == "x-api-key" || it == HttpHeaders.Authorization }
-                }
-            }
+            if (BuildConfig.DEBUG) installHeaderOnlyLogging()
         }
+    }
+}
+
+private fun HttpClientConfig<*>.installHeaderOnlyLogging() {
+    install(Logging) {
+        logger = Logger.ANDROID
+        level = LogLevel.HEADERS
+        sanitizeHeader { it == "x-api-key" || it == HttpHeaders.Authorization }
     }
 }
 

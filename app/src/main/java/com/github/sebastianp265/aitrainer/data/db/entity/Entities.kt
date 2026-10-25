@@ -1,6 +1,5 @@
 package com.github.sebastianp265.aitrainer.data.db.entity
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -56,8 +55,7 @@ data class SetEntryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val sessionId: Long,
     val exerciseId: Long,
-    // "order" is an SQL keyword.
-    @ColumnInfo(name = "setOrder") val order: Int,
+    val positionInSession: Int,
     val reps: Int,
     val weightKg: Double,
     val rpe: Double?,

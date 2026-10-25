@@ -9,9 +9,8 @@ data class ExerciseBlock(
     val sets: List<SetEntry>,
 )
 
-/** Blocks are ordered by when each exercise was first logged. */
-fun groupSetsByExercise(sets: List<SetEntry>, exercises: Map<Long, Exercise>): List<ExerciseBlock> =
-    sets.sortedBy { it.order }
+fun groupSetsByExerciseInLoggingOrder(sets: List<SetEntry>, exercises: Map<Long, Exercise>): List<ExerciseBlock> =
+    sets.sortedBy { it.positionInSession }
         .groupBy { it.exerciseId }
         .mapNotNull { (exerciseId, exerciseSets) ->
             exercises[exerciseId]?.let { ExerciseBlock(it, exerciseSets) }
@@ -19,8 +18,9 @@ fun groupSetsByExercise(sets: List<SetEntry>, exercises: Map<Long, Exercise>): L
 
 const val WEIGHT_STEP_KG = 2.5
 
-/** Rounded to 0.25 kg so repeated steps don't accumulate floating point drift. */
 fun adjustWeight(weightKg: Double, deltaKg: Double): Double =
-    (((weightKg + deltaKg).coerceAtLeast(0.0)) * 4).roundToInt() / 4.0
+    (weightKg + deltaKg).coerceAtLeast(0.0).roundToQuarterKg()
+
+private fun Double.roundToQuarterKg(): Double = (this * 4).roundToInt() / 4.0
 
 fun adjustReps(reps: Int, delta: Int): Int = (reps + delta).coerceAtLeast(0)
