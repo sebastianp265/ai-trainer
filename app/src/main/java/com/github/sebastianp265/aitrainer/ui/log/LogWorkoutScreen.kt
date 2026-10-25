@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -24,7 +23,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -52,9 +50,6 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,6 +63,7 @@ import com.github.sebastianp265.aitrainer.domain.model.SetEntry
 import com.github.sebastianp265.aitrainer.domain.model.WorkoutSession
 import com.github.sebastianp265.aitrainer.domain.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.domain.workout.WEIGHT_STEP_KG
+import com.github.sebastianp265.aitrainer.ui.components.Stepper
 import com.github.sebastianp265.aitrainer.ui.displayName
 import com.github.sebastianp265.aitrainer.ui.formatDate
 import com.github.sebastianp265.aitrainer.ui.formatWeight
@@ -98,7 +94,7 @@ interface LogWorkoutActions {
 }
 
 @Composable
-fun LogWorkoutRoute(viewModel: LogWorkoutViewModel = koinViewModel()) {
+fun LogWorkoutScreen(viewModel: LogWorkoutViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val actions = remember(viewModel) {
         object : LogWorkoutActions {
@@ -114,11 +110,11 @@ fun LogWorkoutRoute(viewModel: LogWorkoutViewModel = koinViewModel()) {
             override fun deleteSet(set: SetEntry) = viewModel.deleteSet(set)
         }
     }
-    LogWorkoutScreen(state = state, actions = actions, onMessageShown = viewModel::messageShown)
+    LogWorkoutContent(state = state, actions = actions, onMessageShown = viewModel::messageShown)
 }
 
 @Composable
-fun LogWorkoutScreen(
+fun LogWorkoutContent(
     state: LogUiState,
     actions: LogWorkoutActions,
     onMessageShown: () -> Unit,
@@ -283,36 +279,11 @@ private fun SetRow(number: Int, set: SetEntry, actions: LogWorkoutActions) {
 }
 
 @Composable
-private fun Stepper(
-    value: String,
-    valueTag: String,
-    unit: String,
-    decreaseDescription: String,
-    increaseDescription: String,
-    onMinus: () -> Unit,
-    onPlus: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-        FilledTonalIconButton(onClick = onMinus, modifier = Modifier.semantics { contentDescription = decreaseDescription }) {
-            Text("−")
-        }
-        Column(Modifier.widthIn(min = 40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(value, Modifier.testTag(valueTag), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-            Text(unit, style = MaterialTheme.typography.labelSmall)
-        }
-        FilledTonalIconButton(onClick = onPlus, modifier = Modifier.semantics { contentDescription = increaseDescription }) {
-            Text("+")
-        }
-    }
-}
-
-@Composable
 private fun ExercisePickerDialog(exercises: List<Exercise>, onPick: (Exercise) -> Unit, onDismiss: () -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
     val resources = LocalResources.current
     val locale = LocalConfiguration.current.locales[0]
-    val items = remember(exercises, resources, locale) { sortedPickerItems(exercises, { it.displayName(resources) }, locale) }
+    val items = remember(exercises, resources, locale) { sortedPickerItems(exercises, { it.displayName(resources) }, locale).withAvoidedLast() }
     val filtered = items.searchByDisplayOrEnglishName(query)
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -382,7 +353,7 @@ private fun ActiveSessionPreview() {
     )
     val session = WorkoutSession(1, LocalDate(2026, 10, 25), Instant.fromEpochMilliseconds(0), null, null, null)
     AITrainerTheme {
-        LogWorkoutScreen(
+        LogWorkoutContent(
             state = LogUiState(isLoading = false, activeSession = ActiveSessionUi(session, listOf(ExerciseBlock(previewBench, sets)))),
             actions = NoOpActions,
             onMessageShown = {},
@@ -394,7 +365,7 @@ private fun ActiveSessionPreview() {
 @Composable
 private fun NoSessionPreview() {
     AITrainerTheme {
-        LogWorkoutScreen(
+        LogWorkoutContent(
             state = LogUiState(
                 isLoading = false,
                 recentSessions = listOf(

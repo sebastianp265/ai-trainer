@@ -48,7 +48,7 @@ class ExercisePickerUTest {
     }
 
     @Test
-    fun `sorted by Polish alphabet with avoided exercises last`() {
+    fun `sorted by Polish alphabet, then avoided exercises moved last`() {
         val withAvoided = exercises.map {
             if (it.name == "Plank") it.copy(preference = ExercisePreference.AVOID) else it
         }
@@ -61,7 +61,7 @@ class ExercisePickerUTest {
                 "Wyciskanie sztangi na ławce płaskiej",
                 "Deska (plank)",
             ),
-            polishItems(withAvoided).searchByDisplayOrEnglishName("").map { it.displayName },
+            polishItems(withAvoided).withAvoidedLast().map { it.displayName },
         )
     }
 }

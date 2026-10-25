@@ -8,7 +8,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.data.db.SeedExercises
+import com.github.sebastianp265.aitrainer.domain.model.Equipment
 import com.github.sebastianp265.aitrainer.domain.model.Exercise
+import com.github.sebastianp265.aitrainer.domain.model.ExercisePreference
+import com.github.sebastianp265.aitrainer.domain.model.Goal
 import com.github.sebastianp265.aitrainer.domain.model.MuscleGroup
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.toJavaLocalDate
@@ -40,6 +43,36 @@ fun MuscleGroup.labelRes(): Int = when (this) {
     MuscleGroup.HAMSTRINGS -> R.string.muscle_hamstrings
     MuscleGroup.ADDUCTORS -> R.string.muscle_adductors
     MuscleGroup.CALVES -> R.string.muscle_calves
+}
+
+@StringRes
+fun Goal.labelRes(): Int = when (this) {
+    Goal.CUT -> R.string.goal_cut
+    Goal.MAINTAIN -> R.string.goal_maintain
+    Goal.BULK -> R.string.goal_bulk
+    Goal.RECOMP -> R.string.goal_recomp
+}
+
+@StringRes
+fun Equipment.labelRes(): Int = when (this) {
+    Equipment.BARBELL -> R.string.equipment_barbell
+    Equipment.DUMBBELL -> R.string.equipment_dumbbell
+    Equipment.EZ_BAR -> R.string.equipment_ez_bar
+    Equipment.KETTLEBELL -> R.string.equipment_kettlebell
+    Equipment.CABLE -> R.string.equipment_cable
+    Equipment.MACHINE -> R.string.equipment_machine
+    Equipment.SMITH_MACHINE -> R.string.equipment_smith_machine
+    Equipment.BODYWEIGHT -> R.string.equipment_bodyweight
+    Equipment.PULL_UP_BAR -> R.string.equipment_pull_up_bar
+    Equipment.DIP_STATION -> R.string.equipment_dip_station
+    Equipment.BAND -> R.string.equipment_band
+}
+
+@StringRes
+fun ExercisePreference.labelRes(): Int = when (this) {
+    ExercisePreference.FAVOURITE -> R.string.preference_favourite
+    ExercisePreference.NEUTRAL -> R.string.preference_neutral
+    ExercisePreference.AVOID -> R.string.preference_avoid
 }
 
 @Composable

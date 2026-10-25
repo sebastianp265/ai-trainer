@@ -20,6 +20,9 @@ interface DailyEnergyDao {
     @Upsert
     suspend fun upsert(entry: DailyEnergyEntity)
 
+    @Query("DELETE FROM daily_energy")
+    suspend fun deleteAll()
+
     @Query("SELECT * FROM daily_energy WHERE date = :date")
     suspend fun get(date: LocalDate): DailyEnergyEntity?
 
@@ -40,6 +43,9 @@ interface BodyWeightDao {
 
     @Query("DELETE FROM body_weight WHERE id = :id")
     suspend fun delete(id: Long)
+
+    @Query("DELETE FROM body_weight")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -47,8 +53,16 @@ interface ProfilePrefsDao {
     @Query("SELECT * FROM profile_prefs WHERE id = ${ProfilePrefsEntity.SINGLETON_ID}")
     fun observe(): Flow<ProfilePrefsEntity?>
 
+    @Query("SELECT * FROM profile_prefs WHERE id = ${ProfilePrefsEntity.SINGLETON_ID}")
+    suspend fun get(): ProfilePrefsEntity?
+
     @Upsert
     suspend fun upsert(prefs: ProfilePrefsEntity)
+
+    @Transaction
+    suspend fun modifyInTransaction(default: ProfilePrefsEntity, change: (ProfilePrefsEntity) -> ProfilePrefsEntity) {
+        upsert(change(get() ?: default))
+    }
 }
 
 @Dao

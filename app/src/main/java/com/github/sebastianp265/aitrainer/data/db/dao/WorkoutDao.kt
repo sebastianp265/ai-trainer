@@ -34,6 +34,9 @@ interface WorkoutDao {
     @Query("DELETE FROM workout_session WHERE id = :id")
     suspend fun deleteSession(id: Long)
 
+    @Query("DELETE FROM workout_session")
+    suspend fun deleteAllSessions()
+
     @Query("SELECT * FROM workout_session WHERE finishedAt IS NULL ORDER BY startedAt DESC LIMIT 1")
     fun observeActiveSession(): Flow<WorkoutSessionEntity?>
 

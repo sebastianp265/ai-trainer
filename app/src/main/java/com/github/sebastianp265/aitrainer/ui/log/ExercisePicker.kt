@@ -9,12 +9,10 @@ data class PickerItem(val exercise: Exercise, val displayName: String)
 
 fun sortedPickerItems(exercises: List<Exercise>, displayName: (Exercise) -> String, locale: Locale): List<PickerItem> {
     val collator = Collator.getInstance(locale)
-    return exercises.map { PickerItem(it, displayName(it)) }
-        .sortedWith(
-            compareBy<PickerItem> { it.exercise.preference == ExercisePreference.AVOID }
-                .thenBy(collator) { it.displayName },
-        )
+    return exercises.map { PickerItem(it, displayName(it)) }.sortedWith(compareBy(collator) { it.displayName })
 }
+
+fun List<PickerItem>.withAvoidedLast(): List<PickerItem> = sortedBy { it.exercise.preference == ExercisePreference.AVOID }
 
 fun List<PickerItem>.searchByDisplayOrEnglishName(query: String): List<PickerItem> {
     val q = query.trim()

@@ -23,12 +23,15 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.ui.log.LogWorkoutRoute
+import com.github.sebastianp265.aitrainer.ui.debug.DebugScreen
+import com.github.sebastianp265.aitrainer.ui.log.LogWorkoutScreen
 import com.github.sebastianp265.aitrainer.ui.plan.PlanScreen
 import com.github.sebastianp265.aitrainer.ui.progress.ProgressScreen
+import com.github.sebastianp265.aitrainer.ui.settings.ExercisePreferencesScreen
 import com.github.sebastianp265.aitrainer.ui.settings.SettingsScreen
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
@@ -36,7 +39,10 @@ import kotlin.reflect.KClass
 @Serializable object LogRoute
 @Serializable object PlanRoute
 @Serializable object ProgressRoute
+@Serializable object SettingsGraph
 @Serializable object SettingsRoute
+@Serializable object ExercisePreferencesRoute
+@Serializable object DebugRoute
 
 private enum class TopLevelDestination(
     val route: Any,
@@ -47,7 +53,7 @@ private enum class TopLevelDestination(
     LOG(LogRoute, LogRoute::class, R.string.nav_log, Icons.Default.Edit),
     PLAN(PlanRoute, PlanRoute::class, R.string.nav_plan, Icons.Default.DateRange),
     PROGRESS(ProgressRoute, ProgressRoute::class, R.string.nav_progress, Icons.Default.Star),
-    SETTINGS(SettingsRoute, SettingsRoute::class, R.string.nav_settings, Icons.Default.Settings),
+    SETTINGS(SettingsGraph, SettingsGraph::class, R.string.nav_settings, Icons.Default.Settings),
 }
 
 @Composable
@@ -82,10 +88,19 @@ fun AppNavigation() {
             startDestination = LogRoute,
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
-            composable<LogRoute> { LogWorkoutRoute() }
+            composable<LogRoute> { LogWorkoutScreen() }
             composable<PlanRoute> { PlanScreen() }
             composable<ProgressRoute> { ProgressScreen() }
-            composable<SettingsRoute> { SettingsScreen() }
+            navigation<SettingsGraph>(startDestination = SettingsRoute) {
+                composable<SettingsRoute> {
+                    SettingsScreen(
+                        onOpenExercisePreferences = { navController.navigate(ExercisePreferencesRoute) },
+                        onOpenDebugTools = { navController.navigate(DebugRoute) },
+                    )
+                }
+                composable<ExercisePreferencesRoute> { ExercisePreferencesScreen(onBack = navController::popBackStack) }
+                composable<DebugRoute> { DebugScreen(onBack = navController::popBackStack) }
+            }
         }
     }
 }
