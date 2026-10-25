@@ -5,14 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.data.repo.ExerciseRepository
 import com.github.sebastianp265.aitrainer.data.repo.WorkoutRepository
 import com.github.sebastianp265.aitrainer.domain.model.Exercise
-import com.github.sebastianp265.aitrainer.domain.model.ExercisePreference
 import com.github.sebastianp265.aitrainer.domain.model.SessionSummary
 import com.github.sebastianp265.aitrainer.domain.model.SetEntry
 import com.github.sebastianp265.aitrainer.domain.model.WorkoutSession
 import com.github.sebastianp265.aitrainer.domain.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.domain.workout.adjustReps
 import com.github.sebastianp265.aitrainer.domain.workout.adjustWeight
-import com.github.sebastianp265.aitrainer.domain.workout.groupSetsByExercise
+import com.github.sebastianp265.aitrainer.domain.workout.groupSetsByExerciseInLoggingOrder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,12 +28,17 @@ data class ActiveSessionUi(
     val blocks: List<ExerciseBlock>,
 )
 
+sealed interface LogMessage {
+    data object WorkoutSaved : LogMessage
+    data class NoPreviousSets(val exercise: Exercise) : LogMessage
+}
+
 data class LogUiState(
     val isLoading: Boolean = true,
     val activeSession: ActiveSessionUi? = null,
     val recentSessions: List<SessionSummary> = emptyList(),
     val exercises: List<Exercise> = emptyList(),
-    val message: String? = null,
+    val message: LogMessage? = null,
 )
 
 class LogWorkoutViewModel(
@@ -42,7 +46,7 @@ class LogWorkoutViewModel(
     exerciseRepository: ExerciseRepository,
 ) : ViewModel() {
 
-    private val message = MutableStateFlow<String?>(null)
+    private val message = MutableStateFlow<LogMessage?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val activeSessionWithSets = workoutRepository.observeActiveSession().flatMapLatest { session ->
@@ -60,16 +64,15 @@ class LogWorkoutViewModel(
         LogUiState(
             isLoading = false,
             activeSession = active?.let { (session, sets) ->
-                ActiveSessionUi(session, groupSetsByExercise(sets, byId))
+                ActiveSessionUi(session, groupSetsByExerciseInLoggingOrder(sets, byId))
             },
             recentSessions = recent,
-            exercises = exercises.sortedBy { it.preference == ExercisePreference.AVOID },
+            exercises = exercises,
             message = msg,
         )
     }.stateIn(
         scope = viewModelScope,
-        // Survives a rotation without restarting the queries.
-        started = SharingStarted.WhileSubscribed(5_000),
+        started = SharingStarted.WhileSubscribed(KEEP_QUERIES_ALIVE_AFTER_UI_STOPS_MS),
         initialValue = LogUiState(),
     )
 
@@ -77,12 +80,11 @@ class LogWorkoutViewModel(
 
     fun finishSession() = withActiveSession { session ->
         workoutRepository.finishSession(session.id)
-        message.value = "Workout saved"
+        message.value = LogMessage.WorkoutSaved
     }
 
     fun discardSession() = withActiveSession { session -> workoutRepository.discardSession(session.id) }
 
-    /** Adds [exercise] with one set, prefilled from the last time it was done if possible. */
     fun addExercise(exercise: Exercise) = withActiveSession { session ->
         val previous = workoutRepository.lastSetsFor(exercise.id, session.id).firstOrNull { !it.isWarmup }
         workoutRepository.addSet(
@@ -98,11 +100,10 @@ class LogWorkoutViewModel(
         workoutRepository.addSet(session.id, block.exercise.id, last?.reps ?: DEFAULT_REPS, last?.weightKg ?: 0.0)
     }
 
-    /** Appends all sets from the previous session with this exercise. */
-    fun sameAsLastTime(block: ExerciseBlock) = withActiveSession { session ->
+    fun copySetsFromLastTime(block: ExerciseBlock) = withActiveSession { session ->
         val previous = workoutRepository.lastSetsFor(block.exercise.id, session.id)
         if (previous.isEmpty()) {
-            message.value = "No previous ${block.exercise.name} sets found"
+            message.value = LogMessage.NoPreviousSets(block.exercise)
             return@withActiveSession
         }
         previous.forEach { workoutRepository.addSet(session.id, it.exerciseId, it.reps, it.weightKg, it.isWarmup) }
@@ -136,5 +137,6 @@ class LogWorkoutViewModel(
 
     private companion object {
         const val DEFAULT_REPS = 10
+        const val KEEP_QUERIES_ALIVE_AFTER_UI_STOPS_MS = 5_000L
     }
 }

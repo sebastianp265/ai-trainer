@@ -23,7 +23,6 @@ class AITrainerApp : Application() {
             androidContext(this@AITrainerApp)
             modules(appModules)
         }
-        // Room runs suspend queries off the main thread itself.
         appScope.launch { exerciseRepository.ensureSeeded() }
     }
 }

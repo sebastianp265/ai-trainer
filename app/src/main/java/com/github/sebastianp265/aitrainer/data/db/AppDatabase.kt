@@ -1,8 +1,11 @@
 package com.github.sebastianp265.aitrainer.data.db
 
+import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.RenameColumn
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.AutoMigrationSpec
 import com.github.sebastianp265.aitrainer.data.db.dao.BodyWeightDao
 import com.github.sebastianp265.aitrainer.data.db.dao.DailyEnergyDao
 import com.github.sebastianp265.aitrainer.data.db.dao.ExerciseDao
@@ -27,11 +30,18 @@ import com.github.sebastianp265.aitrainer.data.db.entity.WorkoutSessionEntity
         ProfilePrefsEntity::class,
         PlanEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
+    autoMigrations = [
+        AutoMigration(from = 1, to = 2, spec = AppDatabase.RenameSetOrderToPositionInSession::class),
+    ],
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
+
+    @RenameColumn(tableName = "set_entry", fromColumnName = "setOrder", toColumnName = "positionInSession")
+    class RenameSetOrderToPositionInSession : AutoMigrationSpec
+
     abstract fun exerciseDao(): ExerciseDao
     abstract fun workoutDao(): WorkoutDao
     abstract fun dailyEnergyDao(): DailyEnergyDao

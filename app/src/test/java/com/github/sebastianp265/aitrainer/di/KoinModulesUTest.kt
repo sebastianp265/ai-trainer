@@ -9,17 +9,11 @@ import org.koin.dsl.module
 import org.koin.test.verify.verify
 
 @OptIn(KoinExperimentalAPI::class)
-class KoinModulesTest {
+class KoinModulesUTest {
 
     @Test
     fun `all modules resolve`() {
-        module { includes(appModules) }.verify(
-            // Provided by Android or by Ktor internals, not by our modules.
-            extraTypes = listOf(
-                Context::class,
-                HttpClientEngine::class,
-                HttpClientConfig::class,
-            ),
-        )
+        val typesProvidedByAndroidOrKtor = listOf(Context::class, HttpClientEngine::class, HttpClientConfig::class)
+        module { includes(appModules) }.verify(extraTypes = typesProvidedByAndroidOrKtor)
     }
 }

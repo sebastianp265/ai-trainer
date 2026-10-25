@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.ui.log
 
+import android.content.res.Resources
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,12 +47,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.domain.model.Equipment
 import com.github.sebastianp265.aitrainer.domain.model.Exercise
 import com.github.sebastianp265.aitrainer.domain.model.ExercisePreference
@@ -61,10 +68,21 @@ import com.github.sebastianp265.aitrainer.domain.model.SetEntry
 import com.github.sebastianp265.aitrainer.domain.model.WorkoutSession
 import com.github.sebastianp265.aitrainer.domain.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.domain.workout.WEIGHT_STEP_KG
+import com.github.sebastianp265.aitrainer.ui.displayName
+import com.github.sebastianp265.aitrainer.ui.formatDate
+import com.github.sebastianp265.aitrainer.ui.formatWeight
+import com.github.sebastianp265.aitrainer.ui.labelRes
 import com.github.sebastianp265.aitrainer.ui.theme.AITrainerTheme
 import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Instant
+
+object LogWorkoutTags {
+    const val WEIGHT = "set_weight"
+    const val REPS = "set_reps"
+
+    fun exerciseCard(exerciseName: String) = "exercise_card:$exerciseName"
+}
 
 interface LogWorkoutActions {
     fun startSession()
@@ -72,7 +90,7 @@ interface LogWorkoutActions {
     fun discardSession()
     fun addExercise(exercise: Exercise)
     fun addSet(block: ExerciseBlock)
-    fun sameAsLastTime(block: ExerciseBlock)
+    fun copySetsFromLastTime(block: ExerciseBlock)
     fun changeReps(set: SetEntry, delta: Int)
     fun changeWeight(set: SetEntry, deltaKg: Double)
     fun toggleWarmup(set: SetEntry)
@@ -89,7 +107,7 @@ fun LogWorkoutRoute(viewModel: LogWorkoutViewModel = koinViewModel()) {
             override fun discardSession() = viewModel.discardSession()
             override fun addExercise(exercise: Exercise) = viewModel.addExercise(exercise)
             override fun addSet(block: ExerciseBlock) = viewModel.addSet(block)
-            override fun sameAsLastTime(block: ExerciseBlock) = viewModel.sameAsLastTime(block)
+            override fun copySetsFromLastTime(block: ExerciseBlock) = viewModel.copySetsFromLastTime(block)
             override fun changeReps(set: SetEntry, delta: Int) = viewModel.changeReps(set, delta)
             override fun changeWeight(set: SetEntry, deltaKg: Double) = viewModel.changeWeight(set, deltaKg)
             override fun toggleWarmup(set: SetEntry) = viewModel.toggleWarmup(set)
@@ -107,9 +125,10 @@ fun LogWorkoutScreen(
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val resources = LocalResources.current
     LaunchedEffect(state.message) {
         state.message?.let {
-            snackbarHostState.showSnackbar(it)
+            snackbarHostState.showSnackbar(it.text(resources))
             onMessageShown()
         }
     }
@@ -122,8 +141,8 @@ fun LogWorkoutScreen(
             if (state.activeSession != null) {
                 ExtendedFloatingActionButton(
                     onClick = { showPicker = true },
-                    icon = { Icon(Icons.Default.Add, contentDescription = "Add exercise") },
-                    text = { Text("Exercise") },
+                    icon = { Icon(Icons.Default.Add, contentDescription = stringResource(R.string.add_exercise)) },
+                    text = { Text(stringResource(R.string.exercise_button)) },
                 )
             }
         },
@@ -153,17 +172,17 @@ fun LogWorkoutScreen(
 private fun NoActiveSession(recent: List<SessionSummary>, onStart: () -> Unit) {
     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
-            Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) { Text("Start workout") }
+            Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.start_workout)) }
             Spacer(Modifier.height(16.dp))
-            Text("Recent workouts", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.recent_workouts), style = MaterialTheme.typography.titleMedium)
         }
         if (recent.isEmpty()) {
-            item { Text("No workouts logged yet.", style = MaterialTheme.typography.bodyMedium) }
+            item { Text(stringResource(R.string.no_workouts_yet), style = MaterialTheme.typography.bodyMedium) }
         }
         items(recent, key = { it.id }) { session ->
             ListItem(
-                headlineContent = { Text(session.date.toString()) },
-                supportingContent = { Text("${session.exerciseCount} exercises · ${session.setCount} sets") },
+                headlineContent = { Text(formatDate(session.date)) },
+                supportingContent = { Text(sessionSummary(session.exerciseCount, session.setCount)) },
             )
         }
     }
@@ -179,47 +198,47 @@ private fun ActiveSession(active: ActiveSessionUi, actions: LogWorkoutActions) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "Workout · ${active.session.date}",
+                    stringResource(R.string.workout_title, formatDate(active.session.date)),
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.weight(1f),
                 )
-                TextButton(onClick = { confirmDiscard = true }) { Text("Discard") }
-                Button(onClick = actions::finishSession) { Text("Finish") }
+                TextButton(onClick = { confirmDiscard = true }) { Text(stringResource(R.string.discard)) }
+                Button(onClick = actions::finishSession) { Text(stringResource(R.string.finish)) }
             }
         }
         if (active.blocks.isEmpty()) {
-            item { Text("Add your first exercise with the button below.") }
+            item { Text(stringResource(R.string.add_first_exercise_hint)) }
         }
         items(active.blocks, key = { it.exercise.id }) { block -> ExerciseCard(block, actions) }
     }
     if (confirmDiscard) {
         AlertDialog(
             onDismissRequest = { confirmDiscard = false },
-            title = { Text("Discard workout?") },
-            text = { Text("All sets logged in this session will be deleted.") },
+            title = { Text(stringResource(R.string.discard_workout_title)) },
+            text = { Text(stringResource(R.string.discard_workout_text)) },
             confirmButton = {
                 TextButton(onClick = {
                     confirmDiscard = false
                     actions.discardSession()
-                }) { Text("Discard") }
+                }) { Text(stringResource(R.string.discard)) }
             },
-            dismissButton = { TextButton(onClick = { confirmDiscard = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { confirmDiscard = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
 }
 
 @Composable
 private fun ExerciseCard(block: ExerciseBlock, actions: LogWorkoutActions) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(Modifier.fillMaxWidth().testTag(LogWorkoutTags.exerciseCard(block.exercise.name))) {
         Column(Modifier.padding(12.dp)) {
-            Text(block.exercise.name, style = MaterialTheme.typography.titleMedium)
+            Text(block.exercise.displayName(LocalResources.current), style = MaterialTheme.typography.titleMedium)
             block.sets.forEachIndexed { index, set ->
                 if (index > 0) HorizontalDivider()
                 SetRow(index + 1, set, actions)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { actions.addSet(block) }) { Text("+ Set") }
-                OutlinedButton(onClick = { actions.sameAsLastTime(block) }) { Text("Same as last time") }
+                OutlinedButton(onClick = { actions.addSet(block) }) { Text(stringResource(R.string.add_set)) }
+                OutlinedButton(onClick = { actions.copySetsFromLastTime(block) }) { Text(stringResource(R.string.same_as_last_time)) }
             }
         }
     }
@@ -234,27 +253,31 @@ private fun SetRow(number: Int, set: SetEntry, actions: LogWorkoutActions) {
         FilterChip(
             selected = set.isWarmup,
             onClick = { actions.toggleWarmup(set) },
-            label = { Text(if (set.isWarmup) "W" else "$number") },
+            label = { Text(if (set.isWarmup) stringResource(R.string.warmup_short) else "$number") },
         )
         Spacer(Modifier.width(4.dp))
         Stepper(
-            value = formatKg(set.weightKg),
-            unit = "kg",
-            label = "weight",
+            value = formatWeight(set.weightKg),
+            valueTag = LogWorkoutTags.WEIGHT,
+            unit = stringResource(R.string.unit_kg),
+            decreaseDescription = stringResource(R.string.decrease_weight),
+            increaseDescription = stringResource(R.string.increase_weight),
             onMinus = { actions.changeWeight(set, -WEIGHT_STEP_KG) },
             onPlus = { actions.changeWeight(set, WEIGHT_STEP_KG) },
             modifier = Modifier.weight(1f),
         )
         Stepper(
             value = set.reps.toString(),
-            unit = "reps",
-            label = "reps",
+            valueTag = LogWorkoutTags.REPS,
+            unit = stringResource(R.string.unit_reps),
+            decreaseDescription = stringResource(R.string.decrease_reps),
+            increaseDescription = stringResource(R.string.increase_reps),
             onMinus = { actions.changeReps(set, -1) },
             onPlus = { actions.changeReps(set, 1) },
             modifier = Modifier.weight(1f),
         )
         IconButton(onClick = { actions.deleteSet(set) }) {
-            Icon(Icons.Default.Delete, contentDescription = "Delete set")
+            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_set))
         }
     }
 }
@@ -262,21 +285,23 @@ private fun SetRow(number: Int, set: SetEntry, actions: LogWorkoutActions) {
 @Composable
 private fun Stepper(
     value: String,
+    valueTag: String,
     unit: String,
-    label: String,
+    decreaseDescription: String,
+    increaseDescription: String,
     onMinus: () -> Unit,
     onPlus: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-        FilledTonalIconButton(onClick = onMinus, modifier = Modifier.semantics { contentDescription = "Decrease $label" }) {
+        FilledTonalIconButton(onClick = onMinus, modifier = Modifier.semantics { contentDescription = decreaseDescription }) {
             Text("−")
         }
         Column(Modifier.widthIn(min = 40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(value, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+            Text(value, Modifier.testTag(valueTag), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
             Text(unit, style = MaterialTheme.typography.labelSmall)
         }
-        FilledTonalIconButton(onClick = onPlus, modifier = Modifier.semantics { contentDescription = "Increase $label" }) {
+        FilledTonalIconButton(onClick = onPlus, modifier = Modifier.semantics { contentDescription = increaseDescription }) {
             Text("+")
         }
     }
@@ -285,40 +310,51 @@ private fun Stepper(
 @Composable
 private fun ExercisePickerDialog(exercises: List<Exercise>, onPick: (Exercise) -> Unit, onDismiss: () -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
-    val filtered = exercises.filter { it.name.contains(query.trim(), ignoreCase = true) }
+    val resources = LocalResources.current
+    val locale = LocalConfiguration.current.locales[0]
+    val items = remember(exercises, resources, locale) { sortedPickerItems(exercises, { it.displayName(resources) }, locale) }
+    val filtered = items.searchByDisplayOrEnglishName(query)
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add exercise") },
+        title = { Text(stringResource(R.string.add_exercise)) },
         text = {
             Column {
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
-                    label = { Text("Search") },
+                    label = { Text(stringResource(R.string.search)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 LazyColumn(Modifier.height(360.dp)) {
-                    items(filtered, key = { it.id }) { exercise ->
+                    items(filtered, key = { it.exercise.id }) { item ->
                         ListItem(
-                            headlineContent = { Text(exercise.name) },
+                            headlineContent = { Text(item.displayName) },
                             supportingContent = {
-                                Text(exercise.primaryMuscles.joinToString { it.displayName() })
+                                Text(item.exercise.primaryMuscles.joinToString { resources.getString(it.labelRes()) })
                             },
-                            modifier = Modifier.clickable { onPick(exercise) },
+                            modifier = Modifier.clickable { onPick(item.exercise) },
                         )
                     }
                 }
             }
         },
         confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }
 
-private fun formatKg(kg: Double): String = if (kg % 1.0 == 0.0) kg.toInt().toString() else kg.toString()
+@Composable
+private fun sessionSummary(exerciseCount: Int, setCount: Int): String = stringResource(
+    R.string.session_summary,
+    pluralStringResource(R.plurals.exercise_count, exerciseCount, exerciseCount),
+    pluralStringResource(R.plurals.set_count, setCount, setCount),
+)
 
-private fun MuscleGroup.displayName(): String = name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+private fun LogMessage.text(resources: Resources): String = when (this) {
+    LogMessage.WorkoutSaved -> resources.getString(R.string.workout_saved)
+    is LogMessage.NoPreviousSets -> resources.getString(R.string.no_previous_sets, exercise.displayName(resources))
+}
 
 private object NoOpActions : LogWorkoutActions {
     override fun startSession() {}
@@ -326,7 +362,7 @@ private object NoOpActions : LogWorkoutActions {
     override fun discardSession() {}
     override fun addExercise(exercise: Exercise) {}
     override fun addSet(block: ExerciseBlock) {}
-    override fun sameAsLastTime(block: ExerciseBlock) {}
+    override fun copySetsFromLastTime(block: ExerciseBlock) {}
     override fun changeReps(set: SetEntry, delta: Int) {}
     override fun changeWeight(set: SetEntry, deltaKg: Double) {}
     override fun toggleWarmup(set: SetEntry) {}
@@ -336,6 +372,7 @@ private object NoOpActions : LogWorkoutActions {
 private val previewBench = Exercise(1, "Barbell Bench Press", listOf(MuscleGroup.CHEST), listOf(MuscleGroup.TRICEPS), Equipment.BARBELL, ExercisePreference.FAVOURITE)
 
 @Preview(showBackground = true)
+@Preview(name = "Polski", locale = "pl", showBackground = true)
 @Composable
 private fun ActiveSessionPreview() {
     val sets = listOf(

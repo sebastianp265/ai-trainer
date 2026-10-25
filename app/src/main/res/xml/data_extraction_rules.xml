@@ -1,9 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    Excludes everything from Android cloud backup and device-to-device transfer.
-    Together with android:allowBackup="false" this keeps all app data (database, encrypted
-    secrets) on this device only.
--->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="root" path="." />

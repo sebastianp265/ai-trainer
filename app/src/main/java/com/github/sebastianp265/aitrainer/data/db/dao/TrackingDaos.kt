@@ -29,7 +29,6 @@ interface DailyEnergyDao {
 
 @Dao
 interface BodyWeightDao {
-    /** With the unique (measuredAt, source) index, re-syncing never duplicates rows. */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertIgnoringDuplicates(entry: BodyWeightEntity): Long
 
