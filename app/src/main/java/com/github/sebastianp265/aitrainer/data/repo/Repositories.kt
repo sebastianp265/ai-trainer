@@ -6,7 +6,13 @@ import com.github.sebastianp265.aitrainer.domain.model.ProfilePrefs
 import com.github.sebastianp265.aitrainer.domain.model.SessionSummary
 import com.github.sebastianp265.aitrainer.domain.model.SetEntry
 import com.github.sebastianp265.aitrainer.domain.model.WorkoutSession
+import com.github.sebastianp265.aitrainer.domain.model.DailyEnergy
+import com.github.sebastianp265.aitrainer.domain.model.HealthDayTotals
+import com.github.sebastianp265.aitrainer.domain.model.LoggedSet
+import com.github.sebastianp265.aitrainer.domain.model.WeightMeasurement
 import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.LocalDate
+import kotlin.time.Instant
 
 interface ExerciseRepository {
     fun observeExercises(): Flow<List<Exercise>>
@@ -44,4 +50,17 @@ interface WorkoutRepository {
     suspend fun deleteSet(setId: Long)
 
     suspend fun lastSetsFor(exerciseId: Long, excludingSessionId: Long): List<SetEntry>
+
+    fun observeFinishedSetsSince(from: LocalDate): Flow<List<LoggedSet>>
+}
+
+interface EnergyRepository {
+    fun observeRange(from: LocalDate, toInclusive: LocalDate): Flow<List<DailyEnergy>>
+    suspend fun replaceHealthConnectDays(from: LocalDate, toInclusive: LocalDate, days: List<HealthDayTotals>)
+}
+
+interface BodyWeightRepository {
+    fun observeSince(from: Instant): Flow<List<WeightMeasurement>>
+    suspend fun addManualMeasurement(weightKg: Double)
+    suspend fun delete(id: Long)
 }

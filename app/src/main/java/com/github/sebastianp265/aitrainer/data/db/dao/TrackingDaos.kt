@@ -23,6 +23,17 @@ interface DailyEnergyDao {
     @Query("DELETE FROM daily_energy")
     suspend fun deleteAll()
 
+    @Query("DELETE FROM daily_energy WHERE date = :date")
+    suspend fun delete(date: LocalDate)
+
+    @Transaction
+    suspend fun replaceDays(dates: List<LocalDate>, replacement: (LocalDate, DailyEnergyEntity?) -> DailyEnergyEntity?) {
+        dates.forEach { date ->
+            val newDay = replacement(date, get(date))
+            if (newDay == null) delete(date) else upsert(newDay)
+        }
+    }
+
     @Query("SELECT * FROM daily_energy WHERE date = :date")
     suspend fun get(date: LocalDate): DailyEnergyEntity?
 

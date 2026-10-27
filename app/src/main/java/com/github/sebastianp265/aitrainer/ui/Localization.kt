@@ -15,6 +15,7 @@ import com.github.sebastianp265.aitrainer.domain.model.Goal
 import com.github.sebastianp265.aitrainer.domain.model.MuscleGroup
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.toJavaLocalDate
+import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -84,6 +85,33 @@ fun formatWeight(kg: Double): String {
     val locale = currentLocale()
     val format = remember(locale) { NumberFormat.getNumberInstance(locale).apply { maximumFractionDigits = 2 } }
     return format.format(kg)
+}
+
+@Composable
+fun formatBodyWeight(kg: Double): String = rememberNumberFormat(fractionDigits = 1..1).format(kg)
+
+@Composable
+fun formatSignedKg(kg: Double): String = rememberNumberFormat(fractionDigits = 1..1, showPlusSign = true).format(kg)
+
+@Composable
+fun formatKcal(kcal: Int): String = rememberNumberFormat(fractionDigits = 0..0).format(kcal)
+
+@Composable
+fun formatSignedKcal(kcal: Int): String = rememberNumberFormat(fractionDigits = 0..0, showPlusSign = true).format(kcal)
+
+@Composable
+fun formatSets(sets: Double): String = rememberNumberFormat(fractionDigits = 0..1).format(sets)
+
+@Composable
+private fun rememberNumberFormat(fractionDigits: IntRange, showPlusSign: Boolean = false): NumberFormat {
+    val locale = currentLocale()
+    return remember(locale, fractionDigits, showPlusSign) {
+        (NumberFormat.getNumberInstance(locale) as DecimalFormat).apply {
+            minimumFractionDigits = fractionDigits.first
+            maximumFractionDigits = fractionDigits.last
+            if (showPlusSign) positivePrefix = "+"
+        }
+    }
 }
 
 @Composable

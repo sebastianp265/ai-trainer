@@ -7,6 +7,7 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.github.sebastianp265.aitrainer.data.db.entity.SetEntryEntity
 import com.github.sebastianp265.aitrainer.data.db.entity.WorkoutSessionEntity
+import com.github.sebastianp265.aitrainer.domain.model.MuscleGroup
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
 import kotlin.time.Instant
@@ -18,6 +19,13 @@ data class SessionSummaryRow(
     val finishedAt: Instant?,
     val exerciseCount: Int,
     val setCount: Int,
+)
+
+data class LoggedSetRow(
+    val date: LocalDate,
+    val primaryMuscles: List<MuscleGroup>,
+    val secondaryMuscles: List<MuscleGroup>,
+    val isWarmup: Boolean,
 )
 
 @Dao
@@ -54,6 +62,17 @@ interface WorkoutDao {
         """
     )
     fun observeRecentSessions(limit: Int): Flow<List<SessionSummaryRow>>
+
+    @Query(
+        """
+        SELECT s.date AS date, e.primaryMuscles AS primaryMuscles, e.secondaryMuscles AS secondaryMuscles, se.isWarmup AS isWarmup
+        FROM set_entry se
+        JOIN workout_session s ON s.id = se.sessionId
+        JOIN exercise e ON e.id = se.exerciseId
+        WHERE s.finishedAt IS NOT NULL AND s.date >= :from
+        """
+    )
+    fun observeFinishedSetsSince(from: LocalDate): Flow<List<LoggedSetRow>>
 
     @Query("SELECT * FROM set_entry WHERE sessionId = :sessionId ORDER BY positionInSession")
     fun observeSets(sessionId: Long): Flow<List<SetEntryEntity>>

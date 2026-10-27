@@ -1,6 +1,7 @@
 package com.github.sebastianp265.aitrainer.di
 
 import android.content.Context
+import androidx.work.WorkerParameters
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.engine.HttpClientEngine
 import kotlin.test.Test
@@ -13,7 +14,8 @@ class KoinModulesUTest {
 
     @Test
     fun `all modules resolve`() {
-        val typesProvidedByAndroidOrKtor = listOf(Context::class, HttpClientEngine::class, HttpClientConfig::class)
-        module { includes(appModules) }.verify(extraTypes = typesProvidedByAndroidOrKtor)
+        val typesProvidedByAndroidKtorOrWorkManager =
+            listOf(Context::class, HttpClientEngine::class, HttpClientConfig::class, WorkerParameters::class)
+        module { includes(appModules) }.verify(extraTypes = typesProvidedByAndroidKtorOrWorkManager)
     }
 }

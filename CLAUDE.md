@@ -8,6 +8,8 @@ I'm an experienced software engineer but **new to Android**. When you introduce 
 
 **Phase 3: Health Connect + progress.** The product spec (phases, screens, sync, Claude integration, domain calculations) is in `docs/spec.md`. Read its relevant sections before starting a phase or a feature in that area. Finish each phase in a working, runnable state (builds, tests pass, app launches), then summarize what was done and what I should check manually.
 
+`docs/status.md` tells me how to run the app, what works and what doesn't. Update it at the end of each phase and whenever a change affects what I'd see when running the app (new or removed screens/features, known bugs, things to verify manually).
+
 ## Project setup
 
 Created from Android Studio's **Empty Activity (Compose)** template. Keep the generated Gradle wrapper, AGP and Kotlin setup; extend it rather than regenerating it. Add dependencies through the version catalog (`gradle/libs.versions.toml`).

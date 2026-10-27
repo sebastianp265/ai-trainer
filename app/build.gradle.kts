@@ -63,11 +63,16 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.health.connect.client)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.vico.compose)
+    implementation(libs.vico.compose.m3)
 
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.androidx.workmanager)
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
