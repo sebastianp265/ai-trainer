@@ -8,7 +8,6 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -16,38 +15,28 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.sebastianp265.aitrainer.testing.AppUnderTest
+import com.github.sebastianp265.aitrainer.domain.model.ExerciseKey
+import com.github.sebastianp265.aitrainer.testing.AbstractITest
 import com.github.sebastianp265.aitrainer.testing.exerciseNamesInPicker
 import com.github.sebastianp265.aitrainer.testing.openExercisePicker
 import com.github.sebastianp265.aitrainer.testing.openTab
-import com.github.sebastianp265.aitrainer.testing.scrollTo
 import com.github.sebastianp265.aitrainer.testing.startWorkout
 import com.github.sebastianp265.aitrainer.testing.waitFor
 import com.github.sebastianp265.aitrainer.testing.waitForText
-import org.junit.Rule
 import org.junit.runner.RunWith
-import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @RunWith(AndroidJUnit4::class)
-class SettingsFlowITest {
-
-    @get:Rule
-    val compose = createEmptyComposeRule()
-
-    private val app = AppUnderTest()
+class SettingsFlowITest : AbstractITest() {
 
     @BeforeTest
-    fun start() = app.startInEnglishWithFreshData()
-
-    @AfterTest
-    fun close() = app.close()
+    fun start() = launchApp()
 
     @Test
     fun trainingProfileIsKeptAfterRestart() {
-        openSettings()
+        compose.openSettings()
         compose.onNodeWithText("Cut").performClick()
         compose.onNodeWithContentDescription("Increase sessions per week").performClick()
         compose.onNodeWithContentDescription("Decrease session length").performClick()
@@ -57,8 +46,8 @@ class SettingsFlowITest {
         compose.scrollTo(hasText("Kettlebell")).performClick()
         compose.scrollTo(hasTestTag(SettingsTags.NOTES)).performTextInput("Bad left knee")
 
-        app.restart()
-        openSettings()
+        restartApp()
+        compose.openSettings()
 
         compose.onNodeWithText("Cut").assertIsSelected()
         compose.onNodeWithText("Maintain").assertIsNotSelected()
@@ -73,15 +62,15 @@ class SettingsFlowITest {
 
     @Test
     fun claudeApiKeyIsSavedButNeverShown() {
-        openSettings()
+        compose.openSettings()
         compose.scrollTo(hasText("No API key saved"))
         compose.scrollTo(hasTestTag(SettingsTags.CLAUDE_API_KEY)).performTextInput("test-key")
         compose.onNodeWithText("Save").performClick()
         compose.waitForText("API key saved")
         assertEquals(0, compose.onAllNodesWithText("test-key", substring = true).fetchSemanticsNodes().size)
 
-        app.restart()
-        openSettings()
+        restartApp()
+        compose.openSettings()
 
         compose.scrollTo(hasText("API key saved"))
         assertEquals(0, compose.onAllNodesWithText("test-key", substring = true).fetchSemanticsNodes().size)
@@ -91,10 +80,10 @@ class SettingsFlowITest {
 
     @Test
     fun avoidedExerciseIsListedLastInTheExercisePicker() {
-        openSettings()
+        compose.openSettings()
         compose.scrollTo(hasText("Exercise preferences")).performClick()
         compose.onNode(hasSetTextAction()).performTextInput("Bench")
-        val benchRow = hasAnyAncestor(hasTestTag(ExercisePreferencesTags.row("Barbell Bench Press")))
+        val benchRow = hasAnyAncestor(hasTestTag(ExercisePreferencesTags.row(ExerciseKey.BARBELL_BENCH_PRESS)))
         compose.waitFor(hasText("Avoid") and benchRow)
         compose.onNode(hasText("Avoid") and benchRow).performClick()
         compose.waitUntil { runCatching { compose.onNode(hasText("Avoid") and benchRow).assertIsSelected() }.isSuccess }
@@ -107,13 +96,7 @@ class SettingsFlowITest {
 
         assertEquals(
             listOf("Close-Grip Bench Press", "Dumbbell Bench Press", "Incline Barbell Bench Press", "Barbell Bench Press"),
-            compose.exerciseNamesInPicker(nameSuffix = "Bench Press"),
+            compose.exerciseNamesInPicker(),
         )
-    }
-
-    private fun openSettings() {
-        compose.waitForText("Settings")
-        compose.openTab("Settings")
-        compose.waitForText("Training profile")
     }
 }

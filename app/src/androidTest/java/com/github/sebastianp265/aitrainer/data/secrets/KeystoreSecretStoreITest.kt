@@ -54,9 +54,9 @@ class KeystoreSecretStoreITest {
     @Test
     fun writingTheSameSecretTwiceProducesDifferentCiphertexts() = runBlocking {
         store.write(Secret.CLAUDE_API_KEY, "test-key")
-        val first = encryptedValues.data.first()[rawClaudeApiKey]
+        val first = encryptedValues.data.first()[rawClaudeApiKey]!!
         store.write(Secret.CLAUDE_API_KEY, "test-key")
-        val second = encryptedValues.data.first()[rawClaudeApiKey]
+        val second = encryptedValues.data.first()[rawClaudeApiKey]!!
 
         assertNotEquals(first, second)
     }

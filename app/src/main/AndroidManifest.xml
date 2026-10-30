@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.health.READ_NUTRITION" />
-    <uses-permission android:name="android.permission.health.READ_TOTAL_CALORIES_BURNED" />
 
     <queries>
         <package android:name="com.google.android.apps.healthdata" />

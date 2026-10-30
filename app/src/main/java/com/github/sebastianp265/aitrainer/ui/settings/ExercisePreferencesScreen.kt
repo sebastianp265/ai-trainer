@@ -33,18 +33,32 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.domain.model.Equipment
 import com.github.sebastianp265.aitrainer.domain.model.Exercise
+import com.github.sebastianp265.aitrainer.domain.model.ExerciseKey
 import com.github.sebastianp265.aitrainer.domain.model.ExercisePreference
 import com.github.sebastianp265.aitrainer.domain.model.MuscleGroup
 import com.github.sebastianp265.aitrainer.ui.components.BackTopBar
 import com.github.sebastianp265.aitrainer.ui.displayName
 import com.github.sebastianp265.aitrainer.ui.labelRes
-import com.github.sebastianp265.aitrainer.ui.log.searchByDisplayOrEnglishName
-import com.github.sebastianp265.aitrainer.ui.log.sortedPickerItems
+import com.github.sebastianp265.aitrainer.ui.rememberEnglishResources
+import com.github.sebastianp265.aitrainer.ui.exercise.searchByDisplayThenEnglishName
+import com.github.sebastianp265.aitrainer.ui.exercise.sortedExerciseListItems
 import com.github.sebastianp265.aitrainer.ui.theme.AITrainerTheme
 import org.koin.compose.viewmodel.koinViewModel
 
+@Preview(showBackground = true)
+@Composable
+private fun ExercisePreferencesPreview() {
+    val exercises = listOf(
+        Exercise(1, ExerciseKey.BARBELL_BENCH_PRESS, listOf(MuscleGroup.CHEST), emptyList(), Equipment.BARBELL, ExercisePreference.FAVOURITE),
+        Exercise(2, ExerciseKey.BACK_SQUAT, listOf(MuscleGroup.QUADS), emptyList(), Equipment.BARBELL, ExercisePreference.AVOID),
+    )
+    AITrainerTheme {
+        ExercisePreferencesContent(ExercisePreferencesUiState(isLoading = false, exercises = exercises), { _, _ -> }, {})
+    }
+}
+
 object ExercisePreferencesTags {
-    fun row(exerciseName: String) = "exercise_preference:$exerciseName"
+    fun row(key: ExerciseKey) = "exercise_preference:$key"
 }
 
 @Composable
@@ -74,8 +88,11 @@ fun ExercisePreferencesContent(
 private fun ExercisePreferenceList(exercises: List<Exercise>, onSetPreference: (Exercise, ExercisePreference) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
     val resources = LocalResources.current
+    val englishResources = rememberEnglishResources()
     val locale = LocalConfiguration.current.locales[0]
-    val items = remember(exercises, resources, locale) { sortedPickerItems(exercises, { it.displayName(resources) }, locale) }
+    val items = remember(exercises, resources, englishResources, locale) {
+        sortedExerciseListItems(exercises, { it.displayName(resources) }, { it.displayName(englishResources) }, locale)
+    }
     Column {
         OutlinedTextField(
             value = query,
@@ -85,7 +102,7 @@ private fun ExercisePreferenceList(exercises: List<Exercise>, onSetPreference: (
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         )
         LazyColumn {
-            items(items.searchByDisplayOrEnglishName(query), key = { it.exercise.id }) { item ->
+            items(items.searchByDisplayThenEnglishName(query), key = { it.exercise.id }) { item ->
                 ListItem(
                     headlineContent = { Text(item.displayName) },
                     supportingContent = {
@@ -99,21 +116,9 @@ private fun ExercisePreferenceList(exercises: List<Exercise>, onSetPreference: (
                             }
                         }
                     },
-                    modifier = Modifier.testTag(ExercisePreferencesTags.row(item.exercise.name)),
+                    modifier = Modifier.testTag(ExercisePreferencesTags.row(item.exercise.key)),
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun ExercisePreferencesPreview() {
-    val exercises = listOf(
-        Exercise(1, "Barbell Bench Press", listOf(MuscleGroup.CHEST), emptyList(), Equipment.BARBELL, ExercisePreference.FAVOURITE),
-        Exercise(2, "Back Squat", listOf(MuscleGroup.QUADS), emptyList(), Equipment.BARBELL, ExercisePreference.AVOID),
-    )
-    AITrainerTheme {
-        ExercisePreferencesContent(ExercisePreferencesUiState(isLoading = false, exercises = exercises), { _, _ -> }, {})
     }
 }

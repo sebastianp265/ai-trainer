@@ -56,6 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.domain.model.Equipment
 import com.github.sebastianp265.aitrainer.domain.model.Exercise
+import com.github.sebastianp265.aitrainer.domain.model.ExerciseKey
 import com.github.sebastianp265.aitrainer.domain.model.ExercisePreference
 import com.github.sebastianp265.aitrainer.domain.model.MuscleGroup
 import com.github.sebastianp265.aitrainer.domain.model.SessionSummary
@@ -64,7 +65,11 @@ import com.github.sebastianp265.aitrainer.domain.model.WorkoutSession
 import com.github.sebastianp265.aitrainer.domain.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.domain.workout.WEIGHT_STEP_KG
 import com.github.sebastianp265.aitrainer.ui.components.Stepper
+import com.github.sebastianp265.aitrainer.ui.exercise.searchByDisplayThenEnglishName
+import com.github.sebastianp265.aitrainer.ui.exercise.sortedExerciseListItems
+import com.github.sebastianp265.aitrainer.ui.exercise.withAvoidedLast
 import com.github.sebastianp265.aitrainer.ui.displayName
+import com.github.sebastianp265.aitrainer.ui.rememberEnglishResources
 import com.github.sebastianp265.aitrainer.ui.formatDate
 import com.github.sebastianp265.aitrainer.ui.formatWeight
 import com.github.sebastianp265.aitrainer.ui.labelRes
@@ -73,11 +78,63 @@ import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.time.Instant
 
+@Preview(showBackground = true)
+@Preview(name = "Polski", locale = "pl", showBackground = true)
+@Composable
+private fun ActiveSessionPreview() {
+    val sets = listOf(
+        SetEntry(1, 1, 1, 0, 10, 40.0, null, isWarmup = true),
+        SetEntry(2, 1, 1, 1, 8, 80.0, null, isWarmup = false),
+        SetEntry(3, 1, 1, 2, 7, 82.5, null, isWarmup = false),
+    )
+    val session = WorkoutSession(1, LocalDate(2026, 10, 25), Instant.fromEpochMilliseconds(0), null, null, null)
+    AITrainerTheme {
+        LogWorkoutContent(
+            state = LogUiState(isLoading = false, activeSession = ActiveSessionUi(session, listOf(ExerciseBlock(previewBench, sets)))),
+            actions = NoOpActions,
+            onMessageShown = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun NoSessionPreview() {
+    AITrainerTheme {
+        LogWorkoutContent(
+            state = LogUiState(
+                isLoading = false,
+                recentSessions = listOf(
+                    SessionSummary(1, LocalDate(2026, 10, 23), Instant.fromEpochMilliseconds(0), Instant.fromEpochMilliseconds(1), 5, 18),
+                ),
+            ),
+            actions = NoOpActions,
+            onMessageShown = {},
+        )
+    }
+}
+
+private val previewBench = Exercise(1, ExerciseKey.BARBELL_BENCH_PRESS, listOf(MuscleGroup.CHEST), listOf(MuscleGroup.TRICEPS), Equipment.BARBELL, ExercisePreference.FAVOURITE)
+
+private object NoOpActions : LogWorkoutActions {
+    override fun startSession() {}
+    override fun finishSession() {}
+    override fun discardSession() {}
+    override fun addExercise(exercise: Exercise) {}
+    override fun addSet(block: ExerciseBlock) {}
+    override fun copySetsFromLastTime(block: ExerciseBlock) {}
+    override fun changeReps(set: SetEntry, delta: Int) {}
+    override fun changeWeight(set: SetEntry, deltaKg: Double) {}
+    override fun toggleWarmup(set: SetEntry) {}
+    override fun deleteSet(set: SetEntry) {}
+}
+
 object LogWorkoutTags {
     const val WEIGHT = "set_weight"
     const val REPS = "set_reps"
+    const val PICKER_EXERCISE_NAME = "picker_exercise_name"
 
-    fun exerciseCard(exerciseName: String) = "exercise_card:$exerciseName"
+    fun exerciseCard(key: ExerciseKey) = "exercise_card:$key"
 }
 
 interface LogWorkoutActions {
@@ -225,7 +282,7 @@ private fun ActiveSession(active: ActiveSessionUi, actions: LogWorkoutActions) {
 
 @Composable
 private fun ExerciseCard(block: ExerciseBlock, actions: LogWorkoutActions) {
-    Card(Modifier.fillMaxWidth().testTag(LogWorkoutTags.exerciseCard(block.exercise.name))) {
+    Card(Modifier.fillMaxWidth().testTag(LogWorkoutTags.exerciseCard(block.exercise.key))) {
         Column(Modifier.padding(12.dp)) {
             Text(block.exercise.displayName(LocalResources.current), style = MaterialTheme.typography.titleMedium)
             block.sets.forEachIndexed { index, set ->
@@ -282,9 +339,12 @@ private fun SetRow(number: Int, set: SetEntry, actions: LogWorkoutActions) {
 private fun ExercisePickerDialog(exercises: List<Exercise>, onPick: (Exercise) -> Unit, onDismiss: () -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
     val resources = LocalResources.current
+    val englishResources = rememberEnglishResources()
     val locale = LocalConfiguration.current.locales[0]
-    val items = remember(exercises, resources, locale) { sortedPickerItems(exercises, { it.displayName(resources) }, locale).withAvoidedLast() }
-    val filtered = items.searchByDisplayOrEnglishName(query)
+    val items = remember(exercises, resources, englishResources, locale) {
+        sortedExerciseListItems(exercises, { it.displayName(resources) }, { it.displayName(englishResources) }, locale).withAvoidedLast()
+    }
+    val filtered = items.searchByDisplayThenEnglishName(query)
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.add_exercise)) },
@@ -300,7 +360,7 @@ private fun ExercisePickerDialog(exercises: List<Exercise>, onPick: (Exercise) -
                 LazyColumn(Modifier.height(360.dp)) {
                     items(filtered, key = { it.exercise.id }) { item ->
                         ListItem(
-                            headlineContent = { Text(item.displayName) },
+                            headlineContent = { Text(item.displayName, Modifier.testTag(LogWorkoutTags.PICKER_EXERCISE_NAME)) },
                             supportingContent = {
                                 Text(item.exercise.primaryMuscles.joinToString { resources.getString(it.labelRes()) })
                             },
@@ -325,55 +385,4 @@ private fun sessionSummary(exerciseCount: Int, setCount: Int): String = stringRe
 private fun LogMessage.text(resources: Resources): String = when (this) {
     LogMessage.WorkoutSaved -> resources.getString(R.string.workout_saved)
     is LogMessage.NoPreviousSets -> resources.getString(R.string.no_previous_sets, exercise.displayName(resources))
-}
-
-private object NoOpActions : LogWorkoutActions {
-    override fun startSession() {}
-    override fun finishSession() {}
-    override fun discardSession() {}
-    override fun addExercise(exercise: Exercise) {}
-    override fun addSet(block: ExerciseBlock) {}
-    override fun copySetsFromLastTime(block: ExerciseBlock) {}
-    override fun changeReps(set: SetEntry, delta: Int) {}
-    override fun changeWeight(set: SetEntry, deltaKg: Double) {}
-    override fun toggleWarmup(set: SetEntry) {}
-    override fun deleteSet(set: SetEntry) {}
-}
-
-private val previewBench = Exercise(1, "Barbell Bench Press", listOf(MuscleGroup.CHEST), listOf(MuscleGroup.TRICEPS), Equipment.BARBELL, ExercisePreference.FAVOURITE)
-
-@Preview(showBackground = true)
-@Preview(name = "Polski", locale = "pl", showBackground = true)
-@Composable
-private fun ActiveSessionPreview() {
-    val sets = listOf(
-        SetEntry(1, 1, 1, 0, 10, 40.0, null, isWarmup = true),
-        SetEntry(2, 1, 1, 1, 8, 80.0, null, isWarmup = false),
-        SetEntry(3, 1, 1, 2, 7, 82.5, null, isWarmup = false),
-    )
-    val session = WorkoutSession(1, LocalDate(2026, 10, 25), Instant.fromEpochMilliseconds(0), null, null, null)
-    AITrainerTheme {
-        LogWorkoutContent(
-            state = LogUiState(isLoading = false, activeSession = ActiveSessionUi(session, listOf(ExerciseBlock(previewBench, sets)))),
-            actions = NoOpActions,
-            onMessageShown = {},
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun NoSessionPreview() {
-    AITrainerTheme {
-        LogWorkoutContent(
-            state = LogUiState(
-                isLoading = false,
-                recentSessions = listOf(
-                    SessionSummary(1, LocalDate(2026, 10, 23), Instant.fromEpochMilliseconds(0), Instant.fromEpochMilliseconds(1), 5, 18),
-                ),
-            ),
-            actions = NoOpActions,
-            onMessageShown = {},
-        )
-    }
 }

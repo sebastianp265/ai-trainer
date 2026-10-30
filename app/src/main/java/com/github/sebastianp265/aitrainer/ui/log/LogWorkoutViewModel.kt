@@ -8,11 +8,15 @@ import com.github.sebastianp265.aitrainer.domain.model.Exercise
 import com.github.sebastianp265.aitrainer.domain.model.SessionSummary
 import com.github.sebastianp265.aitrainer.domain.model.SetEntry
 import com.github.sebastianp265.aitrainer.domain.model.WorkoutSession
+import com.github.sebastianp265.aitrainer.domain.usecase.AddExerciseToWorkoutUseCase
+import com.github.sebastianp265.aitrainer.domain.usecase.AddSetUseCase
+import com.github.sebastianp265.aitrainer.domain.usecase.ChangeSetUseCase
+import com.github.sebastianp265.aitrainer.domain.usecase.CopySetsFromLastTimeUseCase
+import com.github.sebastianp265.aitrainer.domain.usecase.CopySetsFromLastTimeUseCase.CopyResult
+import com.github.sebastianp265.aitrainer.domain.usecase.SetChange
 import com.github.sebastianp265.aitrainer.domain.workout.ExerciseBlock
-import com.github.sebastianp265.aitrainer.domain.workout.adjustReps
-import com.github.sebastianp265.aitrainer.ui.WhileUiSubscribed
-import com.github.sebastianp265.aitrainer.domain.workout.adjustWeight
 import com.github.sebastianp265.aitrainer.domain.workout.groupSetsByExerciseInLoggingOrder
+import com.github.sebastianp265.aitrainer.ui.WhileUiSubscribed
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,6 +48,10 @@ data class LogUiState(
 class LogWorkoutViewModel(
     private val workoutRepository: WorkoutRepository,
     exerciseRepository: ExerciseRepository,
+    private val addExerciseToWorkout: AddExerciseToWorkoutUseCase,
+    private val addSetToBlock: AddSetUseCase,
+    private val copyLastSets: CopySetsFromLastTimeUseCase,
+    private val changeSet: ChangeSetUseCase,
 ) : ViewModel() {
 
     private val message = MutableStateFlow<LogMessage?>(null)
@@ -85,41 +93,21 @@ class LogWorkoutViewModel(
 
     fun discardSession() = withActiveSession { session -> workoutRepository.discardSession(session.id) }
 
-    fun addExercise(exercise: Exercise) = withActiveSession { session ->
-        val previous = workoutRepository.lastSetsFor(exercise.id, session.id).firstOrNull { !it.isWarmup }
-        workoutRepository.addSet(
-            sessionId = session.id,
-            exerciseId = exercise.id,
-            reps = previous?.reps ?: DEFAULT_REPS,
-            weightKg = previous?.weightKg ?: 0.0,
-        )
-    }
+    fun addExercise(exercise: Exercise) = withActiveSession { session -> addExerciseToWorkout(session.id, exercise.id) }
 
-    fun addSet(block: ExerciseBlock) = withActiveSession { session ->
-        val last = block.sets.lastOrNull()
-        workoutRepository.addSet(session.id, block.exercise.id, last?.reps ?: DEFAULT_REPS, last?.weightKg ?: 0.0)
-    }
+    fun addSet(block: ExerciseBlock) = withActiveSession { session -> addSetToBlock(session.id, block) }
 
     fun copySetsFromLastTime(block: ExerciseBlock) = withActiveSession { session ->
-        val previous = workoutRepository.lastSetsFor(block.exercise.id, session.id)
-        if (previous.isEmpty()) {
+        if (copyLastSets(session.id, block.exercise.id) == CopyResult.NO_PREVIOUS_SETS) {
             message.value = LogMessage.NoPreviousSets(block.exercise)
-            return@withActiveSession
         }
-        previous.forEach { workoutRepository.addSet(session.id, it.exerciseId, it.reps, it.weightKg, it.isWarmup) }
     }
 
-    fun changeReps(set: SetEntry, delta: Int) = launch {
-        workoutRepository.modifySet(set.id) { it.copy(reps = adjustReps(it.reps, delta)) }
-    }
+    fun changeReps(set: SetEntry, delta: Int) = launch { changeSet(set.id, SetChange.Reps(delta)) }
 
-    fun changeWeight(set: SetEntry, deltaKg: Double) = launch {
-        workoutRepository.modifySet(set.id) { it.copy(weightKg = adjustWeight(it.weightKg, deltaKg)) }
-    }
+    fun changeWeight(set: SetEntry, deltaKg: Double) = launch { changeSet(set.id, SetChange.Weight(deltaKg)) }
 
-    fun toggleWarmup(set: SetEntry) = launch {
-        workoutRepository.modifySet(set.id) { it.copy(isWarmup = !it.isWarmup) }
-    }
+    fun toggleWarmup(set: SetEntry) = launch { changeSet(set.id, SetChange.ToggleWarmup) }
 
     fun deleteSet(set: SetEntry) = launch { workoutRepository.deleteSet(set.id) }
 
@@ -133,9 +121,5 @@ class LogWorkoutViewModel(
 
     private fun withActiveSession(block: suspend (WorkoutSession) -> Unit) = launch {
         uiState.value.activeSession?.session?.let { block(it) }
-    }
-
-    private companion object {
-        const val DEFAULT_REPS = 10
     }
 }

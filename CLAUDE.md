@@ -6,17 +6,13 @@ I'm an experienced software engineer but **new to Android**. When you introduce 
 
 ## Current phase
 
-**Phase 3: Health Connect + progress.** The product spec (phases, screens, sync, Claude integration, domain calculations) is in `docs/spec.md`. Read its relevant sections before starting a phase or a feature in that area. Finish each phase in a working, runnable state (builds, tests pass, app launches), then summarize what was done and what I should check manually.
+**Phase 3: Health Connect integration.** The product spec (phases, screens, sync, Claude integration, domain calculations) is in `docs/spec.md`. Read its relevant sections before starting a phase or a feature in that area. Finish each phase in a working, runnable state (builds, tests pass, app launches), then summarize what was done and what I should check manually.
 
 `docs/status.md` tells me how to run the app, what works and what doesn't. Update it at the end of each phase and whenever a change affects what I'd see when running the app (new or removed screens/features, known bugs, things to verify manually).
 
 ## Project setup
 
-Created from Android Studio's **Empty Activity (Compose)** template. Keep the generated Gradle wrapper, AGP and Kotlin setup; extend it rather than regenerating it. Add dependencies through the version catalog (`gradle/libs.versions.toml`).
-
-- AGP 9 uses **built-in Kotlin**: there is no `kotlin-android` plugin (don't add one), and Kotlin compiler options go in a top-level `kotlin { compilerOptions { } }` block.
-- The `kotlin` catalog version (shared by the Compose and serialization plugins) was raised from 2.2.10 to 2.4.21 because Ktor 3.6, kotlinx.serialization 1.12 and Koin 4.2 need it. Don't lower it.
-- KSP versions (2.3.0+) are independent of the Kotlin version.
+Gradle/AGP setup notes: `docs/build-setup.md`. Read it before changing build files or versions.
 
 ## Hard constraints
 
@@ -41,22 +37,36 @@ Created from Android Studio's **Empty Activity (Compose)** template. Keep the ge
 - **Room** (Kotlin Flow for observing data), **KSP** — not kapt
 - **Ktor client** + **kotlinx.serialization**; **kotlinx-datetime** in shared code
 - **Koin** for DI (`koin-android`, `koin-androidx-compose`, `koin-androidx-workmanager`), via Koin's BOM
-- **WorkManager**, **Health Connect** client, **Vico** for charts
+- **Health Connect** client; approved for later: **WorkManager** (background workers), **Vico** (charts)
 - **Secret storage**: Jetpack **DataStore** + an AES-256-GCM key in the **Android Keystore** (non-exportable); each value encrypted with a random IV stored alongside. Do **not** use `androidx.security:security-crypto` / EncryptedSharedPreferences (deprecated).
 - **minSdk 34**, target/compile latest stable. My phone runs Android 16. Don't add version checks or compatibility code for APIs below 34.
 - Single module, package-by-feature
 - Also approved: `ktor-client-okhttp`, `ktor-client-content-negotiation`, `ktor-serialization-kotlinx-json`, `ktor-client-logging`, `androidx.compose.material:material-icons-core` (frozen at 1.7.x, fine), `lifecycle-runtime-compose`, `lifecycle-viewmodel-compose`
-- Test-only: `kotlin-test-junit`, `koin-test-junit4`, `kotlinx-coroutines-test`, `androidx.room:room-testing`, AndroidX Test (`androidx.test.ext:junit`, Espresso, Compose `ui-test-junit4`)
+- Test-only: `kotlin-test-junit`, `koin-test-junit4`, `kotlinx-coroutines-test`, `androidx.room:room-testing` (for migration tests, later), AndroidX Test (`androidx.test.ext:junit`, Espresso, Compose `ui-test-junit4`, UI Automator for system screens such as the Health Connect permission dialog)
 
-Use current stable versions compatible with the existing AGP/Kotlin; check rather than guess. **Ask before adding a library not listed here.**
+**Ask before adding a library not listed here.**
 
 ## Architecture
 
-MVVM + repository: `ui (Compose) → ViewModel (StateFlow UI state) → Repository → { Room DAO | API client | Health Connect client }`.
+Three layers with one-way dependencies: `ui → domain → data`.
+
+| Layer | Contains | Rule |
+|---|---|---|
+| `ui/` | `XxxScreen` / `XxxContent`, `XxxViewModel`, `XxxUiState` | Shows state and forwards user actions. A ViewModel calls a repository directly only to observe data for display or to pass a user edit through unchanged; everything else goes through a use case. |
+| `domain/usecase/` | `VerbNounUseCase` with one `operator fun invoke` | One action: orchestrates repositories and data sources and applies domain rules. |
+| `domain/stats/`, `domain/workout/` | `XxxRules` (pure rule functions) | Calculations and rules, no I/O. These get the unit tests. UI-only rules (sorting/searching what a screen shows, using translated text) are `XxxRules` in `ui/` (e.g. `ui/exercise/ExerciseListRules`). |
+| `domain/model/` | Domain types (plain nouns) | Shared by all layers. |
+| `data/repo/` | `XxxRepository` interfaces + `RoomXxxRepository` | Storage only (observe / get / save / replace / delete, entity ↔ model mapping, transactions). No business rules. |
+| `data/<integration>/` | `XxxDataSource` / `XxxClient` interfaces + implementations, `XxxDto` | Talks to one external system and returns its data as DTOs. |
+| `sync/` (when needed) | `XxxWorker`, `XxxScheduler` | Android glue: a worker only calls a use case. |
+
+Naming says what a type is: `…Entity` (Room table), `…Row` (query projection), `…Dto` (external system data), plain noun (domain value), `…UiState` (screen state), `…UseCase` (an action with logic), `…Rules` (pure rule functions, no I/O), `…Repository`, `…DataSource` / `…Client`, `…Callback` (framework callback, e.g. Room), `…Worker`, `…Scheduler`. Every file name should say what kind of thing it holds.
 
 External integrations sit **behind interfaces** (`ClaudeClient`, `PolarClient`, `HealthDataSource`, `SecretStore`) with real and fake implementations, so the app can run offline and without spending API credits.
 
-Packages under the app package: `data/` (`db`, `repo`, `secrets`, `healthconnect`, `demo`, later `polar`, `claude`), `domain/` (`model`, `workout`, `stats`), `sync/`, `ui/` (one package per screen, plus `navigation`, `components`, `theme`), `di/`. The `debug` screen is compiled into all builds but reachable only when `BuildConfig.DEBUG`.
+Packages under the app package: `data/` (`db`, `repo`, `secrets`, `healthconnect`, later `polar`, `claude`), `domain/` (`model`, `usecase`, `workout`, later `stats`), later `sync/`, `ui/` (one package per screen, plus `navigation`, `components`, `theme`, and `exercise` for exercise-list rules shared by several screens), `di/` (including `useCaseModule`).
+
+**No demo or fake data in `src/main`.** Development fakes (e.g. a fake integration that fills the charts on the emulator) live only in `src/debug/`, so release builds never contain them. The exercise library (`ExerciseLibrary`) is the app's reference data, not demo data.
 
 ### Multiplatform-ready (Android-only for now)
 
@@ -69,13 +79,13 @@ I may later add a web or desktop version with Kotlin Multiplatform. Keep that mi
 
 ## Data invariants
 
-- Room schema export writes `app/schemas/<version>.json`. **Commit `app/schemas/`**. Write migrations, never destructive fallback.
+- Room schema export writes `app/schemas/<version>.json`. **Commit `app/schemas/`**.
+- **Prototype: no migrations.** On a schema change, bump the database version (the DB is recreated). Details and the end-of-prototype steps: `docs/prototype-database.md`.
 - `set_entry.positionInSession` is the set's position within the whole session, not within the exercise.
 - `profile_prefs` is a single-row table (`id = 1`).
 - Dates are stored as ISO text, instants as epoch millis, enum lists as comma-separated names (`data/db/Converters.kt`).
-- Seed exercises (`SeedExercises`) are inserted on every app start with "ignore if the name exists", so user preferences are never overwritten. **Don't rename seed exercises**: a renamed one is inserted again as a duplicate.
-- Burned calories: if both Polar and Health Connect provide them, Polar wins; record the source.
-- Health Connect is the source of truth for intake/macros and the burned calories it provided: every sync replaces each day of the sync window with what Health Connect reports, so entries deleted there disappear from the app too. Polar or manual burned calories are never removed by a Health Connect sync.
+- Exercises are identified by `exercise.key` (`ExerciseKey` enum), the stable id used in code and later by Claude. The DB stores no exercise names. The built-in library (`ExerciseLibrary`) is inserted once, when the database is created (Room callback), never on app start.
+- Health Connect data is not stored in the app: it's read on demand each time it's shown.
 - Domain arithmetic (stats, TDEE, trends) is computed locally in `domain/`, never by Claude.
 
 ## Localization
@@ -85,24 +95,30 @@ The app follows the device language: **English** (`res/values/`, fallback) and *
 - Every user-facing string (including content descriptions and snackbar messages) goes in `strings.xml`, in English and Polish. No hardcoded UI text in Kotlin. Lint's `MissingTranslation` must stay clean.
 - Counts use `<plurals>`. Numbers and dates are formatted for the current locale (`ui/Localization.kt`), e.g. `7,5` in Polish.
 - ViewModels expose typed messages (e.g. a sealed `LogMessage`), not text; the UI turns them into strings.
-- `exercise.name` is the stable English key (stored in the DB, used by Claude). Display via `Exercise.displayName(resources)`; sort and search by the displayed name.
+- Exercise names come only from string resources: `ExerciseKey.labelRes()` (exhaustive `when`, so a new key without a translation doesn't compile). Display via `Exercise.displayName(resources)`; sort by the displayed name. Search matches the displayed (native) name first, then the English name, for every supported locale.
 - Enums are shown through string resources (e.g. `MuscleGroup.labelRes()`), never `enum.name`.
 
 ## Testing
 
 - **Prefer integration tests that follow a user flow** in `androidTest/` (see `app/src/androidTest/CLAUDE.md`). Fakes only at external boundaries (Claude, Polar, Health Connect), never for our own classes.
+- **Integration data enters tests only through its fake.** Data that comes from Health Connect, Polar or Claude is provided by the fake at that boundary (e.g. `FakeHealthDataSource`) and flows through the real read path into the app, so the whole path is tested. Never write it into the database directly. Our own data (workouts, settings) may be set up in the database as a test's starting point, once another test covers creating it through the UI.
 - **Keep unit tests few and meaningful** (`./gradlew test`): only for non-trivial pure logic where a bug would be subtle (domain stats, plan JSON validation). No coverage-only tests (mappings, converters, getters, data lists). Don't mock our own code.
 - **Expected values are literals, never computed.** Decide the exact expected text/numbers/order first and write it into the test. Don't build expected values from string resources, plural rules, formatters or the production code under test.
 - Naming: integration tests end with `ITest`, unit tests with `UTest`.
 - Use **`kotlin.test`** on JUnit 4 in both `test/` and `androidTest/`. No JUnit 5. `org.junit` only for `@RunWith` and `@get:Rule`.
 - A Koin unit test verifies the module graph; keep it passing when adding dependencies.
 - Run the relevant tests after changes, and `./gradlew assembleDebug` after each meaningful change.
-- Instrumented tests (`./gradlew connectedDebugAndroidTest`) uninstall the app afterwards, deleting its data, so run them **on the emulator, not on my phone**.
+- Instrumented tests uninstall the app afterwards, deleting its data, so run them **on the emulator, not on my phone**. Run them from the shell, always pinned to the emulator:
+  - all: `ANDROID_SERIAL=emulator-5554 ./gradlew connectedDebugAndroidTest`
+  - one test: append `-Pandroid.testInstrumentationRunnerArguments.class=<fully.qualified.TestClass>#<testMethod>` (or just the class)
+  - Each exact command must be in `.claude/settings.local.json` before running it. On failure, the report is in `app/build/reports/androidTests/connected/`.
+  - Don't judge instrumented tests from Android Studio's runner: it reports exit code 0 even when a test fails.
 
 ## Conventions
 
 - Kotlin coding conventions; small composables; UI state as immutable data classes exposed via `StateFlow`.
-- Screens: a stateful `XxxScreen` (gets the ViewModel from Koin) wraps a stateless `XxxContent` (state + callbacks). Add `@Preview`s with fake state for the main screens.
+- **One top-level type per file, named after it**, so classes can be found by file name. Exception: a small type that exists only for that one type (e.g. `Secret` for `SecretStore`, `SessionSummaryRow` returned by a DAO method, a screen's `…UiState` / `…Tags` / `…Actions`). Mapping functions live in the file that uses them.
+- Screens: a stateful `XxxScreen` (gets the ViewModel from Koin) wraps a stateless `XxxContent` (state + callbacks). Add `@Preview`s with fake state for the main screens, placed at the top of the file right after the imports, followed by the helpers only they use (sample data, no-op actions).
 - User edits that must not be lost when the screen closes (settings, secrets) are saved with `NonCancellable` (see `SettingsViewModel.saveEvenIfScreenIsLeft`).
 - **No comments in code** (Kotlin, XML, Gradle, tests). When something isn't clear, rename, extract a well-named function/constant/type, or restructure. Explain Android concepts and design reasons in your reply.
 - Commit-sized changes; don't refactor unrelated code.

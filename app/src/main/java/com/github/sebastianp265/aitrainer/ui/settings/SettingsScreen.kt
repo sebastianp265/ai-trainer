@@ -36,7 +36,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.github.sebastianp265.aitrainer.BuildConfig
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.domain.model.Equipment
 import com.github.sebastianp265.aitrainer.domain.model.Goal
@@ -45,6 +44,28 @@ import com.github.sebastianp265.aitrainer.ui.components.Stepper
 import com.github.sebastianp265.aitrainer.ui.labelRes
 import com.github.sebastianp265.aitrainer.ui.theme.AITrainerTheme
 import org.koin.compose.viewmodel.koinViewModel
+
+@Preview(showBackground = true)
+@Preview(name = "Polski", locale = "pl", showBackground = true)
+@Composable
+private fun SettingsPreview() {
+    AITrainerTheme {
+        SettingsContent(SettingsUiState(isLoading = false, isClaudeApiKeyStored = true), NoOpSettingsActions)
+    }
+}
+
+private object NoOpSettingsActions : SettingsActions {
+    override fun setGoal(goal: Goal) {}
+    override fun changeSessionsPerWeek(delta: Int) {}
+    override fun changeSessionLength(steps: Int) {}
+    override fun toggleWeakMuscleGroup(muscleGroup: MuscleGroup) {}
+    override fun toggleEquipment(equipment: Equipment) {}
+    override fun setNotes(notes: String) {}
+    override fun saveClaudeApiKey(apiKey: String) {}
+    override fun removeClaudeApiKey() {}
+    override fun setClaudeModel(modelId: String) {}
+    override fun openExercisePreferences() {}
+}
 
 object SettingsTags {
     const val SESSIONS_PER_WEEK = "settings_sessions_per_week"
@@ -65,17 +86,15 @@ interface SettingsActions {
     fun removeClaudeApiKey()
     fun setClaudeModel(modelId: String)
     fun openExercisePreferences()
-    fun openDebugTools()
 }
 
 @Composable
 fun SettingsScreen(
     onOpenExercisePreferences: () -> Unit,
-    onOpenDebugTools: () -> Unit,
     viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val actions = remember(viewModel, onOpenExercisePreferences, onOpenDebugTools) {
+    val actions = remember(viewModel, onOpenExercisePreferences) {
         object : SettingsActions {
             override fun setGoal(goal: Goal) = viewModel.setGoal(goal)
             override fun changeSessionsPerWeek(delta: Int) = viewModel.changeSessionsPerWeek(delta)
@@ -87,14 +106,13 @@ fun SettingsScreen(
             override fun removeClaudeApiKey() = viewModel.removeClaudeApiKey()
             override fun setClaudeModel(modelId: String) = viewModel.setClaudeModel(modelId)
             override fun openExercisePreferences() = onOpenExercisePreferences()
-            override fun openDebugTools() = onOpenDebugTools()
         }
     }
-    SettingsContent(state, actions, showDebugTools = BuildConfig.DEBUG)
+    SettingsContent(state, actions)
 }
 
 @Composable
-fun SettingsContent(state: SettingsUiState, actions: SettingsActions, showDebugTools: Boolean) {
+fun SettingsContent(state: SettingsUiState, actions: SettingsActions) {
     if (state.isLoading) {
         Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
         return
@@ -137,15 +155,6 @@ fun SettingsContent(state: SettingsUiState, actions: SettingsActions, showDebugT
         item { SectionTitle(R.string.settings_ai_trainer) }
         item { ClaudeApiKey(state.isClaudeApiKeyStored, actions::saveClaudeApiKey, actions::removeClaudeApiKey) }
         item { ClaudeModelField(state.claudeModel, actions::setClaudeModel) }
-        if (showDebugTools) {
-            item { HorizontalDivider() }
-            item {
-                ListItem(
-                    headlineContent = { Text(stringResource(R.string.settings_debug_tools)) },
-                    modifier = Modifier.clickable(onClick = actions::openDebugTools),
-                )
-            }
-        }
     }
 }
 
@@ -280,27 +289,4 @@ private fun ClaudeModelField(savedModel: String, onModelChange: (String) -> Unit
         singleLine = true,
         modifier = Modifier.fillMaxWidth().testTag(SettingsTags.CLAUDE_MODEL),
     )
-}
-
-private object NoOpSettingsActions : SettingsActions {
-    override fun setGoal(goal: Goal) {}
-    override fun changeSessionsPerWeek(delta: Int) {}
-    override fun changeSessionLength(steps: Int) {}
-    override fun toggleWeakMuscleGroup(muscleGroup: MuscleGroup) {}
-    override fun toggleEquipment(equipment: Equipment) {}
-    override fun setNotes(notes: String) {}
-    override fun saveClaudeApiKey(apiKey: String) {}
-    override fun removeClaudeApiKey() {}
-    override fun setClaudeModel(modelId: String) {}
-    override fun openExercisePreferences() {}
-    override fun openDebugTools() {}
-}
-
-@Preview(showBackground = true)
-@Preview(name = "Polski", locale = "pl", showBackground = true)
-@Composable
-private fun SettingsPreview() {
-    AITrainerTheme {
-        SettingsContent(SettingsUiState(isLoading = false, isClaudeApiKeyStored = true), NoOpSettingsActions, showDebugTools = true)
-    }
 }

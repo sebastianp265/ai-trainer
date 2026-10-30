@@ -5,20 +5,15 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
-import androidx.work.WorkManager
 import com.github.sebastianp265.aitrainer.BuildConfig
 import com.github.sebastianp265.aitrainer.data.db.AppDatabase
-import com.github.sebastianp265.aitrainer.data.demo.DemoDataSeeder
+import com.github.sebastianp265.aitrainer.data.db.ExerciseLibraryCallback
 import com.github.sebastianp265.aitrainer.data.healthconnect.HealthConnectDataSource
 import com.github.sebastianp265.aitrainer.data.healthconnect.HealthDataSource
 import com.github.sebastianp265.aitrainer.data.repo.AppSettingsRepository
-import com.github.sebastianp265.aitrainer.data.repo.BodyWeightRepository
 import com.github.sebastianp265.aitrainer.data.repo.DataStoreAppSettingsRepository
-import com.github.sebastianp265.aitrainer.data.repo.EnergyRepository
 import com.github.sebastianp265.aitrainer.data.repo.ExerciseRepository
 import com.github.sebastianp265.aitrainer.data.repo.ProfileRepository
-import com.github.sebastianp265.aitrainer.data.repo.RoomBodyWeightRepository
-import com.github.sebastianp265.aitrainer.data.repo.RoomEnergyRepository
 import com.github.sebastianp265.aitrainer.data.repo.RoomExerciseRepository
 import com.github.sebastianp265.aitrainer.data.repo.RoomProfileRepository
 import com.github.sebastianp265.aitrainer.data.repo.RoomWorkoutRepository
@@ -26,10 +21,12 @@ import com.github.sebastianp265.aitrainer.data.repo.WorkoutRepository
 import com.github.sebastianp265.aitrainer.data.secrets.KeystoreAesGcmCipher
 import com.github.sebastianp265.aitrainer.data.secrets.KeystoreSecretStore
 import com.github.sebastianp265.aitrainer.data.secrets.SecretStore
-import com.github.sebastianp265.aitrainer.sync.HealthConnectSync
-import com.github.sebastianp265.aitrainer.sync.HealthConnectSyncScheduler
-import com.github.sebastianp265.aitrainer.sync.HealthConnectSyncWorker
-import com.github.sebastianp265.aitrainer.ui.debug.DebugViewModel
+import com.github.sebastianp265.aitrainer.domain.usecase.AddExerciseToWorkoutUseCase
+import com.github.sebastianp265.aitrainer.domain.usecase.AddSetUseCase
+import com.github.sebastianp265.aitrainer.domain.usecase.ChangeSetUseCase
+import com.github.sebastianp265.aitrainer.domain.usecase.CheckHealthConnectAccessUseCase
+import com.github.sebastianp265.aitrainer.domain.usecase.CopySetsFromLastTimeUseCase
+import com.github.sebastianp265.aitrainer.domain.usecase.ReadHealthConnectDaysUseCase
 import com.github.sebastianp265.aitrainer.ui.log.LogWorkoutViewModel
 import com.github.sebastianp265.aitrainer.ui.progress.ProgressViewModel
 import com.github.sebastianp265.aitrainer.ui.settings.ExercisePreferencesViewModel
@@ -46,7 +43,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.android.ext.koin.androidContext
-import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
@@ -68,21 +64,18 @@ val coreModule = module {
 
 val dataModule = module {
     single {
-        Room.databaseBuilder(androidContext(), AppDatabase::class.java, AppDatabase.NAME).build()
+        Room.databaseBuilder(androidContext(), AppDatabase::class.java, AppDatabase.NAME)
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .addCallback(ExerciseLibraryCallback())
+            .build()
     }
     single { get<AppDatabase>().exerciseDao() }
     single { get<AppDatabase>().workoutDao() }
-    single { get<AppDatabase>().dailyEnergyDao() }
-    single { get<AppDatabase>().bodyWeightDao() }
     single { get<AppDatabase>().profilePrefsDao() }
-    single { get<AppDatabase>().planDao() }
 
     singleOf(::RoomExerciseRepository) bind ExerciseRepository::class
     singleOf(::RoomWorkoutRepository) bind WorkoutRepository::class
     singleOf(::RoomProfileRepository) bind ProfileRepository::class
-    singleOf(::RoomEnergyRepository) bind EnergyRepository::class
-    singleOf(::RoomBodyWeightRepository) bind BodyWeightRepository::class
-    singleOf(::DemoDataSeeder)
 }
 
 object DataStoreFiles {
@@ -107,11 +100,13 @@ val healthDataSourceModule = module {
     single<HealthDataSource> { HealthConnectDataSource(androidContext()) }
 }
 
-val syncModule = module {
-    factoryOf(::HealthConnectSync)
-    single { WorkManager.getInstance(androidContext()) }
-    singleOf(::HealthConnectSyncScheduler)
-    workerOf(::HealthConnectSyncWorker)
+val useCaseModule = module {
+    factoryOf(::CheckHealthConnectAccessUseCase)
+    factoryOf(::ReadHealthConnectDaysUseCase)
+    factoryOf(::AddExerciseToWorkoutUseCase)
+    factoryOf(::AddSetUseCase)
+    factoryOf(::CopySetsFromLastTimeUseCase)
+    factoryOf(::ChangeSetUseCase)
 }
 
 val networkModule = module {
@@ -135,8 +130,15 @@ val viewModelModule = module {
     viewModelOf(::LogWorkoutViewModel)
     viewModelOf(::SettingsViewModel)
     viewModelOf(::ExercisePreferencesViewModel)
-    viewModelOf(::DebugViewModel)
     viewModelOf(::ProgressViewModel)
 }
 
-val appModules = listOf(coreModule, dataModule, storageModule, healthDataSourceModule, syncModule, networkModule, viewModelModule)
+val appModules = listOf(
+    coreModule,
+    dataModule,
+    storageModule,
+    healthDataSourceModule,
+    useCaseModule,
+    networkModule,
+    viewModelModule,
+)

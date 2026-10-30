@@ -27,7 +27,6 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.ui.debug.DebugScreen
 import com.github.sebastianp265.aitrainer.ui.log.LogWorkoutScreen
 import com.github.sebastianp265.aitrainer.ui.plan.PlanScreen
 import com.github.sebastianp265.aitrainer.ui.progress.ProgressScreen
@@ -42,7 +41,6 @@ import kotlin.reflect.KClass
 @Serializable object SettingsGraph
 @Serializable object SettingsRoute
 @Serializable object ExercisePreferencesRoute
-@Serializable object DebugRoute
 
 private enum class TopLevelDestination(
     val route: Any,
@@ -93,13 +91,9 @@ fun AppNavigation() {
             composable<ProgressRoute> { ProgressScreen() }
             navigation<SettingsGraph>(startDestination = SettingsRoute) {
                 composable<SettingsRoute> {
-                    SettingsScreen(
-                        onOpenExercisePreferences = { navController.navigate(ExercisePreferencesRoute) },
-                        onOpenDebugTools = { navController.navigate(DebugRoute) },
-                    )
+                    SettingsScreen(onOpenExercisePreferences = { navController.navigate(ExercisePreferencesRoute) })
                 }
                 composable<ExercisePreferencesRoute> { ExercisePreferencesScreen(onBack = navController::popBackStack) }
-                composable<DebugRoute> { DebugScreen(onBack = navController::popBackStack) }
             }
         }
     }

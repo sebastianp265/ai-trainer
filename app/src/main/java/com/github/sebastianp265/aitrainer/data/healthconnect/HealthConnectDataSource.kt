@@ -4,10 +4,8 @@ import android.content.Context
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.NutritionRecord
-import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import com.github.sebastianp265.aitrainer.domain.model.HealthDayTotals
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.plus
@@ -20,7 +18,6 @@ class HealthConnectDataSource(private val context: Context) : HealthDataSource {
 
     override val requiredPermissions: Set<String> = setOf(
         HealthPermission.getReadPermission(NutritionRecord::class),
-        HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
     )
 
     private val client by lazy { HealthConnectClient.getOrCreate(context) }
@@ -35,7 +32,7 @@ class HealthConnectDataSource(private val context: Context) : HealthDataSource {
         availability() == HealthConnectAvailability.AVAILABLE &&
             client.permissionController.getGrantedPermissions().containsAll(requiredPermissions)
 
-    override suspend fun readDailyTotals(from: LocalDate, toInclusive: LocalDate): List<HealthDayTotals> {
+    override suspend fun readDailyTotals(from: LocalDate, toInclusive: LocalDate): List<HealthConnectDayDto> {
         val dayAfterLast = toInclusive.plus(DatePeriod(days = 1))
         val buckets = client.aggregateGroupByPeriod(
             AggregateGroupByPeriodRequest(
@@ -44,7 +41,6 @@ class HealthConnectDataSource(private val context: Context) : HealthDataSource {
                     NutritionRecord.PROTEIN_TOTAL,
                     NutritionRecord.TOTAL_CARBOHYDRATE_TOTAL,
                     NutritionRecord.TOTAL_FAT_TOTAL,
-                    TotalCaloriesBurnedRecord.ENERGY_TOTAL,
                 ),
                 timeRangeFilter = TimeRangeFilter.between(
                     from.toJavaLocalDate().atStartOfDay(),
@@ -54,13 +50,13 @@ class HealthConnectDataSource(private val context: Context) : HealthDataSource {
             ),
         )
         return buckets.map { bucket ->
-            HealthDayTotals(
+            HealthConnectDayDto(
                 date = bucket.startTime.toLocalDate().toKotlinLocalDate(),
                 kcalEaten = bucket.result[NutritionRecord.ENERGY_TOTAL]?.inKilocalories?.roundToInt(),
                 proteinG = bucket.result[NutritionRecord.PROTEIN_TOTAL]?.inGrams,
                 carbsG = bucket.result[NutritionRecord.TOTAL_CARBOHYDRATE_TOTAL]?.inGrams,
                 fatG = bucket.result[NutritionRecord.TOTAL_FAT_TOTAL]?.inGrams,
-                kcalBurned = bucket.result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories?.roundToInt(),
+                sourcePackages = bucket.result.dataOrigins.map { it.packageName }.sorted(),
             )
         }
     }

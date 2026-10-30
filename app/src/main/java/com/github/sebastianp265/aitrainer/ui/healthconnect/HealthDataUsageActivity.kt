@@ -22,6 +22,12 @@ import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.ui.components.BackTopBar
 import com.github.sebastianp265.aitrainer.ui.theme.AITrainerTheme
 
+@Preview(showBackground = true)
+@Composable
+private fun HealthDataUsagePreview() {
+    AITrainerTheme { HealthDataUsageScreen(onBack = {}) }
+}
+
 class HealthDataUsageActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,10 +56,4 @@ fun HealthDataUsageScreen(onBack: () -> Unit) {
             ).forEach { Text(stringResource(it), style = MaterialTheme.typography.bodyLarge) }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun HealthDataUsagePreview() {
-    AITrainerTheme { HealthDataUsageScreen(onBack = {}) }
 }

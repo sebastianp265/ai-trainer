@@ -65,8 +65,6 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.health.connect.client)
     implementation(libs.androidx.work.runtime.ktx)
-    implementation(libs.vico.compose)
-    implementation(libs.vico.compose.m3)
 
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
@@ -91,8 +89,8 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.uiautomator)
     androidTestImplementation(libs.kotlin.test.junit)
-    androidTestImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.kotlinx.coroutines.test)
 
     debugImplementation(libs.androidx.compose.ui.test.manifest)
