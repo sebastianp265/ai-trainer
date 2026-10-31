@@ -42,29 +42,44 @@ Gradle/AGP setup notes: `docs/build-setup.md`. Read it before changing build fil
 - **minSdk 34**, target/compile latest stable. My phone runs Android 16. Don't add version checks or compatibility code for APIs below 34.
 - Single module, package-by-feature
 - Also approved: `ktor-client-okhttp`, `ktor-client-content-negotiation`, `ktor-serialization-kotlinx-json`, `ktor-client-logging`, `androidx.compose.material:material-icons-core` (frozen at 1.7.x, fine), `lifecycle-runtime-compose`, `lifecycle-viewmodel-compose`
-- Test-only: `kotlin-test-junit`, `koin-test-junit4`, `kotlinx-coroutines-test`, `androidx.room:room-testing` (for migration tests, later), AndroidX Test (`androidx.test.ext:junit`, Espresso, Compose `ui-test-junit4`, UI Automator for system screens such as the Health Connect permission dialog)
+- Test-only: `kotlin-test-junit`, `koin-test-junit4`, `kotlinx-coroutines-test`, `konsist` (architecture tests), `androidx.room:room-testing` (for migration tests, later), AndroidX Test (`androidx.test.ext:junit`, Espresso, Compose `ui-test-junit4`, UI Automator for system screens such as the Health Connect permission dialog)
 
 **Ask before adding a library not listed here.**
 
 ## Architecture
 
-Three layers with one-way dependencies: `ui → domain → data`.
+Package-by-feature with Modulith-style boundaries, enforced by Konsist in `app/src/test/.../app/ArchitectureUTest.kt`.
 
-| Layer | Contains | Rule |
+```
+app/            MainActivity, AITrainerApp, navigation, AppDatabase, AppModules (wires everything; may import anything)
+core/           shared kernel used by every feature; imports no feature and not app/
+                ui/ (theme, components, formatters), db/ (TimeConverters), secrets/, CoreModule (Clock, Json, HttpClient, DataStores)
+feature/<name>/ one vertical slice: domain/, data/, ui/, plus <Name>Module.kt (its Koin module)
+```
+
+Features: `exercise` (library), `workout` (logging), `health` (Health Connect), `progress` (stats and charts), `settings` (app settings, Settings screen), `plan` (Claude client, prompts, plan generation and the Plan screen); later `polar`, and `profile` (goal, training preferences, exercise preferences: removed for now, to be re-added). A feature is a business capability that owns its data and rules, not a single screen: add code to an existing feature unless it's a new capability. Rules:
+
+- **Allowed dependencies only.** A feature may use another feature only if `allowedFeatureDependencies` in `ArchitectureUTest` allows it. That map is the only list of feature dependencies (don't copy it into docs); the test also fails on cycles and on feature packages missing from the map. When a new dependency is needed, add it to the map and mention it in your reply.
+- **Public API = `domain` and `ui`.** Never import another feature's `data` or its Koin module. The one exception: a `data` package may import an allowed feature's `…Entity` for a Room foreign key.
+- **Shared code goes to `core/` only if it's feature-agnostic** (formatting, theme, secrets, HTTP). Something that belongs to one feature but is used by others stays in that feature's `domain`/`ui` (e.g. exercise labels in `feature/exercise/ui/ExerciseLabels.kt`).
+- **New tables**: the entity, DAO and Room repository go in the owning feature's `data/`; register the entity and DAO in `app/AppDatabase.kt` and the DAO provider in `app/AppModules.kt`.
+
+Inside each feature, one-way dependencies: `ui → domain → data`; `domain` and `data` never import `ui`.
+
+| Package in a feature | Contains | Rule |
 |---|---|---|
-| `ui/` | `XxxScreen` / `XxxContent`, `XxxViewModel`, `XxxUiState` | Shows state and forwards user actions. A ViewModel calls a repository directly only to observe data for display or to pass a user edit through unchanged; everything else goes through a use case. |
+| `ui/` | `XxxScreen` / `XxxContent`, `XxxViewModel`, `XxxUiState`, label helpers (`…Labels.kt`) | Shows state and forwards user actions. A ViewModel calls a repository directly only to observe data for display or to pass a user edit through unchanged; everything else goes through a use case. UI-only rules (sorting/searching what a screen shows, using translated text) are `XxxRules` here (e.g. `feature/exercise/ui/ExerciseListRules`). |
 | `domain/usecase/` | `VerbNounUseCase` with one `operator fun invoke` | One action: orchestrates repositories and data sources and applies domain rules. |
-| `domain/stats/`, `domain/workout/` | `XxxRules` (pure rule functions) | Calculations and rules, no I/O. These get the unit tests. UI-only rules (sorting/searching what a screen shows, using translated text) are `XxxRules` in `ui/` (e.g. `ui/exercise/ExerciseListRules`). |
-| `domain/model/` | Domain types (plain nouns) | Shared by all layers. |
-| `data/repo/` | `XxxRepository` interfaces + `RoomXxxRepository` | Storage only (observe / get / save / replace / delete, entity ↔ model mapping, transactions). No business rules. |
-| `data/<integration>/` | `XxxDataSource` / `XxxClient` interfaces + implementations, `XxxDto` | Talks to one external system and returns its data as DTOs. |
+| `domain/` | `XxxRepository` interfaces, `XxxRules` (pure rule functions) | Rules: calculations, no I/O; these get the unit tests. |
+| `domain/model/` | Domain types (plain nouns) | Shared by all layers and, through the public API, by other features. |
+| `data/` | `RoomXxxRepository`, `…Entity`, `…Dao`, `…Converters` | Storage only (observe / get / save / replace / delete, entity ↔ model mapping, transactions). No business rules. |
+| `data/` of an integration feature | `XxxDataSource` / `XxxClient` interfaces + implementations, `XxxDto` | Talks to one external system and returns its data as DTOs. Other features reach it only through the feature's use cases. |
 | `sync/` (when needed) | `XxxWorker`, `XxxScheduler` | Android glue: a worker only calls a use case. |
 
 Naming says what a type is: `…Entity` (Room table), `…Row` (query projection), `…Dto` (external system data), plain noun (domain value), `…UiState` (screen state), `…UseCase` (an action with logic), `…Rules` (pure rule functions, no I/O), `…Repository`, `…DataSource` / `…Client`, `…Callback` (framework callback, e.g. Room), `…Worker`, `…Scheduler`. Every file name should say what kind of thing it holds.
 
 External integrations sit **behind interfaces** (`ClaudeClient`, `PolarClient`, `HealthDataSource`, `SecretStore`) with real and fake implementations, so the app can run offline and without spending API credits.
 
-Packages under the app package: `data/` (`db`, `repo`, `secrets`, `healthconnect`, later `polar`, `claude`), `domain/` (`model`, `usecase`, `workout`, later `stats`), later `sync/`, `ui/` (one package per screen, plus `navigation`, `components`, `theme`, and `exercise` for exercise-list rules shared by several screens), `di/` (including `useCaseModule`).
 
 **No demo or fake data in `src/main`.** Development fakes (e.g. a fake integration that fills the charts on the emulator) live only in `src/debug/`, so release builds never contain them. The exercise library (`ExerciseLibrary`) is the app's reference data, not demo data.
 
@@ -72,18 +87,17 @@ Packages under the app package: `data/` (`db`, `repo`, `secrets`, `healthconnect
 
 I may later add a web or desktop version with Kotlin Multiplatform. Keep that migration cheap:
 
-- `domain/`, `data/claude/` and the repository interfaces must be **pure Kotlin**: no `android.*` / `androidx.*` imports, no `java.time` (use kotlinx-datetime), no `Context`.
+- Every feature's `domain/` (including repository interfaces) and the Claude client in `feature/plan/data/` must be **pure Kotlin**: no `android.*` / `androidx.*` imports, no `java.time` (use kotlinx-datetime), no `Context`.
 - Prefer multiplatform-capable libraries for anything that might be shared.
 - Android-only capabilities (Health Connect, WorkManager, Keystore secrets, Custom Tabs / OAuth redirect, file export/import) sit behind interfaces in Android-specific packages.
 - Don't move to a multiplatform module structure yet.
 
 ## Data invariants
 
-- Room schema export writes `app/schemas/<version>.json`. **Commit `app/schemas/`**.
+- Room schema export writes `app/schemas/<database class>/<version>.json` (the folder is named after `AppDatabase`'s fully qualified name, so moving that class creates a new folder: delete the old one). **Commit `app/schemas/`**.
 - **Prototype: no migrations.** On a schema change, bump the database version (the DB is recreated). Details and the end-of-prototype steps: `docs/prototype-database.md`.
 - `set_entry.positionInSession` is the set's position within the whole session, not within the exercise.
-- `profile_prefs` is a single-row table (`id = 1`).
-- Dates are stored as ISO text, instants as epoch millis, enum lists as comma-separated names (`data/db/Converters.kt`).
+- Dates are stored as ISO text, instants as epoch millis, enum lists as comma-separated names (`core/db/TimeConverters.kt`, `feature/exercise/data/ExerciseConverters.kt`).
 - Exercises are identified by `exercise.key` (`ExerciseKey` enum), the stable id used in code and later by Claude. The DB stores no exercise names. The built-in library (`ExerciseLibrary`) is inserted once, when the database is created (Room callback), never on app start.
 - Health Connect data is not stored in the app: it's read on demand each time it's shown.
 - Domain arithmetic (stats, TDEE, trends) is computed locally in `domain/`, never by Claude.
@@ -106,9 +120,10 @@ The app follows the device language: **English** (`res/values/`, fallback) and *
 - **Expected values are literals, never computed.** Decide the exact expected text/numbers/order first and write it into the test. Don't build expected values from string resources, plural rules, formatters or the production code under test.
 - Naming: integration tests end with `ITest`, unit tests with `UTest`.
 - Use **`kotlin.test`** on JUnit 4 in both `test/` and `androidTest/`. No JUnit 5. `org.junit` only for `@RunWith` and `@get:Rule`.
-- A Koin unit test verifies the module graph; keep it passing when adding dependencies.
-- Run the relevant tests after changes, and `./gradlew assembleDebug` after each meaningful change.
-- Instrumented tests uninstall the app afterwards, deleting its data, so run them **on the emulator, not on my phone**. Run them from the shell, always pinned to the emulator:
+- A Koin unit test verifies the module graph, and `ArchitectureUTest` (Konsist) verifies the package rules; keep both passing.
+- Run the relevant unit tests (`./gradlew testDebugUnitTest`) after changes, and `./gradlew assembleDebug` after each meaningful change.
+- **Don't run instrumented tests (`…ITest`, `connectedDebugAndroidTest`) unless I ask you to.** Compiling them (`compileDebugAndroidTestKotlin`) is fine and expected.
+- Instrumented tests uninstall the app afterwards, deleting its data, so run them **on the emulator, not on my phone**. When I ask for them, run them from the shell, always pinned to the emulator:
   - all: `ANDROID_SERIAL=emulator-5554 ./gradlew connectedDebugAndroidTest`
   - one test: append `-Pandroid.testInstrumentationRunnerArguments.class=<fully.qualified.TestClass>#<testMethod>` (or just the class)
   - Each exact command must be in `.claude/settings.local.json` before running it. On failure, the report is in `app/build/reports/androidTests/connected/`.

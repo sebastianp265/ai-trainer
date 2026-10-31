@@ -27,7 +27,7 @@ The app opens on **Log**. The bottom bar has four tabs.
 | **Log** | ✅ Works | Start a workout, add exercises (searchable picker), log sets with +/- steppers, "Same as last time", mark warm-up sets, delete sets, finish or discard. Recent workouts are listed below. |
 | **Plan** | ⏳ Placeholder | Shows "Your AI-generated training plan will appear here (phase 5)". Nothing to do yet. |
 | **Progress** | 🧪 Data check (phase 3) | Health Connect card until it's connected (connect / how data is used). Once connected, a plain list of the last 30 days read from Health Connect: calories eaten, protein, carbs, fat, and the source apps. No charts or stats yet (designed in phase 6). |
-| **Settings** | ✅ Works | Goal, sessions per week, session length, weak muscle groups, equipment, notes, exercise preferences (favourite / neutral / avoid), Claude API key (stored encrypted) and model. |
+| **Settings** | ✅ Works | Claude API key (stored encrypted) and model. The training profile (goal, volume, weak muscle groups, equipment, notes) and exercise preferences were removed for now and will come back later. |
 
 ### Health Connect
 
@@ -41,7 +41,7 @@ The app opens on **Log**. The bottom bar has four tabs.
 
 ### Prototype database
 
-- While prototyping, a schema change recreates the database and **deletes your logged workouts and exercise preferences**. Installing this version over the previous one does that once.
+- While prototyping, a schema change recreates the database and **deletes your logged workouts**. This version changes the schema (training profile and exercise preferences removed), so installing it over the previous one does that once.
 - Exercises are stored by key (e.g. `BARBELL_BENCH_PRESS`); their names come from the translations, so the picker should show Polish names on a Polish phone.
 
 ## What's not there yet

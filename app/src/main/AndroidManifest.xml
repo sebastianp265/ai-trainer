@@ -9,7 +9,7 @@
     </queries>
 
     <application
-        android:name=".AITrainerApp"
+        android:name=".app.AITrainerApp"
         android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:icon="@mipmap/ic_launcher"
@@ -19,7 +19,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AITrainer">
         <activity
-            android:name=".MainActivity"
+            android:name=".app.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.AITrainer"
             android:windowSoftInputMode="adjustResize">
@@ -31,7 +31,7 @@
         </activity>
 
         <activity
-            android:name=".ui.healthconnect.HealthDataUsageActivity"
+            android:name=".feature.health.ui.HealthDataUsageActivity"
             android:exported="false"
             android:theme="@style/Theme.AITrainer" />
 
@@ -39,7 +39,7 @@
             android:name="ViewPermissionUsageActivity"
             android:exported="true"
             android:permission="android.permission.START_VIEW_PERMISSION_USAGE"
-            android:targetActivity=".ui.healthconnect.HealthDataUsageActivity">
+            android:targetActivity=".feature.health.ui.HealthDataUsageActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
                 <category android:name="android.intent.category.HEALTH_PERMISSIONS" />

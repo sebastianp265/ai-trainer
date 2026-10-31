@@ -1,8 +1,8 @@
 package com.github.sebastianp265.aitrainer.testing
 
-import com.github.sebastianp265.aitrainer.data.healthconnect.HealthConnectAvailability
-import com.github.sebastianp265.aitrainer.data.healthconnect.HealthConnectDayDto
-import com.github.sebastianp265.aitrainer.data.healthconnect.HealthDataSource
+import com.github.sebastianp265.aitrainer.feature.health.data.HealthConnectAvailability
+import com.github.sebastianp265.aitrainer.feature.health.data.HealthConnectDayDto
+import com.github.sebastianp265.aitrainer.feature.health.data.HealthDataSource
 import kotlinx.datetime.LocalDate
 
 class FakeHealthDataSource(var days: List<HealthConnectDayDto>) : HealthDataSource {

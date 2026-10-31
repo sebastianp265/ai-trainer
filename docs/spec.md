@@ -24,7 +24,7 @@ Finish each phase in a working, runnable state (builds, tests pass, app launches
 
 ## Data model (Room)
 
-The original design. The entities in `data/db/` are the source of truth once a table exists.
+The original design. The `…Entity` classes in each `feature/<name>/data/` package are the source of truth once a table exists.
 
 - `exercise` — id, key (`ExerciseKey`, unique; names come from string resources), primaryMuscles, secondaryMuscles, equipment, preference (FAVOURITE / NEUTRAL / AVOID). Later: `customName` with a null key for user-created exercises.
 - `workout_session` — id, date, startedAt, finishedAt, planSessionRef (nullable), notes

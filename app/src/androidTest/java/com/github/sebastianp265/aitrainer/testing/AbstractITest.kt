@@ -8,14 +8,14 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
-import com.github.sebastianp265.aitrainer.MainActivity
-import com.github.sebastianp265.aitrainer.data.db.AppDatabase
-import com.github.sebastianp265.aitrainer.data.healthconnect.HealthDataSource
-import com.github.sebastianp265.aitrainer.data.secrets.Secret
-import com.github.sebastianp265.aitrainer.data.secrets.SecretStore
-import com.github.sebastianp265.aitrainer.di.DataStoreFiles
-import com.github.sebastianp265.aitrainer.di.dataModule
-import com.github.sebastianp265.aitrainer.di.healthDataSourceModule
+import com.github.sebastianp265.aitrainer.app.AppDatabase
+import com.github.sebastianp265.aitrainer.app.MainActivity
+import com.github.sebastianp265.aitrainer.app.databaseModule
+import com.github.sebastianp265.aitrainer.app.featureModules
+import com.github.sebastianp265.aitrainer.core.DataStoreFiles
+import com.github.sebastianp265.aitrainer.core.secrets.Secret
+import com.github.sebastianp265.aitrainer.core.secrets.SecretStore
+import com.github.sebastianp265.aitrainer.feature.health.data.HealthDataSource
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.koin.core.context.GlobalContext
@@ -36,7 +36,7 @@ abstract class AbstractITest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val localeManager = context.getSystemService(LocaleManager::class.java)
     private var scenario: ActivityScenario<MainActivity>? = null
-    private var replacedHealthDataSource = false
+    private val modulesUsingTheDatabaseOrIntegrations = listOf(databaseModule) + featureModules
 
     @BeforeTest
     fun startWithFreshData() {
@@ -53,13 +53,11 @@ abstract class AbstractITest {
     fun closeApp() {
         scenario?.close()
         localeManager.applicationLocales = LocaleList.getEmptyLocaleList()
-        if (replacedHealthDataSource) loadKoinModules(healthDataSourceModule)
     }
 
     protected fun launchApp(healthDataSource: HealthDataSource? = null) {
         if (healthDataSource != null) {
             loadKoinModules(module { single<HealthDataSource> { healthDataSource } })
-            replacedHealthDataSource = true
         }
         scenario = ActivityScenario.launch(MainActivity::class.java)
     }
@@ -72,7 +70,7 @@ abstract class AbstractITest {
     private fun recreateDatabase() {
         GlobalContext.get().get<AppDatabase>().close()
         context.deleteDatabase(AppDatabase.NAME)
-        unloadKoinModules(dataModule)
-        loadKoinModules(dataModule)
+        unloadKoinModules(modulesUsingTheDatabaseOrIntegrations)
+        loadKoinModules(modulesUsingTheDatabaseOrIntegrations)
     }
 }

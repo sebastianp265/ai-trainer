@@ -4,19 +4,19 @@ While the app is a prototype, the Room database has **no migrations**. The goal 
 
 ## Rule
 
-- On any schema change (an entity, column, index or table added, removed or changed), bump `version` in `@Database` (`data/db/AppDatabase.kt`).
+- On any schema change (an entity, column, index or table added, removed or changed), bump `version` in `@Database` (`app/AppDatabase.kt`).
 - Don't add migrations or `AutoMigration`s.
 
 ## How it works
 
 1. SQLite stores a version number in the database file. Room compares it with `@Database(version = …)` when the database is first opened.
-2. If they differ and no migration exists, `fallbackToDestructiveMigration(dropAllTables = true)` (database builder in `di/Modules.kt`) drops every table and recreates them from the current entities. This works for upgrades and downgrades.
-3. `ExerciseLibraryCallback` (`data/db/ExerciseLibraryCallback.kt`) inserts the exercise library after the database is created or recreated.
+2. If they differ and no migration exists, `fallbackToDestructiveMigration(dropAllTables = true)` (database builder in `app/AppModules.kt`) drops every table and recreates them from the current entities. This works for upgrades and downgrades.
+3. `ExerciseLibraryCallback` (`feature/exercise/data/ExerciseLibraryCallback.kt`) inserts the exercise library after the database is created or recreated.
 
 What this means on the phone:
 
 - Installing a new build without a schema change keeps all data.
-- Installing a build with a schema change deletes all local data (workouts, exercise preferences, training profile) once.
+- Installing a build with a schema change deletes all local data (workouts) once.
 
 If you change the schema but forget to bump the version, the app crashes with *"Room cannot verify the data integrity"*. Room stores a fingerprint of the schema (identity hash) in `room_master_table`, and the destructive fallback only applies when the version changes.
 
