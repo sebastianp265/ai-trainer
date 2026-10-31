@@ -64,10 +64,16 @@ class ArchitectureUTest {
     }
 
     private fun KoFileDeclaration.mayImportLayerOf(import: String): Boolean =
-        import.featureLayer() in publicFeatureLayers || isRoomForeignKeyToAnotherFeature(import)
+        import.featureLayer() in publicFeatureLayers || usesOnlyAsRoomForeignKeyTarget(import)
 
-    private fun KoFileDeclaration.isRoomForeignKeyToAnotherFeature(import: String): Boolean =
-        packageName.featureLayer() == "data" && import.featureLayer() == "data" && import.endsWith("Entity")
+    private fun KoFileDeclaration.usesOnlyAsRoomForeignKeyTarget(import: String): Boolean {
+        val entity = import.substringAfterLast(".")
+        if (packageName.featureLayer() != "data" || import.featureLayer() != "data" || !entity.endsWith("Entity")) return false
+        val code = text.lines().filterNot { it.startsWith("import ") }.joinToString("\n")
+        val allUses = Regex("""\b$entity\b""").findAll(code).count()
+        val foreignKeyTargetUses = Regex("""\bentity\s*=\s*$entity::class""").findAll(code).count()
+        return allUses > 0 && allUses == foreignKeyTargetUses
+    }
 
     @Test
     fun `features never import the app package`() {
