@@ -23,4 +23,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "AITrainer"
-include(":app")
+include(":core:common")
+include(":core:android")
+include(":androidApp")
+include(":architectureTest")

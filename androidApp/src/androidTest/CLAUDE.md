@@ -1,0 +1,19 @@
+# End-to-end tests
+
+- Tests launch the real app (real Koin graph, real Room database) and tap through it the way I would. Use the `androidx.compose.ui.test.junit4.v2` rules (the non-v2 ones are deprecated).
+- UI tests run in **English only**; don't repeat them per language. The exception is tests of localization behaviour itself (e.g. `ExerciseSearchLocalizationE2ETest`), which override `appLanguage` in their own class and pass the translated texts to the screen objects they use.
+
+## Screen objects
+
+- **A test only simulates the user.** It calls methods on screen objects (`progress.open()`, `workout.addSet()`, `settings.assertClaudeApiKeySaved()`) and never touches a Compose rule, selector, matcher or UiAutomator element. Everything technical is hidden inside the screen object.
+- **A test class holds** its tests, its test data (e.g. `today`, `daysAgo(...)`) and private user flows that only chain screen calls (e.g. `logFinishedBenchWorkout()`).
+- **Screen objects** extend `Screen(compose)` (`shared/e2e/Screen.kt`, with the shared waits and click helpers) and are named after the screen (`ProgressScreen`, `SettingsScreen`, `LogWorkoutScreen`, `ExercisePickerScreen`). A system screen wraps `UiDevice` instead (`HealthConnectPermissionScreen`). Methods are phrased as what the user does (`open`, `save`, `finish`) or sees (`assertWorkoutSaved`).
+- **Used by one test class:** the screen object sits in the same package as the test, in a file named after the screen.
+- **Used by two or more test classes:** it lives in `shared.e2e`. When a second class needs a screen object or helper, move it there instead of copying it.
+
+## What lives in `shared.e2e`
+
+- `AbstractE2ETest`: abstract base class every app flow test extends. Before each test it sets the app language (`appLanguage`, English by default) and starts from cleared workouts, settings and secrets (the database is emptied through its file, never recreated, so the seeded exercises stay). It provides the Compose rule, `launchApp()` (optionally with a `FakeHealthService` swapped in through Koin) and `restartApp()`, and closes the app afterwards.
+- `Screen`: base class of the screen objects.
+- Screen objects used by several test classes (`LogWorkoutScreen`, `ExercisePickerScreen`).
+- Fakes of external systems (`FakeHealthService`, later Polar/Claude) always live here, even if only one test uses them so far.

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="nav_log">Trening</string>
+    <string name="nav_plan">Plan</string>
+    <string name="nav_progress">Postępy</string>
+    <string name="nav_settings">Ustawienia</string>
+    <string name="plan_placeholder">Tu pojawi się Twój plan treningowy wygenerowany przez AI (etap 5).</string>
+    <string name="start_workout">Rozpocznij trening</string>
+    <string name="recent_workouts">Ostatnie treningi</string>
+    <string name="no_workouts_yet">Nie zapisano jeszcze żadnego treningu.</string>
+    <string name="workout_title">Trening · %1$s</string>
+    <string name="session_summary">%1$s · %2$s</string>
+    <string name="discard">Odrzuć</string>
+    <string name="finish">Zakończ</string>
+    <string name="cancel">Anuluj</string>
+    <string name="add_first_exercise_hint">Dodaj pierwsze ćwiczenie przyciskiem poniżej.</string>
+    <string name="discard_workout_title">Odrzucić trening?</string>
+    <string name="discard_workout_text">Wszystkie serie zapisane w tym treningu zostaną usunięte.</string>
+    <string name="add_set">+ Seria</string>
+    <string name="same_as_last_time">Jak ostatnio</string>
+    <string name="warmup_short">R</string>
+    <string name="unit_kg">kg</string>
+    <string name="unit_reps">powt.</string>
+    <string name="increase_weight">Zwiększ ciężar</string>
+    <string name="decrease_weight">Zmniejsz ciężar</string>
+    <string name="increase_reps">Zwiększ liczbę powtórzeń</string>
+    <string name="decrease_reps">Zmniejsz liczbę powtórzeń</string>
+    <string name="delete_set">Usuń serię</string>
+    <string name="add_exercise">Dodaj ćwiczenie</string>
+    <string name="exercise_button">Ćwiczenie</string>
+    <string name="search">Szukaj</string>
+    <string name="workout_saved">Trening zapisany</string>
+    <string name="no_previous_sets">Brak wcześniejszych serii: %1$s</string>
+    <string name="save">Zapisz</string>
+    <string name="remove">Usuń</string>
+    <string name="settings_ai_trainer">Trener AI</string>
+    <string name="settings_claude_api_key">Klucz API Claude</string>
+    <string name="settings_api_key_saved">Klucz API zapisany</string>
+    <string name="settings_api_key_missing">Brak zapisanego klucza API</string>
+    <string name="settings_claude_model">Model Claude</string>
+    <string name="health_connect">Health Connect</string>
+    <string name="health_connect_not_connected">Połącz, aby importować zjedzone kalorie i makroskładniki (np. z Fitatu).</string>
+    <string name="health_connect_connect">Połącz</string>
+    <string name="health_connect_unavailable">Health Connect nie jest dostępny na tym urządzeniu.</string>
+    <string name="health_connect_update_required">Health Connect wymaga aktualizacji.</string>
+    <string name="health_connect_update">Aktualizuj</string>
+    <string name="value_kcal">%1$s kcal</string>
+    <string name="health_data_title">Dane odczytane z Health Connect</string>
+    <string name="health_data_subtitle">Ostatnie 30 dni, od najnowszych. Aplikacja niczego nie zapisuje.</string>
+    <string name="health_data_empty">Health Connect nie ma danych o kaloriach z ostatnich 30 dni.</string>
+    <string name="health_data_day">Zjedzone %1$s · Białko %2$s · Węglowodany %3$s · Tłuszcz %4$s</string>
+    <string name="value_grams">%1$s g</string>
+    <string name="health_data_sources">Źródło: %1$s</string>
+
+    <plurals name="exercise_count">
+        <item quantity="one">%d ćwiczenie</item>
+        <item quantity="few">%d ćwiczenia</item>
+        <item quantity="many">%d ćwiczeń</item>
+        <item quantity="other">%d ćwiczenia</item>
+    </plurals>
+    <plurals name="set_count">
+        <item quantity="one">%d seria</item>
+        <item quantity="few">%d serie</item>
+        <item quantity="many">%d serii</item>
+        <item quantity="other">%d serii</item>
+    </plurals>
+
+
+</resources>
