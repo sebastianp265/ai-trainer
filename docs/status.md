@@ -1,24 +1,13 @@
 # Project status
 
-Last updated: 2026-10-31 · Branch `phase-3-health-progress` · Phase 3 of 7 (Health Connect integration), in progress.
+Last updated: 2026-11-08 · Branch `master` · Phase 3 of 7 (Health Connect integration), in progress.
 
 **Can I run it? Yes.** The debug build compiles with no errors. The app launches into a working workout log and settings, plus a Progress tab that lists the data read from Health Connect. Polar and the AI parts don't exist yet.
 
 ## How to run
 
-**Android Studio (easiest)**
+Devices and commands: [`CLAUDE.md`, Build and verify](../CLAUDE.md#build-and-verify). After the split into Gradle modules, sync Gradle first; if the old `app` run configuration is still listed in Android Studio, delete it.
 
-1. Pick a device in the toolbar: an emulator (API 34+, *Google Play* image, so Health Connect is built in) or your phone via USB / wireless debugging.
-2. Select the `androidApp` run configuration and press Run (▶). After the switch to two Gradle modules, sync Gradle first; if the old `app` configuration is still listed, delete it.
-
-**Command line**
-
-```
-gradlew.bat installDebug      # build and install on the connected device
-gradlew.bat :architectureTest:test testDebugUnitTest   # architecture rules, app unit tests, Koin graph
-gradlew.bat connectedDebugAndroidTest   # UI tests: emulator only, they uninstall the app and delete its data
-gradlew.bat :core:android:connectedDebugAndroidTest   # instrumented tests of the Android core module (Keystore secrets, exercise seed): emulator only
-```
 ## What to expect, screen by screen
 
 The app opens on **Log**. The bottom bar has four tabs.
@@ -42,8 +31,8 @@ The app opens on **Log**. The bottom bar has four tabs.
 
 ### Prototype database
 
-- While prototyping, a schema change recreates the database and **deletes your logged workouts**. This version changes the schema (exercises, muscle groups and equipment are database tables), so installing it over the previous one does that once.
-- Exercises are stored by key (e.g. `BARBELL_BENCH_PRESS`); their data and names (English and Polish) live in database tables filled from `seed.sql`, so the picker should show Polish names on a Polish phone.
+- This version changes the schema (exercises, muscle groups and equipment are database tables), so installing it over the previous one **deletes your logged workouts** once ([`prototype-database.md`](prototype-database.md)).
+- Exercise names come from the database, so the picker should show Polish names on a Polish phone.
 
 ## What's not there yet
 
@@ -57,5 +46,4 @@ The app opens on **Log**. The bottom bar has four tabs.
 
 ## Known gaps
 
-- The use-case refactor, the removal of demo data, this phase 3 simplification, the split into the `shared` and `androidApp` Gradle modules and the public-API restructure (core `database` and `security` modules; the unused HTTP client setup was removed and comes back with the Claude and Polar clients) are **uncommitted** on the branch. The restructure keeps the database schema unchanged, so logged workouts survive the update.
 - After the module split, the instrumented tests (app flows and `KeystoreSecretStoreITest`) compile but haven't been run yet.

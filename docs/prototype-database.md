@@ -2,16 +2,11 @@
 
 While the app is a prototype, the Room database has **no migrations**. The goal is frictionless testing on the phone: no migration work for each schema change, and no crashes.
 
-## Rule
-
-- On any schema change (an entity, column, index or table added, removed or changed), bump `version` in `@Database` (`shared/database/room/AppDatabase.kt`).
-- Don't add migrations or `AutoMigration`s.
-
 ## How it works
 
 1. SQLite stores a version number in the database file. Room compares it with `@Database(version = …)` when the database is first opened.
-2. If they differ and no migration exists, `fallbackToDestructiveMigration(dropAllTables = true)` (database builder in `shared/database/DatabaseModule.kt`) drops every table and recreates them from the current entities. This works for upgrades and downgrades.
-3. `ExerciseSeedCallback` (`exercise/impl/ExerciseSeedCallback.kt`) runs `seed.sql` (exercises, muscle groups, equipment and translations) after the database is created or recreated.
+2. On a schema change `version` in `@Database` (`shared/database/impl/AppDatabase.kt`) is bumped. If the versions differ and no migration exists, `fallbackToDestructiveMigration(dropAllTables = true)` (database builder in `shared/database/DatabaseModule.kt`) drops every table and recreates them from the current entities. This works for upgrades and downgrades.
+3. `ExerciseSeedCallback` (`feature/exercise/impl/ExerciseSeedCallback.kt`) runs `seed.sql` (exercises, muscle groups, equipment and translations) after the database is created or recreated.
 
 What this means on the phone:
 
