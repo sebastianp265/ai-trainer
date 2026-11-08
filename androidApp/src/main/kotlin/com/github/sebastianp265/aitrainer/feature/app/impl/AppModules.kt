@@ -1,0 +1,23 @@
+package com.github.sebastianp265.aitrainer.feature.app.impl
+
+import com.github.sebastianp265.aitrainer.feature.health.healthUiModule
+import com.github.sebastianp265.aitrainer.feature.progress.progressUiModule
+import com.github.sebastianp265.aitrainer.feature.settings.settingsUiModule
+import com.github.sebastianp265.aitrainer.feature.workout.workoutUiModule
+import com.github.sebastianp265.aitrainer.integration.module.androidModules
+import com.github.sebastianp265.aitrainer.integration.module.commonModules
+import org.koin.dsl.module
+import kotlin.time.Clock
+
+private val clockModule = module {
+    single<Clock> { Clock.System }
+}
+
+internal val uiModules = listOf(
+    workoutUiModule,
+    healthUiModule,
+    progressUiModule,
+    settingsUiModule,
+)
+
+internal val appModules = listOf(clockModule) + commonModules + androidModules + uiModules

@@ -1,0 +1,30 @@
+package com.github.sebastianp265.aitrainer.integration.workout
+
+import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
+import kotlinx.coroutines.flow.Flow
+
+interface WorkoutService {
+    fun observeActiveSession(): Flow<WorkoutSession?>
+
+    fun observeSets(sessionId: Long): Flow<List<SetEntry>>
+
+    fun observeRecentSessions(): Flow<List<SessionSummary>>
+
+    fun groupSetsByExercise(sets: List<SetEntry>, exercises: Map<String, Exercise>): List<ExerciseBlock>
+
+    suspend fun startSession()
+
+    suspend fun finishSession(sessionId: Long)
+
+    suspend fun discardSession(sessionId: Long)
+
+    suspend fun addExercise(sessionId: Long, exerciseKey: String)
+
+    suspend fun addSet(sessionId: Long, block: ExerciseBlock)
+
+    suspend fun copySetsFromLastTime(sessionId: Long, exerciseKey: String): CopyResult
+
+    suspend fun changeSet(setId: Long, change: SetChange)
+
+    suspend fun deleteSet(setId: Long)
+}
