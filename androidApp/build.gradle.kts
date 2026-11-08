@@ -56,7 +56,6 @@ dependencies {
     implementation(libs.koin.androidx.workmanager)
 
     testImplementation(libs.kotlin.test.junit)
-    testImplementation(platform(libs.koin.bom))
     testImplementation(libs.koin.test.junit4)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))

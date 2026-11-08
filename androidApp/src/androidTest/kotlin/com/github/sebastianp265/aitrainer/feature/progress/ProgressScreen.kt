@@ -3,8 +3,10 @@ package com.github.sebastianp265.aitrainer.feature.progress
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
+import androidx.compose.ui.test.onAllNodesWithText
 import com.github.sebastianp265.aitrainer.feature.progress.impl.ProgressTags
 import com.github.sebastianp265.aitrainer.shared.e2e.Screen
+import com.github.sebastianp265.aitrainer.shared.e2e.TEST_TIMEOUT_MS
 import kotlinx.datetime.LocalDate
 
 class ProgressScreen(compose: ComposeTestRule) : Screen(compose) {
@@ -19,7 +21,8 @@ class ProgressScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun clickConnect() = clickText("Connect")
 
-    fun assertConnectCardHidden() = waitForTextToDisappear("Health Connect")
+    fun assertConnectCardHidden() =
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText("Health Connect").fetchSemanticsNodes().isEmpty() }
 
     fun assertImportedDataShown() = waitForText("Data read from Health Connect")
 

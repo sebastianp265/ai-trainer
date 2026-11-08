@@ -23,7 +23,7 @@ tasks.register("unitTest") {
 val androidCompileSdk = 37
 val androidMinSdk = 34
 val androidTargetSdk = 37
-val javaVersion = JavaVersion.VERSION_11
+val javaVersion = JavaVersion.VERSION_17
 
 subprojects {
     plugins.withId("com.android.application") {

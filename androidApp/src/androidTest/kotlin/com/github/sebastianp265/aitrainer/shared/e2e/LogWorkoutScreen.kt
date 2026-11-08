@@ -61,7 +61,7 @@ class LogWorkoutScreen(
 
     fun assertHistoryEntry(summary: String) {
         waitForText(startWorkoutText)
-        waitForCount(summary, 1)
+        waitForTextShownOnce(summary)
     }
 
     private fun inExerciseCard(exercise: String): SemanticsMatcher =

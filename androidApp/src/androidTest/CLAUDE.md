@@ -1,7 +1,7 @@
 # End-to-end tests
 
 - Tests launch the real app (real Koin graph, real Room database) and tap through it the way I would. Use the `androidx.compose.ui.test.junit4.v2` rules (the non-v2 ones are deprecated).
-- UI tests run in **English only**; don't repeat them per language. The exception is tests of localization behaviour itself (e.g. `ExerciseSearchLocalizationE2ETest`), which override `appLanguage` in their own class and pass the translated texts to the screen objects they use.
+- UI tests run in **English only**; don't repeat them per language. The exception is tests of localization behavior itself (e.g. `ExerciseSearchLocalizationE2ETest`), which override `appLanguage` in their own class and pass the translated texts to the screen objects they use.
 
 ## Screen objects
 

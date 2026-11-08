@@ -14,11 +14,8 @@ abstract class Screen(protected val compose: ComposeTestRule) {
     protected fun waitForText(text: String) =
         compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }
 
-    protected fun waitForTextToDisappear(text: String) =
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText(text).fetchSemanticsNodes().isEmpty() }
-
-    protected fun waitForCount(text: String, count: Int) =
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText(text).fetchSemanticsNodes().size == count }
+    protected fun waitForTextShownOnce(text: String) =
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText(text).fetchSemanticsNodes().size == 1 }
 
     protected fun waitFor(matcher: SemanticsMatcher) =
         compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(matcher, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }

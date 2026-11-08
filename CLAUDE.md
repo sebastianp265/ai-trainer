@@ -24,12 +24,12 @@ Personal, single-user Android app that acts as an AI personal trainer. It collec
 
 One shared library (the `core` modules) plus one application module per platform. Each module has its own `CLAUDE.md` with its details.
 
-| Gradle module | Holds |
-|---|---|
-| `:core:common` (`core/common/`) | Pure Kotlin Multiplatform library (JVM target for now): the `integration` contract, feature logic, the Room database, Koin modules. Depends on no Gradle module. |
-| `:core:android` (`core/android/`) | Android implementations of the platform interfaces from `:core:common`'s `integration` (Keystore, Health Connect, Room/DataStore builders). Depends on `:core:common`. |
-| `:androidApp` (`androidApp/`) | Android application, frontend only: screens, ViewModels, navigation, resources. Depends on both `core` modules, but uses only their `integration` package. |
-| `:architectureTest` (`architectureTest/`) | Kotlin/JVM, tests only: the Konsist architecture rules. Depends on no other Gradle module. |
+| Gradle module                             | Holds                                                                                                                                                                  |
+|-------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `:core:common` (`core/common/`)           | Pure Kotlin Multiplatform library (JVM target for now): the `integration` contract, feature logic, the Room database, Koin modules. Depends on no Gradle module.       |
+| `:core:android` (`core/android/`)         | Android implementations of the platform interfaces from `:core:common`'s `integration` (Keystore, Health Connect, Room/DataStore builders). Depends on `:core:common`. |
+| `:androidApp` (`androidApp/`)             | Android application, frontend only: screens, ViewModels, navigation, resources. Depends on both `core` modules, but uses only their `integration` package.             |
+| `:architectureTest` (`architectureTest/`) | Kotlin/JVM, tests only: the Konsist architecture rules. Depends on no other Gradle module.                                                                             |
 
 ## Package modules (the same in every Gradle module)
 
@@ -54,25 +54,25 @@ Every domain has the same name in all three groups: `integration.workout`, `shar
 
 ### Who may depend on whom
 
-| From | May depend on |
-|---|---|
-| `feature.*` | `feature`, `shared`, `integration` |
-| `shared.*` | `shared`, `integration` |
-| `integration.*` | `integration` |
-| `feature.app`, `integration.module` | everything of their Gradle module |
+| From                                | May depend on                      |
+|-------------------------------------|------------------------------------|
+| `feature.*`                         | `feature`, `shared`, `integration` |
+| `shared.*`                          | `shared`, `integration`            |
+| `integration.*`                     | `integration`                      |
+| `feature.app`, `integration.module` | everything of their Gradle module  |
 
 Nothing may depend on `feature.app` or `integration.module`. No cycles between package modules.
 
 ### Where to put new code
 
-| New thing | Goes to |
-|---|---|
-| Room entity or DAO | `shared.<domain>` in `core:common` |
-| Service implementation | `feature.<domain>.impl` in `core:common` |
-| Interface another Gradle module implements or calls | `integration.<domain>` (platform capability: `integration.shared`) |
-| Android implementation of such an interface | `shared.<name>.impl` in `core:android` |
-| Screen, ViewModel, composable | `feature.<domain>` (root: entry point, `impl`: the rest) in `androidApp` |
-| Koin module of a `core` module | a value in that module's `integration.module` list |
+| New thing                                           | Goes to                                                                  |
+|-----------------------------------------------------|--------------------------------------------------------------------------|
+| Room entity or DAO                                  | `shared.<domain>` in `core:common`                                       |
+| Service implementation                              | `feature.<domain>.impl` in `core:common`                                 |
+| Interface another Gradle module implements or calls | `integration.<domain>` (platform capability: `integration.shared`)       |
+| Android implementation of such an interface         | `shared.<name>.impl` in `core:android`                                   |
+| Screen, ViewModel, composable                       | `feature.<domain>` (root: entry point, `impl`: the rest) in `androidApp` |
+| Koin module of a `core` module                      | a value in that module's `integration.module` list                       |
 
 ## Testing
 
@@ -85,19 +85,19 @@ Nothing may depend on `feature.app` or `integration.module`. No cycles between p
 
 Run Gradle from the project root. On this Windows machine the wrapper is `./gradlew.bat` (also from Git Bash); add `--console=plain` when the output is read by a tool.
 
-| Goal | Command |
-|---|---|
-| **Fast check while working:** every quick JVM test (architecture rules + app unit tests) | `./gradlew.bat unitTest` |
-| Build everything and check it (compiles every module, unit tests, architecture tests, lint, release build); slow, run it before a commit, not after every change | `./gradlew.bat build` |
-| Run the app on a device or emulator | Android Studio: pick a device, run the `androidApp` configuration. Terminal: `./gradlew.bat :androidApp:installDebug` |
-| Architecture rules only | `./gradlew.bat :architectureTest:test` |
-| App unit tests (Koin graph, UI logic) | `./gradlew.bat :androidApp:testDebugUnitTest` |
-| Instrumented tests of the Android core (Keystore, exercise seed); emulator only | `./gradlew.bat :core:android:connectedDebugAndroidTest` |
-| End-to-end tests; emulator only, they uninstall the app and delete its data | `./gradlew.bat :androidApp:connectedDebugAndroidTest` |
-| Compile the instrumented tests without a device | `./gradlew.bat :androidApp:compileDebugAndroidTestKotlin :core:android:compileDebugAndroidTestKotlin` |
-| One test class | add `--tests "*ClassName"` to a test task |
+| Goal                                                                                                                                                             | Command                                                                                                               |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| **Fast check while working:** every quick JVM test (architecture rules + app unit tests)                                                                         | `./gradlew.bat unitTest`                                                                                              |
+| Build everything and check it (compiles every module, unit tests, architecture tests, lint, release build); slow, run it before a commit, not after every change | `./gradlew.bat build`                                                                                                 |
+| Run the app on a device or emulator                                                                                                                              | Android Studio: pick a device, run the `androidApp` configuration. Terminal: `./gradlew.bat :androidApp:installDebug` |
+| Architecture rules only                                                                                                                                          | `./gradlew.bat :architectureTest:test`                                                                                |
+| App unit tests (Koin graph, UI logic)                                                                                                                            | `./gradlew.bat :androidApp:testDebugUnitTest`                                                                         |
+| Instrumented tests of the Android core (Keystore, exercise seed); emulator only                                                                                  | `./gradlew.bat :core:android:connectedDebugAndroidTest`                                                               |
+| End-to-end tests; emulator only, they uninstall the app and delete its data                                                                                      | `./gradlew.bat :androidApp:connectedDebugAndroidTest`                                                                 |
+| Compile the instrumented tests without a device                                                                                                                  | `./gradlew.bat :androidApp:compileDebugAndroidTestKotlin :core:android:compileDebugAndroidTestKotlin`                 |
+| One test class                                                                                                                                                   | add `--tests "*ClassName"` to a test task                                                                             |
 
-Don't run `clean` by default: it throws away Gradle's incremental work and makes every build take minutes. Use it only when a build looks stale or after moving files between modules. After a change run the narrowest task that covers it (`unitTest`, or one module's compile task).
+Don't run `clean` by default: it throws away Gradle's incremental work and makes every build take minutes. Use it only when a build looks stale or after moving files between modules. After a change run the narrowest task that covers it (`unitTest`, or one modules compile task).
 
 The SDK levels (`compileSdk`, `minSdk`, `targetSdk`) and the Java version are set once, in the root `build.gradle.kts`; module build files don't repeat them.
 
