@@ -35,7 +35,7 @@ import org.koin.compose.koinInject
 @Composable
 internal fun ExercisePickerDialog(onPick: (Exercise) -> Unit, onDismiss: () -> Unit) {
     val exerciseService = koinInject<ExerciseService>()
-    val exercises by produceState(emptyList<Exercise>()) { value = exerciseService.exercises() }
+    val exercises by produceState(emptyList()) { value = exerciseService.exercises() }
     var query by rememberSaveable { mutableStateOf("") }
     val locale = LocalConfiguration.current.locales[0]
     val items = remember(exercises, locale) {

@@ -43,7 +43,6 @@ internal abstract class AppDatabase : RoomDatabase() {
     }
 }
 
-@Suppress("KotlinNoActualForExpect")
 internal expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
     override fun initialize(): AppDatabase
 }

@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.github.sebastianp265.aitrainer.feature.app.impl.AppNavigation
 
 internal class MainActivity : ComponentActivity() {
 
