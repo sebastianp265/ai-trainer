@@ -33,10 +33,6 @@ interface CoachService {
 
     fun observeUsageThisMonth(): Flow<CoachUsage>
 
-    fun observeLog(): Flow<List<CoachLogEntry>>
-
-    suspend fun clearLog()
-
     companion object {
         val PROFILE_FIELDS = listOf("goal", "time", "equipment", "limitations", "preferences")
     }

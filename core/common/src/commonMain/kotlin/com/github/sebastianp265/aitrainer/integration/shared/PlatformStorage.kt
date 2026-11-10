@@ -33,7 +33,3 @@ data class BackupContents(
     val coachNotes: Int,
     val coachMessages: Int,
 )
-
-const val REAL_HEALTH_DATA_SOURCE = "real_health_data_source"
-
-const val REAL_CLAUDE_CLIENT = "real_claude_client"

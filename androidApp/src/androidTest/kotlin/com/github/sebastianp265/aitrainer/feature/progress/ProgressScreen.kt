@@ -6,7 +6,6 @@ import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.performClick
 import com.github.sebastianp265.aitrainer.feature.progress.impl.ProgressTags
@@ -23,11 +22,6 @@ class ProgressScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun assertConnectPromptShown() =
         waitForText("Connect to see weight, calories, sleep and heart rate here. You choose which data to share.")
-
-    fun clickConnect() = clickText("Connect")
-
-    fun assertConnectCardHidden() =
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText("Health Connect").fetchSemanticsNodes().isEmpty() }
 
     fun assertCardShown(title: String) = waitForText(title)
 

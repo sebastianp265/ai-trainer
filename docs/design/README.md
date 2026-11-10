@@ -76,5 +76,4 @@ The phase is where the screen is built, see [`../plan.md`](../plan.md).
 | `ApiKey.dc.html` | Settings: API key | 6 |
 | `ModelPicker.dc.html` | Settings: model | 6 |
 | `DataBackup.dc.html` | Settings: export and import | 7 |
-| `Debug.dc.html` | Settings: debug | 6 |
 | `SettingsNoCoach.dc.html` | Settings with the coach switched off | 5 |

@@ -22,8 +22,6 @@ internal class DefaultSettingsService(
     private val claudeModelKey = stringPreferencesKey("claude_model")
     private val showTargetsKey = booleanPreferencesKey("show_targets")
     private val coachEnabledKey = booleanPreferencesKey("coach_enabled")
-    private val fakeClaudeKey = booleanPreferencesKey("fake_claude")
-    private val fakeHealthKey = booleanPreferencesKey("fake_health")
     private val lastReviewedWeekKey = stringPreferencesKey("last_reviewed_week")
     private val lastExportKey = longPreferencesKey("last_export")
     private val apiKeyCheckedAtKey = longPreferencesKey("api_key_checked_at")
@@ -35,18 +33,6 @@ internal class DefaultSettingsService(
     }
 
     override fun observeCoachEnabled(): Flow<Boolean> = settings.data.map { it[coachEnabledKey] ?: true }
-
-    override fun observeUseFakeClaude(): Flow<Boolean> = settings.data.map { it[fakeClaudeKey] ?: false }
-
-    override suspend fun setUseFakeClaude(use: Boolean) {
-        settings.edit { it[fakeClaudeKey] = use }
-    }
-
-    override fun observeUseFakeHealth(): Flow<Boolean> = settings.data.map { it[fakeHealthKey] ?: false }
-
-    override suspend fun setUseFakeHealth(use: Boolean) {
-        settings.edit { it[fakeHealthKey] = use }
-    }
 
     override fun observeLastReviewedWeek(): Flow<LocalDate?> = settings.data.map { preferences -> preferences[lastReviewedWeekKey]?.let(LocalDate::parse) }
 

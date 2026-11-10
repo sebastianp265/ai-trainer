@@ -1,10 +1,8 @@
 package com.github.sebastianp265.aitrainer.feature.settings
 
-import android.content.pm.ApplicationInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.sebastianp265.aitrainer.feature.health.HealthConnectSettingsRow
 import com.github.sebastianp265.aitrainer.feature.settings.impl.BackupContent
@@ -21,23 +19,20 @@ internal fun SettingsScreen(
     onOpenApiKey: () -> Unit,
     onOpenModel: () -> Unit,
     onOpenMemory: () -> Unit,
-    onOpenDebug: () -> Unit,
     onOpenBackup: () -> Unit,
 ) {
     val viewModel: SettingsViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val isDebuggable = (LocalContext.current.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
     val actions = remember(viewModel) {
         object : SettingsActions {
             override fun setCoachEnabled(enabled: Boolean) = viewModel.setCoachEnabled(enabled)
             override fun openApiKey() = onOpenApiKey()
             override fun openModel() = onOpenModel()
             override fun openMemory() = onOpenMemory()
-            override fun openDebug() = onOpenDebug()
             override fun openBackup() = onOpenBackup()
         }
     }
-    SettingsContent(state, actions, showDebug = isDebuggable, healthConnectRow = { HealthConnectSettingsRow(onOpenHealthConnect) })
+    SettingsContent(state, actions, healthConnectRow = { HealthConnectSettingsRow(onOpenHealthConnect) })
 }
 
 @Composable

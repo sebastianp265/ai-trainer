@@ -40,22 +40,14 @@ class HistoryFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `workouts from other apps are listed with the other apps filter`() {
-        history.open()
-
-        history.filterOtherApps()
-
-        history.assertWorkoutListed("Run")
-    }
-
-    @Test
-    fun `gym filter hides workouts from other apps`() {
+    fun `the gym filter hides workouts from other apps and the other apps filter shows them`() {
         history.open()
         history.assertWorkoutListed("Run")
 
         history.filterGym()
-
         history.assertWorkoutNotListed("Run")
+        history.filterOtherApps()
+        history.assertWorkoutListed("Run")
     }
 
     @Test

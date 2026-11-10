@@ -11,9 +11,6 @@ import kotlin.time.Instant
 
 @Dao
 internal interface HealthDao {
-    @Query("SELECT COUNT(*) FROM health_day")
-    fun observeDayCount(): Flow<Int>
-
     @Query("SELECT * FROM health_day WHERE date BETWEEN :from AND :toInclusive ORDER BY date DESC")
     fun observeDays(from: LocalDate, toInclusive: LocalDate): Flow<List<HealthDayEntity>>
 

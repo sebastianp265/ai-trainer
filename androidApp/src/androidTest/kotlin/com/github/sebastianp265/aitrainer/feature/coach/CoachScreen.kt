@@ -2,7 +2,6 @@ package com.github.sebastianp265.aitrainer.feature.coach
 
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
@@ -10,7 +9,6 @@ import androidx.compose.ui.test.performTextInput
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachMemoryTags
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachTags
 import com.github.sebastianp265.aitrainer.shared.e2e.Screen
-import com.github.sebastianp265.aitrainer.shared.e2e.TEST_TIMEOUT_MS
 
 class CoachScreen(compose: ComposeTestRule) : Screen(compose) {
 
@@ -67,11 +65,6 @@ class CoachScreen(compose: ComposeTestRule) : Screen(compose) {
         compose.onAllNodes(hasTestTag(CoachTags.PREVIEW), useUnmergedTree = true)[0].performClick()
     }
 
-    fun assertPreviewShown() {
-        waitForText("Coach proposal")
-        waitForText("What changes")
-    }
-
     fun assertPreviewShows(text: String) = waitForText(text)
 
     fun assertOfflineBanner() = waitFor(hasTestTag(CoachTags.OFFLINE_BANNER))
@@ -116,9 +109,4 @@ class CoachScreen(compose: ComposeTestRule) : Screen(compose) {
     }
 
     fun assertProfile(value: String) = waitForText(value)
-
-    fun assertNothingWorking() =
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(hasTestTag(CoachTags.WORKING)).fetchSemanticsNodes().isEmpty() }
-
-    fun assertStatusText(text: String) = waitFor(hasText(text, substring = true))
 }

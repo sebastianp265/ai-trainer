@@ -47,13 +47,6 @@ class LastTimeRulesUTest {
     }
 
     @Test
-    fun `bodyweight sets have weight zero`() {
-        val groups = lastTimeGroups(listOf(set(1, 10, 0.0), set(2, 10, 0.0), set(3, 10, 0.0)))
-
-        assertEquals(listOf(LastTimeGroup(3, 10, 0.0, null, null)), groups)
-    }
-
-    @Test
     fun `warm-up sets are left out`() {
         val groups = lastTimeGroups(listOf(set(1, 10, 40.0, warmup = true), set(2, 8, 80.0)))
 

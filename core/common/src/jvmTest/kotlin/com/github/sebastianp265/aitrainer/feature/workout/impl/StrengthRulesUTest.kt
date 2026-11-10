@@ -35,10 +35,11 @@ class StrengthRulesUTest {
     }
 
     @Test
-    fun `sets above twelve reps and without weight are not used`() {
-        val result = strength(set(LocalDate(2026, 11, 8), 40.0, 15), set(LocalDate(2026, 11, 8), 0.0, 8))
-
-        assertTrue(result.isEmpty())
+    fun `only sets with a weight and at most twelve reps give an estimate`() {
+        assertTrue(isEstimable(40.0, 12))
+        assertFalse(isEstimable(40.0, 13))
+        assertFalse(isEstimable(0.0, 8))
+        assertFalse(isEstimable(40.0, 0))
     }
 
     @Test

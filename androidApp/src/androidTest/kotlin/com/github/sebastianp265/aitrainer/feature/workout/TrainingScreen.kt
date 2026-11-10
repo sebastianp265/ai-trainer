@@ -13,8 +13,10 @@ class TrainingScreen(compose: ComposeTestRule) : Screen(compose) {
     fun assertFirstLaunch() {
         waitForText("Get to know your coach")
         waitForText("Or start on your own")
-        waitForText("You have no workouts yet")
+        assertNoRecentWorkouts()
     }
+
+    fun assertNoRecentWorkouts() = waitForText("You have no workouts yet")
 
     fun assertNextPlan(planName: String) {
         waitFor(hasTestTag(LogWorkoutTags.NEXT_PLAN))
@@ -35,10 +37,6 @@ class TrainingScreen(compose: ComposeTestRule) : Screen(compose) {
         waitForText("From a plan")
         planNames.forEach { waitFor(hasTestTag(LogWorkoutTags.sheetPlan(it))) }
         waitFor(hasTestTag(LogWorkoutTags.SHEET_EMPTY))
-    }
-
-    fun startFromSheet(planName: String) {
-        compose.onNode(hasTestTag(LogWorkoutTags.sheetPlan(planName)), useUnmergedTree = true).performClick()
     }
 
     fun startEmptyFromSheet() {

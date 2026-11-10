@@ -6,8 +6,6 @@ import com.github.sebastianp265.aitrainer.integration.coach.ClaudeMessage
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeResult
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeRole
 import com.github.sebastianp265.aitrainer.integration.coach.CoachActivity
-import com.github.sebastianp265.aitrainer.integration.coach.CoachLogEntry
-import com.github.sebastianp265.aitrainer.integration.coach.CoachLogKind
 import com.github.sebastianp265.aitrainer.integration.coach.CoachMessage
 import com.github.sebastianp265.aitrainer.integration.coach.CoachNote
 import com.github.sebastianp265.aitrainer.integration.coach.CoachProposal
@@ -27,7 +25,6 @@ import com.github.sebastianp265.aitrainer.integration.volume.TargetSource
 import com.github.sebastianp265.aitrainer.integration.volume.VolumeService
 import com.github.sebastianp265.aitrainer.integration.workout.WorkoutService
 import com.github.sebastianp265.aitrainer.shared.coach.CoachDao
-import com.github.sebastianp265.aitrainer.shared.coach.CoachLogEntity
 import com.github.sebastianp265.aitrainer.shared.coach.CoachMessageEntity
 import com.github.sebastianp265.aitrainer.shared.coach.CoachProfileEntity
 import com.github.sebastianp265.aitrainer.shared.coach.CoachProposalEntity
@@ -60,7 +57,6 @@ internal class DefaultCoachService(
     private companion object {
         const val HISTORY_LIMIT = 40
         const val MAX_TOOL_ROUNDS = 8
-        const val LOG_KEEP = 200
         const val SUMMARY_DAYS = 28
         const val SUMMARY_WORKOUTS = 5
     }
@@ -91,7 +87,7 @@ internal class DefaultCoachService(
         if (lastReviewed != null && lastReviewed >= weekStart) return
         val weekEnd = weekStart.plus(DatePeriod(days = 6))
         val sessions = workouts.observeFinishedSessions(weekStart, weekEnd).first()
-        val plannedUndone = plans.observeUpcoming().first().count { it.date != null && it.date!! in weekStart..weekEnd }
+        val plannedUndone = plans.observeUpcoming().first().count { it.date != null && it.date in weekStart..weekEnd }
         val fromPlans = sessions.count { it.planId != null }
         val reports = sessions.mapNotNull { workouts.observeWorkoutReport(it.id).first() }
         val summary = reviewSummary(
@@ -118,10 +114,8 @@ internal class DefaultCoachService(
         val proposalIds = mutableListOf<Long>()
         val conversation = request.messages.toMutableList()
         repeat(MAX_TOOL_ROUNDS) {
-            log(CoachLogKind.REQUEST, "request ${conversation.size} messages", request.system.take(LOG_DETAIL_LIMIT))
             when (val result = claudeClient().send(request.copy(messages = conversation.toList()))) {
                 is ClaudeResult.Failure -> {
-                    log(CoachLogKind.ERROR, result.kind.name, result.message)
                     activity.value = CoachActivity.Failed(result.kind, result.message)
                     return false
                 }
@@ -136,7 +130,6 @@ internal class DefaultCoachService(
                     val results = toolUses.map { use ->
                         activity.value = CoachActivity.Working(use.name)
                         val run = toolbox.run(use.name, use.inputJson)
-                        log(CoachLogKind.TOOL, use.name, "${use.inputJson}\n=> ${run.text}".take(LOG_DETAIL_LIMIT))
                         run.checked?.let { if (it !in checked) checked += it }
                         run.proposalId?.let { proposalIds += it }
                         ClaudeContent.ToolResult(use.id, run.text, run.isError)
@@ -185,11 +178,6 @@ internal class DefaultCoachService(
     private fun currentMonth(): String {
         val date = clock.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         return "${date.year}-${(date.month.ordinal + 1).toString().padStart(2, '0')}"
-    }
-
-    private suspend fun log(kind: CoachLogKind, summary: String, details: String) {
-        dao.insertLog(CoachLogEntity(at = clock.now(), kind = kind, summary = summary, details = details))
-        dao.trimLog(LOG_KEEP)
     }
 
     override fun observePendingProposals(): Flow<List<CoachProposal>> =
@@ -241,14 +229,7 @@ internal class DefaultCoachService(
 
     override fun observeUsageThisMonth(): Flow<CoachUsage> =
         dao.observeUsage(currentMonth()).map { it?.let { u -> CoachUsage(u.messages, u.inputTokens, u.outputTokens) } ?: CoachUsage(0, 0, 0) }
-
-    override fun observeLog(): Flow<List<CoachLogEntry>> =
-        dao.observeLog(LOG_KEEP).map { list -> list.map { CoachLogEntry(it.id, it.at, it.kind, it.summary, it.details) } }
-
-    override suspend fun clearLog() = dao.clearLog()
 }
-
-private const val LOG_DETAIL_LIMIT = 4000
 
 private fun CoachMessageEntity.toModel(proposals: List<CoachProposal>) =
     CoachMessage(id, role, text, createdAt, checked?.split(',').orEmpty(), proposals, review?.let { coachJson.decodeFromString(ReviewPayload.serializer(), it).toSummary() })

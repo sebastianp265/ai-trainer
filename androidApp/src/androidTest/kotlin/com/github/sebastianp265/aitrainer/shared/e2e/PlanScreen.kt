@@ -10,7 +10,6 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.ComposeTestRule
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
@@ -52,8 +51,6 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
         waitForText("This week", substring = true)
     }
 
-    fun addSet() = clickText("+ Set")
-
     fun save() {
         compose.onNode(hasTestTag(PlanTags.SAVE)).assertIsEnabled()
         compose.onNode(hasTestTag(PlanTags.SAVE)).performClick()
@@ -65,8 +62,6 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
         lines.forEach { waitForText(it) }
     }
 
-    fun startWorkout() = clickText("Start workout")
-
     fun edit() = compose.onNode(hasContentDescription("Edit")).performClick()
 
     fun delete() = compose.onNode(hasContentDescription("Delete plan")).performClick()
@@ -75,16 +70,11 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun back() = compose.onNode(hasContentDescription("Back")).performClick()
 
-    fun close() = compose.onNode(hasContentDescription("Close")).performClick()
-
     fun assertListed(planName: String) {
         waitFor(hasScrollAction())
         compose.onNode(hasScrollAction()).performScrollToNode(hasTestTag(PlanTags.card(planName)))
         waitFor(hasTestTag(PlanTags.card(planName)))
     }
-
-    fun assertNotListed(planName: String) =
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(hasTestTag(PlanTags.card(planName)), useUnmergedTree = true).fetchSemanticsNodes().isEmpty() }
 
     fun open(planName: String) {
         waitFor(hasTestTag(PlanTags.card(planName)))
@@ -95,9 +85,4 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
         waitForText(section)
         assertListed(planName)
     }
-
-    fun assertTextShownOnce(text: String) = waitForTextShownOnce(text)
-
-    fun assertAbsent(text: String) =
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText(text).fetchSemanticsNodes().isEmpty() }
 }

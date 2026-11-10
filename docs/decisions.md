@@ -72,3 +72,8 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-10 · Review prompt · a transient user message that is not stored; the stats card is computed locally and stored with the coach's reply · The chat shows the card and the reply, not the prompt.
 - 2026-11-10 · Backup format · a copy of the Room database file (VACUUM INTO), without the API key (it is in the Keystore store) · Import checks the file, shows its counts, replaces the database and restarts the app.
 - 2026-11-10 · Coach shortcuts on screens · shown only when the coach is on, through `LocalCoachEnabled` and `LocalOpenCoach` · Requirements 2.
+
+## After phase 7
+
+- 2026-11-10 · Debug mode · removed on the owner's request: the debug screen and its Settings row, the fake coach and fake Health Connect switches, the log of requests to Claude (table `coach_log`, dropped by migration 12→13) and the debug end-to-end test · The app holds only production code; fakes live in the tests. This replaces the phase 6 decision "Debug fakes".
+- 2026-11-10 · Debug in the mockups · the mockup `Debug.dc.html` and the Debug row in `Settings.dc.html` and `SettingsNoCoach.dc.html` are deleted · The mockups follow the requirements.

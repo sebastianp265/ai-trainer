@@ -10,8 +10,6 @@ enum class ProposalType { NEW_PLAN, CHANGE_PLAN, MULTI_PLAN, TARGET }
 
 enum class ProposalState { PENDING, ACCEPTED, SUPERSEDED }
 
-enum class CoachLogKind { REQUEST, TOOL, ERROR }
-
 data class ProposedPlan(
     val planId: Long?,
     val name: String,
@@ -66,5 +64,3 @@ data class CoachMessage(
 data class CoachNote(val id: Long, val text: String, val createdAt: Instant)
 
 data class CoachUsage(val messages: Int, val inputTokens: Long, val outputTokens: Long)
-
-data class CoachLogEntry(val id: Long, val at: Instant, val kind: CoachLogKind, val summary: String, val details: String)

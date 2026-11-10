@@ -170,11 +170,11 @@ The same format is used in the exercise history and the workout summary.
 
 ## 10. Settings
 
-- Coach switch, API key, model, memory screen; Health Connect; backup; debug.
+- Coach switch, API key, model, memory screen; Health Connect; backup.
 - Backup: export everything except the API key to one file; import replaces all data after
   showing what the file contains and asking for confirmation.
-- Debug (debug builds only): switch between real and fake Health Connect and Claude, the log of
-  Claude requests and tool calls, the sync log, row counts. It never shows the API key.
+- No debug mode: the app contains only production code. Fakes of Health Connect and Claude live
+  in the tests.
 
 ## 11. Decided by the designer, not yet confirmed by the owner
 

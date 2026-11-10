@@ -6,7 +6,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class ExerciseHistoryRulesUTest {
 
@@ -84,14 +83,5 @@ class ExerciseHistoryRulesUTest {
 
         assertEquals(7.5, result.sessions.single().averageRpe)
         assertNull(history(row(1, day, 80.0, 8)).sessions.single().averageRpe)
-    }
-
-    @Test
-    fun `bodyweight and high-rep sets give no estimate`() {
-        val result = history(row(1, LocalDate(2026, 11, 3), 0.0, 10), row(2, LocalDate(2026, 11, 4), 20.0, 20))
-
-        assertNull(result.estimatedOneRepMaxKg)
-        assertNull(result.bestSet)
-        assertTrue(result.sessions.all { it.estimatedOneRepMaxKg == null })
     }
 }

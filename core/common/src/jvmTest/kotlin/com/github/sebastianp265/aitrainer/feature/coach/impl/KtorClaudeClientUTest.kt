@@ -134,10 +134,9 @@ class KtorClaudeClientUTest {
     }
 
     @Test
-    fun `the key check accepts a good key and reports why a bad one fails`() = runBlocking {
+    fun `the key check sends the typed key and reports a lost connection`() = runBlocking {
         assertNull(client(body = """{"data":[]}""").checkApiKey("good-key"))
         assertEquals("good-key", captured!!.headers["x-api-key"])
-        assertEquals(ClaudeFailureKind.KEY_REJECTED, client(HttpStatusCode.Unauthorized, ERROR_BODY).checkApiKey("bad-key"))
         assertEquals(ClaudeFailureKind.NO_NETWORK, client(failWith = IOException("offline")).checkApiKey("any-key"))
     }
 

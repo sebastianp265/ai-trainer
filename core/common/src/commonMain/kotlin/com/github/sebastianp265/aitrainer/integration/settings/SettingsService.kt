@@ -17,14 +17,6 @@ interface SettingsService {
 
     suspend fun setCoachEnabled(enabled: Boolean)
 
-    fun observeUseFakeClaude(): Flow<Boolean>
-
-    suspend fun setUseFakeClaude(use: Boolean)
-
-    fun observeUseFakeHealth(): Flow<Boolean>
-
-    suspend fun setUseFakeHealth(use: Boolean)
-
     fun observeLastReviewedWeek(): Flow<LocalDate?>
 
     suspend fun setLastReviewedWeek(weekStart: LocalDate)

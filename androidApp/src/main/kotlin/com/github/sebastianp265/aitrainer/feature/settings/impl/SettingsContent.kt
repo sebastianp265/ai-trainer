@@ -28,13 +28,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
 
 @Composable
 internal fun SettingsContent(
     state: SettingsUiState,
     actions: SettingsActions,
-    showDebug: Boolean,
     healthConnectRow: @Composable () -> Unit,
 ) {
     if (state.isLoading) {
@@ -96,16 +94,6 @@ internal fun SettingsContent(
                         tag = SettingsTags.BACKUP_ROW,
                         onClick = actions::openBackup,
                     )
-                    if (showDebug) {
-                        HorizontalDivider()
-                        LinkRow(
-                            title = stringResource(R.string.settings_debug),
-                            subtitle = stringResource(R.string.settings_debug_text),
-                            action = null,
-                            tag = SettingsTags.DEBUG_ROW,
-                            onClick = actions::openDebug,
-                        )
-                    }
                 }
             }
         }
@@ -163,7 +151,6 @@ internal interface SettingsActions {
     fun openApiKey()
     fun openModel()
     fun openMemory()
-    fun openDebug()
     fun openBackup()
 }
 
@@ -172,7 +159,6 @@ internal object SettingsTags {
     const val API_KEY_ROW = "settings_api_key_row"
     const val MODEL_ROW = "settings_model_row"
     const val MEMORY_ROW = "settings_memory_row"
-    const val DEBUG_ROW = "settings_debug_row"
     const val BACKUP_ROW = "settings_backup_row"
 }
 
@@ -188,10 +174,8 @@ private fun SettingsPreview() {
                     override fun openApiKey() = Unit
                     override fun openModel() = Unit
                     override fun openMemory() = Unit
-                    override fun openDebug() = Unit
                     override fun openBackup() = Unit
                 },
-                showDebug = true,
                 healthConnectRow = {},
             )
         }

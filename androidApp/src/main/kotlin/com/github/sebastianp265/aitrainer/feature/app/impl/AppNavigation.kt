@@ -38,7 +38,6 @@ import com.github.sebastianp265.aitrainer.feature.coach.ApiKeyScreen
 import com.github.sebastianp265.aitrainer.feature.coach.CoachMemoryScreen
 import com.github.sebastianp265.aitrainer.feature.coach.CoachProposalScreen
 import com.github.sebastianp265.aitrainer.feature.coach.CoachScreen
-import com.github.sebastianp265.aitrainer.feature.coach.DebugScreen
 import com.github.sebastianp265.aitrainer.feature.coach.ModelPickerScreen
 import com.github.sebastianp265.aitrainer.feature.coach.WeeklyReviewOnForeground
 import com.github.sebastianp265.aitrainer.feature.exercise.ExerciseHistoryScreen
@@ -88,7 +87,6 @@ internal fun AppNavigation() {
         destination?.hasRoute(CoachMemoryRoute::class) == true -> R.string.memory_title
         destination?.hasRoute(ApiKeyRoute::class) == true -> R.string.settings_claude_api_key
         destination?.hasRoute(ModelRoute::class) == true -> R.string.model_title
-        destination?.hasRoute(DebugRoute::class) == true -> R.string.settings_debug
         destination?.hasRoute(BackupRoute::class) == true -> R.string.settings_backup
         else -> null
     }
@@ -132,7 +130,6 @@ internal fun AppNavigation() {
             }
             composable<ApiKeyRoute> { ApiKeyScreen() }
             composable<ModelRoute> { ModelPickerScreen() }
-            composable<DebugRoute> { DebugScreen() }
             composable<BackupRoute> { BackupScreen() }
             composable<ActiveWorkoutRoute> { entry ->
                 val picked by entry.savedStateHandle.getStateFlow<String?>(PICKED_EXERCISE_KEY, null).collectAsStateWithLifecycle()
@@ -236,7 +233,6 @@ internal fun AppNavigation() {
                     onOpenApiKey = { navController.navigate(ApiKeyRoute) },
                     onOpenModel = { navController.navigate(ModelRoute) },
                     onOpenMemory = { navController.navigate(CoachMemoryRoute) },
-                    onOpenDebug = { navController.navigate(DebugRoute) },
                     onOpenBackup = { navController.navigate(BackupRoute) },
                 )
             }

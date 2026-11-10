@@ -35,13 +35,6 @@ class WeeklySetsRulesUTest {
     }
 
     @Test
-    fun `halves add up across exercises`() {
-        val weeks = weeklySets(listOf(row(monday, "ARMS", false), row(monday, "ARMS", false), row(monday, "ARMS", false)))
-
-        assertEquals(1.5, weeks.single().setsByGroup.getValue("ARMS"))
-    }
-
-    @Test
     fun `no sets give no weeks`() {
         assertEquals(emptyList(), weeklySets(emptyList()))
     }

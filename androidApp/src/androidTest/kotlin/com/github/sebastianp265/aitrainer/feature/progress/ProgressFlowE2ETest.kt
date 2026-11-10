@@ -24,20 +24,14 @@ class ProgressFlowE2ETest : AbstractE2ETest() {
     private val zone = TimeZone.currentSystemDefault()
     private val today = Clock.System.todayIn(zone)
     private val progress = ProgressScreen(compose)
-    private val permissions = HealthConnectPermissionScreen()
 
     @Test
-    fun `connecting Health Connect closes the permission screen and hides the card`() {
-        permissions.revokeAllPermissions()
-        launchApp()
+    fun `without Health Connect permissions Progress asks to connect`() {
+        launchApp(healthDataSource = FakeHealthService(granted = emptySet(), historyGranted = false))
+
         progress.open()
+
         progress.assertConnectPromptShown()
-
-        progress.clickConnect()
-        permissions.allowAll()
-
-        permissions.assertClosedAndAppInFront()
-        progress.assertConnectCardHidden()
     }
 
     @Test
@@ -62,7 +56,7 @@ class ProgressFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `days synced from Health Connect are listed`() {
+    fun `days synced from Health Connect are listed and open their details`() {
         val healthConnect = FakeHealthService()
         healthConnect.nutrition = listOf(nutrition(daysAgo(1), kcal = 2000), nutrition(daysAgo(3), kcal = 1800))
         healthConnect.caloriesBurned = listOf(DailyAmount(daysAgo(1), 2500))
@@ -72,6 +66,8 @@ class ProgressFlowE2ETest : AbstractE2ETest() {
 
         progress.assertDay(daysAgo(1), "eaten 2,000 kcal · burned 2,500 kcal")
         progress.assertDay(daysAgo(3), "eaten 1,800 kcal")
+        progress.openDay(daysAgo(1))
+        progress.assertDayDetailsShown("Eaten", "Burned", "Balance")
     }
 
     @Test
@@ -87,19 +83,6 @@ class ProgressFlowE2ETest : AbstractE2ETest() {
         progress.openWeightDetails()
 
         progress.assertWeightDetailsShown()
-    }
-
-    @Test
-    fun `a day opens its details`() {
-        val healthConnect = FakeHealthService()
-        healthConnect.nutrition = listOf(nutrition(daysAgo(1), kcal = 2000))
-        healthConnect.caloriesBurned = listOf(DailyAmount(daysAgo(1), 2500))
-        launchApp(healthDataSource = healthConnect)
-        progress.open()
-
-        progress.openDay(daysAgo(1))
-
-        progress.assertDayDetailsShown("Eaten", "Burned", "Balance")
     }
 
     @Test

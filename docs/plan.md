@@ -116,7 +116,7 @@ Requirements 3, 4, 5, 6. Screens: `Main`, `StartSheet`, `ActiveWorkout`, `Workou
 ## Phase 6: the coach
 
 Requirement 9, 10. Screens: `Coach`, `CoachEmpty`, `CoachNoKey`, `CoachError`, `CoachProposal`,
-`CoachTargets`, `CoachMemory`, `ApiKey`, `ModelPicker`, `Debug`.
+`CoachTargets`, `CoachMemory`, `ApiKey`, `ModelPicker`.
 
 - [x] 6.1 Claude client behind an `integration` interface, with a fake. Use the `claude-api`
       skill for the request shape, tool use and model ids. HTTP with Ktor.
@@ -134,7 +134,7 @@ Requirement 9, 10. Screens: `Coach`, `CoachEmpty`, `CoachNoKey`, `CoachError`, `
 - [x] 6.9 Fourth tab; first conversation; no key; API key screen with a check call; model screen
       with the local usage counter.
 - [x] 6.10 Errors: no network, rejected key, no answer.
-- [x] 6.11 Debug screen.
+- [x] 6.11 Debug screen. Removed afterwards on the owner's request (see `decisions.md`).
 
 ## Phase 7: weekly review, backup, polish
 

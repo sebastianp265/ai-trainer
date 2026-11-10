@@ -10,8 +10,6 @@ import com.github.sebastianp265.aitrainer.feature.coach.impl.ApiKeyViewModel
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachActions
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachContent
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachViewModel
-import com.github.sebastianp265.aitrainer.feature.coach.impl.DebugContent
-import com.github.sebastianp265.aitrainer.feature.coach.impl.DebugViewModel
 import com.github.sebastianp265.aitrainer.feature.coach.impl.MemoryActions
 import com.github.sebastianp265.aitrainer.feature.coach.impl.MemoryContent
 import com.github.sebastianp265.aitrainer.feature.coach.impl.MemoryViewModel
@@ -73,11 +71,4 @@ internal fun ModelPickerScreen() {
     val viewModel: ModelPickerViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     ModelPickerContent(state, onSelect = viewModel::select)
-}
-
-@Composable
-internal fun DebugScreen() {
-    val viewModel: DebugViewModel = koinViewModel()
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    DebugContent(state, viewModel::setFakeClaude, viewModel::setFakeHealth, viewModel::clearLog)
 }

@@ -35,11 +35,6 @@ class LogWorkoutScreen(
         typeIntoNumberDialog(kg)
     }
 
-    fun typeReps(exercise: String, setIndex: Int, reps: String) {
-        nodeInCard(hasTestTag(ActiveWorkoutTags.REPS), exercise, setIndex).performClick()
-        typeIntoNumberDialog(reps)
-    }
-
     fun decreaseReps(exercise: String) = nodeInCard(hasContentDescription("Decrease reps"), exercise, 0).performClick()
 
     fun chooseRpe(exercise: String, setIndex: Int, rpe: String) {
@@ -120,11 +115,6 @@ class LogWorkoutScreen(
     fun assertHistoryEntry(summary: String) {
         waitForText(startWorkoutText)
         waitForText(summary, substring = true)
-    }
-
-    fun assertNoWorkoutsYet() {
-        waitForText(startWorkoutText)
-        waitForText("You have no workouts yet")
     }
 
     private fun typeIntoNumberDialog(text: String) {

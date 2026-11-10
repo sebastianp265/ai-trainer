@@ -15,7 +15,8 @@ The emulator needs API 34+ with a *Google Play* image.
 
 ## What to expect, screen by screen
 
-The app opens on **Training**. The bottom bar has three tabs: Training · Plan · Progress. Every tab has a gear icon in the top
+The app opens on **Training**. The bottom bar has four tabs: Training · Plan · Coach · Progress; with the coach switched off
+in Settings the Coach tab and every coach element disappear. Every tab has a gear icon in the top
 bar that opens **Settings**. While a workout runs, the workout screen covers everything (no bottom bar, no top bar); if you close
 the app during a workout, it opens on the workout again.
 
@@ -32,7 +33,14 @@ the app during a workout, it opens on the workout again.
 | **Progress** | ✅ Works | As before, plus the card "Sets per muscle group · weekly average" with the target band, legend, an info box and a link to the targets. |
 | **Weekly set targets** | ✅ Works | Ranges per muscle group (default 10–20), source and date, "Show targets" switch, "Restore defaults". |
 | **All workouts** | ✅ Works | Gym workouts (tap to open) and workouts from other apps. |
-| **Settings** | ⏳ Partly | Coach switch (off at first). With it on you can enter the Claude API key and model; they are stored but not used yet. Health Connect row. The rows "Data backup" and "Debug" come with phases 7 and 6. |
+| **Coach** | ✅ Works, not tried with a real key | Chat with the coach: starter suggestions in the first conversation, a "Checked: …" line under an answer, "The coach is checking/writing" while it works. Proposal cards (new plan, plan change, several plans, target change) with "Accept", "Preview" and, for several plans, "Accept all". Without a key the tab leads to the key screen; no network, a rejected key and no answer each show their own message with "Try again". |
+| **Proposal preview** | ✅ Works | The proposed plan with the changes marked (added, removed, sets, weight); "Accept" or "Reply to the coach". A pending proposal also shows as a card on Training, Plan and the targets screen. |
+| **Weekly review** | ✅ Works, not tried with a real key | When the app comes to the foreground after a finished Monday-to-Sunday week with data, the coach posts a card with the week's numbers and its review in the chat. |
+| **What the coach knows about me** | ✅ Works | Profile (goal, time, equipment, limitations, preferences), weekly set targets, coach notes; everything can be edited or deleted. |
+| **Settings** | ✅ Works | Coach switch (on at first). With it on: Claude API key, model, coach memory. Health Connect row. "Data backup". |
+| **API key** | ✅ Works, not tried with a real key | Paste a key, "Save and check" (one call that spends no tokens), remove the key. |
+| **Coach model** | ✅ Works | Opus, Sonnet or Haiku; messages and tokens used this month, counted on the phone. |
+| **Data backup** | ✅ Works, not tried between two devices | Export everything except the API key to one file. Import shows what the file contains, asks, replaces all data and restarts the app. |
 | **Health Connect** | ✅ Works | Unchanged from phase 4. |
 
 ### Things to check by hand on the phone
@@ -44,16 +52,20 @@ the app during a workout, it opens on the workout again.
 - Weekly sets: after a workout the Plan tab and the Progress card move; bench press counts 1 for chest and 0.5 for arms and shoulders.
 - Polish texts of all new screens (they were written from the mockups and have not been read on a phone).
 - The workout screen after closing and reopening the app in the middle of a workout.
+- With your own key: talk to the coach, accept a plan and a target change, and check the plan on the Plan tab and the targets.
+- Open the app after a full week of data and read the weekly review.
+- Export a backup, import it (best on a second device), and check that the data is back. The API key is not in the file.
+- Switch the coach off and check that the Coach tab and the coach shortcuts are gone.
+- Connect Health Connect from Progress: the system permission screen opens, and after allowing, the "Connect" card is gone (no automated test taps that system screen).
 
 ### Database
 
 Installing a new build keeps your data: schema 7 → 8 (six muscle groups, "Other" equipment), 8 → 9 (plans, workout ↔ plan link),
-9 → 10 (weekly targets). If the app on your phone has a schema older than 6, uninstall it once.
+9 → 10 (weekly targets), 10 → 11 (coach conversation, proposals, notes, profile, usage, request log), 11 → 12 (weekly review
+stored with a coach message), 12 → 13 (the request log of the removed debug screen is dropped). If the app on your phone has a schema older than 6, uninstall it once.
 
 ## What's not there yet
 
-| Feature | Phase |
-|---|---|
 Nothing planned is missing. See the known gaps below.
 
 ## Known gaps
@@ -65,8 +77,11 @@ Nothing planned is missing. See the known gaps below.
 - Not checked on a phone with a real key: the real Claude calls, the weekly review text, and backup import with a file from another device (the app restarts after an import).
 - The final design audit of every screen against the mockups was done only for the empty and error states listed in `decisions.md`; small visual differences may remain.
 - The IDE shows unresolved references in `jvmTest` files; Gradle compiles them (see `decisions.md`).
+- The end-to-end tests depend on the emulator. With 2 GB of RAM the emulator showed "System UI isn't responding" and tests failed because of that window; give it 4 GB.
 
 ## Final summary
 
-All tasks of phases 5, 6 and 7 are ticked. `./gradlew.bat build` passes (unit tests, architecture rules, lint, release build). The last full instrumented run on the emulator had 58 tests with one failure (a test of the weekly review, fixed afterwards and passing on its own); the full suite was not rerun after that fix. One workout test failed once earlier with a Compose idle timeout and passed in the later runs.
-Check by hand: enter your key in Settings and talk to the coach; accept a plan and a target change; open the app after a full week of data to see the weekly review; export a backup and import it; try the app with the coach off.
+All tasks of phases 5, 6 and 7 are ticked. `./gradlew.bat build` passed at the end of phase 7 (unit tests, architecture rules, lint, release build). On 2026-11-10 the full instrumented run passed on an emulator with Android 17: 58 of 58 end-to-end tests and 11 of 11 integration tests of the Android core.
+After that the debug mode was removed (schema 13, 57 end-to-end tests left). The unit tests and the 11 integration tests pass, and all 57 end-to-end tests pass on two emulators with 4 GB of RAM: Android 15 (5 min 50 s) and Android 16 (6 min 22 s). An earlier run on the Android 17 emulator was cut off when its system crashed.
+Then the tests were reworked so that each path is tested once: end-to-end tests get their data (API key, plans, workouts) through the app's services instead of tapping it in, and never tap the system Health Connect screen (50 end-to-end tests, 10 integration tests). All of them pass on the Android 16 emulator.
+Check by hand: the list under "Things to check by hand on the phone".

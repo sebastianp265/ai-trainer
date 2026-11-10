@@ -54,9 +54,6 @@ internal interface CoachDao {
     @Query("SELECT * FROM coach_note ORDER BY id")
     fun observeNotes(): Flow<List<CoachNoteEntity>>
 
-    @Query("SELECT COUNT(*) FROM coach_note")
-    fun observeNoteCount(): Flow<Int>
-
     @Query("SELECT * FROM coach_note ORDER BY id")
     suspend fun notes(): List<CoachNoteEntity>
 
@@ -89,16 +86,4 @@ internal interface CoachDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsertUsage(usage: CoachUsageEntity)
-
-    @Query("SELECT * FROM coach_log ORDER BY id DESC LIMIT :limit")
-    fun observeLog(limit: Int): Flow<List<CoachLogEntity>>
-
-    @Insert
-    suspend fun insertLog(entry: CoachLogEntity)
-
-    @Query("DELETE FROM coach_log WHERE id NOT IN (SELECT id FROM coach_log ORDER BY id DESC LIMIT :keep)")
-    suspend fun trimLog(keep: Int)
-
-    @Query("DELETE FROM coach_log")
-    suspend fun clearLog()
 }

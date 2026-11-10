@@ -31,11 +31,9 @@ internal fun workoutRecords(sessionSets: List<SetEntry>, earlier: List<WorkingSe
         listOfNotNull(oneRepMaxRecord(exerciseKey, sets, before), repsAtWeightRecord(exerciseKey, sets, before))
     }
 
-private fun estimable(weightKg: Double, reps: Int) = weightKg > 0 && reps in 1..MAX_REPS_FOR_ESTIMATE
-
 private fun oneRepMaxRecord(exerciseKey: String, sets: List<SetEntry>, before: List<WorkingSetRow>): WorkoutRecord? {
-    val best = sets.filter { estimable(it.weightKg, it.reps) }.maxByOrNull { estimatedOneRepMax(it.weightKg, it.reps) } ?: return null
-    val previousBest = before.filter { estimable(it.weightKg, it.reps) }.maxOfOrNull { estimatedOneRepMax(it.weightKg, it.reps) } ?: return null
+    val best = sets.filter { isEstimable(it.weightKg, it.reps) }.maxByOrNull { estimatedOneRepMax(it.weightKg, it.reps) } ?: return null
+    val previousBest = before.filter { isEstimable(it.weightKg, it.reps) }.maxOfOrNull { estimatedOneRepMax(it.weightKg, it.reps) } ?: return null
     val estimate = estimatedOneRepMax(best.weightKg, best.reps)
     if (estimate <= previousBest) return null
     return WorkoutRecord(exerciseKey, RecordKind.ONE_REP_MAX, best.weightKg, best.reps, estimate, improvement = estimate - previousBest)

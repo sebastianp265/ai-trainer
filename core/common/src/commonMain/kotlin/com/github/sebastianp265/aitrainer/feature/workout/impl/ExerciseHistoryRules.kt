@@ -32,17 +32,15 @@ internal fun exerciseHistory(exerciseKey: String, rows: List<HistorySetRow>, tod
         exerciseKey = exerciseKey,
         sessionCount = oldestFirst.size,
         estimatedOneRepMaxKg = estimates.lastOrNull()?.estimatedOneRepMaxKg,
-        bestSet = rows.filter { it.isEstimable() }.maxByOrNull { estimatedOneRepMax(it.weightKg, it.reps) }
+        bestSet = rows.filter { isEstimable(it.weightKg, it.reps) }.maxByOrNull { estimatedOneRepMax(it.weightKg, it.reps) }
             ?.let { BestSet(it.weightKg, it.reps) },
         oneRepMaxChangeKg = if (inWindow.size >= 2) inWindow.last().estimatedOneRepMaxKg!! - inWindow.first().estimatedOneRepMaxKg!! else null,
         sessions = oldestFirst.reversed(),
     )
 }
 
-private fun HistorySetRow.isEstimable() = reps in 1..MAX_REPS_FOR_ESTIMATE && weightKg > 0
-
 private fun sessionOneRepMax(sets: List<HistorySetRow>): Double? =
-    sets.filter { it.isEstimable() }.maxOfOrNull { estimatedOneRepMax(it.weightKg, it.reps) }
+    sets.filter { isEstimable(it.weightKg, it.reps) }.maxOfOrNull { estimatedOneRepMax(it.weightKg, it.reps) }
 
 private fun HistorySetRow.toSetEntry(exerciseKey: String) =
     SetEntry(0, sessionId, exerciseKey, positionInSession, reps, weightKg, rpe, isWarmup = false)

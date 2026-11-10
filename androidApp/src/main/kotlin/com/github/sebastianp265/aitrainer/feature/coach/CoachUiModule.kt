@@ -2,7 +2,6 @@ package com.github.sebastianp265.aitrainer.feature.coach
 
 import com.github.sebastianp265.aitrainer.feature.coach.impl.ApiKeyViewModel
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachViewModel
-import com.github.sebastianp265.aitrainer.feature.coach.impl.DebugViewModel
 import com.github.sebastianp265.aitrainer.feature.coach.impl.MemoryViewModel
 import com.github.sebastianp265.aitrainer.feature.coach.impl.ModelPickerViewModel
 import com.github.sebastianp265.aitrainer.feature.coach.impl.ProposalPreviewViewModel
@@ -16,6 +15,5 @@ internal val coachUiModule = module {
     viewModelOf(::ProposalPreviewViewModel)
     viewModelOf(::ApiKeyViewModel)
     viewModelOf(::ModelPickerViewModel)
-    viewModelOf(::DebugViewModel)
     viewModelOf(::WeeklyReviewViewModel)
 }

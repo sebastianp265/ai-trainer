@@ -85,9 +85,6 @@ internal object ModelRoute
 internal object BackupRoute
 
 @Serializable
-internal object DebugRoute
-
-@Serializable
 internal object VolumeTargetsRoute
 
 @Serializable
@@ -110,7 +107,6 @@ internal val nestedRoutes = listOf(
     CoachMemoryRoute::class,
     ApiKeyRoute::class,
     ModelRoute::class,
-    DebugRoute::class,
     BackupRoute::class,
     ExerciseHistoryRoute::class,
     ExternalWorkoutRoute::class,

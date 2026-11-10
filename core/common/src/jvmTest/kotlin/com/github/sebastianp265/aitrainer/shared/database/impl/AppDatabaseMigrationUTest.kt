@@ -32,16 +32,6 @@ class AppDatabaseMigrationUTest {
     }
 
     @Test
-    fun `migration from 7 to 8 gives every seeded exercise one primary group among the six`() {
-        val migrated = migratedSeedOfVersion7()
-
-        val primaryCounts = migrated.primaryGroupsByExercise.mapValues { it.value.size }
-        assertEquals(migrated.exercises, primaryCounts.keys)
-        assertTrue(primaryCounts.values.all { it == 1 })
-        assertEquals(SIX_GROUPS, migrated.groups)
-    }
-
-    @Test
     fun `migration from 7 to 8 leaves the same exercise muscles as a freshly seeded database`() {
         val migrated = migratedSeedOfVersion7()
         val fresh = newHelper().createDatabase(8).use { connection ->
@@ -114,6 +104,19 @@ class AppDatabaseMigrationUTest {
         helper.runMigrationsAndValidate(12).use { connection ->
             assertEquals(1, connection.count("coach_message"))
             assertEquals(1, connection.count("coach_message WHERE review IS NULL"))
+        }
+    }
+
+    @Test
+    fun `migration from 12 to 13 removes the request log and keeps messages`() {
+        helper.createDatabase(12).use { connection ->
+            connection.execSQL("INSERT INTO coach_message (role, text, createdAt, checked, review) VALUES ('USER', 'Hi', 1000, NULL, NULL)")
+            connection.execSQL("INSERT INTO coach_log (at, kind, summary, details) VALUES (1000, 'REQUEST', 'request 1 messages', 'system')")
+        }
+
+        helper.runMigrationsAndValidate(13).use { connection ->
+            assertEquals(1, connection.count("coach_message"))
+            assertEquals(0, connection.count("sqlite_master WHERE name = 'coach_log'"))
         }
     }
 

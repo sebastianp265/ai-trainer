@@ -2,7 +2,6 @@ package com.github.sebastianp265.aitrainer.shared.coach
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.github.sebastianp265.aitrainer.integration.coach.CoachLogKind
 import com.github.sebastianp265.aitrainer.integration.coach.CoachRole
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalState
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalType
@@ -49,13 +48,4 @@ internal data class CoachUsageEntity(
     val messages: Int,
     val inputTokens: Long,
     val outputTokens: Long,
-)
-
-@Entity(tableName = "coach_log")
-internal data class CoachLogEntity(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val at: Instant,
-    val kind: CoachLogKind,
-    val summary: String,
-    val details: String,
 )
