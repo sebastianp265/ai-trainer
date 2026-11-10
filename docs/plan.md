@@ -79,7 +79,7 @@ Requirements 2, 7, 8. Screens: `Progress`, `ProgressNoHealth`, `ProgressMetric`,
 - [x] 4.10 Metric detail and day detail.
 - [x] 4.11 Strength card (estimated 1RM per exercise, requirement 4 "Records and estimates").
 - [x] 4.12 All workouts list with workouts from other apps, its filter, and the read-only detail.
-- [ ] 4.13 Remove the old Progress list and the source-app line. `status.md` updated.
+- [x] 4.13 Remove the old Progress list and the source-app line. `status.md` updated.
 
 ## Phase 5: training, plans and weekly sets, without the coach
 

@@ -49,7 +49,6 @@
     <string name="health_connect_update">Update</string>
     <string name="value_kcal">%1$s kcal</string>
     <string name="value_grams">%1$s g</string>
-    <string name="value_missing" translatable="false">–</string>
 
     <string name="hc_connected_summary">Connected · %1$d of %2$d data types</string>
     <string name="hc_not_connected">Not connected</string>
