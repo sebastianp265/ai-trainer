@@ -1,6 +1,7 @@
 package com.github.sebastianp265.aitrainer.feature.progress.impl
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +29,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.feature.health.HealthConnectCard
+import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetric
 import com.github.sebastianp265.aitrainer.integration.health.HealthDay
 import com.github.sebastianp265.aitrainer.shared.localization.formatDate
 import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
@@ -37,6 +40,8 @@ internal fun ProgressContent(
     state: ProgressUiState,
     onRangeSelected: (ProgressRange) -> Unit,
     onHealthConnectChanged: () -> Unit,
+    onOpenMetric: (ProgressMetric) -> Unit,
+    onOpenDay: (LocalDate) -> Unit,
 ) {
     val cards = state.cards
     if (cards == null) {
@@ -50,24 +55,30 @@ internal fun ProgressContent(
     ) {
         item { RangeSwitch(state.range, onRangeSelected) }
         item { HealthConnectCard(onConnectionChanged = onHealthConnectChanged) }
-        cards.weight?.let { item { WeightCard(it, state.range) } }
-        cards.balance?.let { item { BalanceCard(it) } }
+        cards.weight?.let { item { WeightCard(it, state.range) { onOpenMetric(ProgressMetric.WEIGHT) } } }
+        cards.balance?.let { item { BalanceCard(it) { onOpenMetric(ProgressMetric.CALORIE_BALANCE) } } }
         cards.macros?.let { item { MacrosCard(it) } }
-        cards.steps?.let { item { AverageCard(R.string.progress_steps, R.string.progress_steps_hint, formatNumber(it)) } }
-        cards.sleepMinutes?.let {
-            item { AverageCard(R.string.progress_sleep, R.string.progress_sleep_hint, formatDuration(it.toInt())) }
+        cards.steps?.let {
+            item { AverageCard(R.string.progress_steps, R.string.progress_steps_hint, formatNumber(it)) { onOpenMetric(ProgressMetric.STEPS) } }
         }
-        cards.restingHeartRate?.let { item { RestingHeartRateCard(it, state.range) } }
+        cards.sleepMinutes?.let {
+            item { AverageCard(R.string.progress_sleep, R.string.progress_sleep_hint, formatDuration(it.toInt())) { onOpenMetric(ProgressMetric.SLEEP) } }
+        }
+        cards.restingHeartRate?.let { item { RestingHeartRateCard(it, state.range) { onOpenMetric(ProgressMetric.RESTING_HEART_RATE) } } }
         cards.hrvMs?.let {
-            item { AverageCard(R.string.progress_hrv, R.string.progress_sleep_hint, stringResource(R.string.value_ms, formatNumber(it))) }
+            item {
+                AverageCard(R.string.progress_hrv, R.string.progress_sleep_hint, stringResource(R.string.value_ms, formatNumber(it))) {
+                    onOpenMetric(ProgressMetric.HEART_RATE_VARIABILITY)
+                }
+            }
         }
         cards.workouts?.let { item { WorkoutsCard(it, state.range) } }
-        if (cards.recentDays.isNotEmpty()) item { DaysCard(cards.recentDays) }
+        if (cards.recentDays.isNotEmpty()) item { DaysCard(cards.recentDays, onOpenDay) }
     }
 }
 
 @Composable
-private fun RangeSwitch(selected: ProgressRange, onSelected: (ProgressRange) -> Unit) {
+internal fun RangeSwitch(selected: ProgressRange, onSelected: (ProgressRange) -> Unit) {
     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
         ProgressRange.entries.forEachIndexed { index, range ->
             SegmentedButton(
@@ -81,18 +92,26 @@ private fun RangeSwitch(selected: ProgressRange, onSelected: (ProgressRange) -> 
 }
 
 @Composable
-internal fun ProgressCard(@StringRes title: Int, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+internal fun ProgressCard(
+    @StringRes title: Int,
+    modifier: Modifier = Modifier,
+    onDetails: (() -> Unit)? = null,
+    content: @Composable () -> Unit,
+) {
     OutlinedCard(modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(title), style = MaterialTheme.typography.titleSmall)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(title), style = MaterialTheme.typography.titleSmall)
+                onDetails?.let { TextButton(onClick = it) { Text(stringResource(R.string.progress_details)) } }
+            }
             content()
         }
     }
 }
 
 @Composable
-private fun WeightCard(card: TrendCard, range: ProgressRange) {
-    ProgressCard(R.string.progress_weight_title, Modifier.testTag(ProgressTags.WEIGHT_CARD)) {
+private fun WeightCard(card: TrendCard, range: ProgressRange, onDetails: () -> Unit) {
+    ProgressCard(R.string.progress_weight_title, Modifier.testTag(ProgressTags.WEIGHT_CARD), onDetails) {
         Text(stringResource(R.string.value_kg, formatNumber(card.current, 1)), style = MaterialTheme.typography.headlineMedium)
         card.change?.let { change ->
             Text(
@@ -105,8 +124,8 @@ private fun WeightCard(card: TrendCard, range: ProgressRange) {
 }
 
 @Composable
-private fun BalanceCard(card: BalanceCard) {
-    ProgressCard(R.string.progress_balance_title, Modifier.testTag(ProgressTags.BALANCE_CARD)) {
+private fun BalanceCard(card: BalanceCard, onDetails: () -> Unit) {
+    ProgressCard(R.string.progress_balance_title, Modifier.testTag(ProgressTags.BALANCE_CARD), onDetails) {
         Text(
             stringResource(R.string.value_kcal, formatNumber(card.averageBalanceKcal.toDouble(), signed = true)),
             style = MaterialTheme.typography.headlineMedium,
@@ -139,15 +158,15 @@ private fun MacrosCard(card: MacrosCard) {
 }
 
 @Composable
-private fun AverageCard(@StringRes title: Int, @StringRes hint: Int, value: String) {
-    ProgressCard(title, Modifier.testTag(ProgressTags.card(title))) {
+private fun AverageCard(@StringRes title: Int, @StringRes hint: Int, value: String, onDetails: () -> Unit) {
+    ProgressCard(title, Modifier.testTag(ProgressTags.card(title)), onDetails) {
         LabeledValue(stringResource(hint), value)
     }
 }
 
 @Composable
-private fun RestingHeartRateCard(card: TrendCard, range: ProgressRange) {
-    ProgressCard(R.string.progress_rhr, Modifier.testTag(ProgressTags.card(R.string.progress_rhr))) {
+private fun RestingHeartRateCard(card: TrendCard, range: ProgressRange, onDetails: () -> Unit) {
+    ProgressCard(R.string.progress_rhr, Modifier.testTag(ProgressTags.card(R.string.progress_rhr)), onDetails) {
         val value = stringResource(R.string.value_bpm, formatNumber(card.current))
         val change = card.change?.let {
             stringResource(R.string.progress_change, formatNumber(it, signed = true), stringResource(range.inRangeRes()))
@@ -172,15 +191,15 @@ private fun WorkoutsCard(card: WorkoutsCard, range: ProgressRange) {
 }
 
 @Composable
-private fun DaysCard(days: List<HealthDay>) {
+private fun DaysCard(days: List<HealthDay>, onOpenDay: (LocalDate) -> Unit) {
     ProgressCard(R.string.progress_days, Modifier.testTag(ProgressTags.DAYS_CARD)) {
-        days.forEach { day -> DayRow(day) }
+        days.forEach { day -> DayRow(day) { onOpenDay(day.date) } }
     }
 }
 
 @Composable
-private fun DayRow(day: HealthDay) {
-    Column(Modifier.fillMaxWidth()) {
+private fun DayRow(day: HealthDay, onClick: () -> Unit) {
+    Column(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Text(formatDate(day.date), style = MaterialTheme.typography.labelLarge)
         Text(day.summary(), Modifier.testTag(ProgressTags.healthDay(day.date)), style = MaterialTheme.typography.bodyMedium)
     }
@@ -250,6 +269,8 @@ private fun ProgressContentPreview() {
                 state = ProgressUiState(cards = ProgressCalculator.calculate(days, 14, ProgressRange.FOUR_WEEKS, today)),
                 onRangeSelected = {},
                 onHealthConnectChanged = {},
+                onOpenMetric = {},
+                onOpenDay = {},
             )
         }
     }

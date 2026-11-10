@@ -1,9 +1,12 @@
 package com.github.sebastianp265.aitrainer.feature.progress
 
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.performClick
 import com.github.sebastianp265.aitrainer.feature.progress.impl.ProgressTags
 import com.github.sebastianp265.aitrainer.shared.e2e.Screen
 import com.github.sebastianp265.aitrainer.shared.e2e.TEST_TIMEOUT_MS
@@ -27,6 +30,27 @@ class ProgressScreen(compose: ComposeTestRule) : Screen(compose) {
     fun assertCardShown(title: String) = waitForText(title)
 
     fun assertCardHidden(title: String) = assertTextNotShown(title)
+
+    fun openWeightDetails() {
+        waitForText("Weight · 7-day average")
+        compose.onAllNodes(hasText("Details") and hasClickAction()).onFirst().performClick()
+    }
+
+    fun assertWeightDetailsShown() {
+        waitForText("7-day average")
+        waitForText("lowest")
+        waitForText("highest")
+    }
+
+    fun openDay(date: LocalDate) {
+        waitFor(hasTestTag(ProgressTags.healthDay(date)))
+        compose.onNode(hasTestTag(ProgressTags.healthDay(date)), useUnmergedTree = true).performClick()
+    }
+
+    fun assertDayDetailsShown(vararg rows: String) {
+        waitForText("everything we know about this day")
+        rows.forEach { waitForText(it) }
+    }
 
     fun assertDay(date: LocalDate, expected: String) =
         waitFor(hasTestTag(ProgressTags.healthDay(date)) and hasText(expected))

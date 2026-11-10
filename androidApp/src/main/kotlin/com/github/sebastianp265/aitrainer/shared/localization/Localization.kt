@@ -40,3 +40,10 @@ internal fun formatNumber(value: Double, fractionDigits: Int = 0, signed: Boolea
     }
     return format.format(value)
 }
+
+@Composable
+internal fun formatDateLong(date: LocalDate): String {
+    val locale = LocalConfiguration.current.locales[0]
+    val format = remember(locale) { DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(locale) }
+    return format.format(date.toJavaLocalDate())
+}

@@ -16,3 +16,4 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-10 · Today in the progress averages · calorie balance, macros and steps leave out today (the day is not over); weight, sleep, heart rate and HRV include it · Today's partial eating or steps would distort the averages.
 - 2026-11-10 · "7-day average" of weight and resting heart rate · mean of the measurements in the 7 days up to each measurement day; the change over the range is last average minus first · Simple and stable with missing days.
 - 2026-11-10 · Calorie balance weekly bars · average balance per Monday-to-Sunday week that has days with both eaten and burned · Matches "weekly bars" in requirements 8.
+- 2026-11-10 · Unknown Health Connect workout types · shown as "Other activity" · No English-only fallback text; the common types have their own Polish and English names.

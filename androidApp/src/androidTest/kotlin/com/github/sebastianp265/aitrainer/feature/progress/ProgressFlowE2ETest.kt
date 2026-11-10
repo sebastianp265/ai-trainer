@@ -75,6 +75,34 @@ class ProgressFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
+    fun `weight card opens the weight details`() {
+        val healthConnect = FakeHealthService(granted = setOf(HealthDataType.WEIGHT))
+        healthConnect.weights = listOf(
+            TimedValue(daysAgo(10).atStartOfDayIn(zone) + 8.hours, 84.0),
+            TimedValue(daysAgo(1).atStartOfDayIn(zone) + 8.hours, 82.0),
+        )
+        launchApp(healthDataSource = healthConnect)
+        progress.open()
+
+        progress.openWeightDetails()
+
+        progress.assertWeightDetailsShown()
+    }
+
+    @Test
+    fun `a day opens its details`() {
+        val healthConnect = FakeHealthService()
+        healthConnect.nutrition = listOf(nutrition(daysAgo(1), kcal = 2000))
+        healthConnect.caloriesBurned = listOf(DailyAmount(daysAgo(1), 2500))
+        launchApp(healthDataSource = healthConnect)
+        progress.open()
+
+        progress.openDay(daysAgo(1))
+
+        progress.assertDayDetailsShown("Eaten", "Burned", "Balance")
+    }
+
+    @Test
     fun `data removed from Health Connect disappears after the app is reopened`() {
         val healthConnect = FakeHealthService()
         healthConnect.nutrition = listOf(nutrition(daysAgo(1), kcal = 2000))

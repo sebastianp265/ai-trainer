@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetric
 import kotlin.reflect.KClass
 import kotlinx.serialization.Serializable
 
@@ -35,3 +36,16 @@ internal object SettingsRoute
 
 @Serializable
 internal object HealthConnectRoute
+
+@Serializable
+internal data class ProgressMetricRoute(val metric: ProgressMetric)
+
+@Serializable
+internal data class DayDetailRoute(val date: String)
+
+internal val nestedRoutes = listOf(
+    SettingsRoute::class,
+    HealthConnectRoute::class,
+    ProgressMetricRoute::class,
+    DayDetailRoute::class,
+)
