@@ -6,6 +6,7 @@ import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEAT
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_HISTORY
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_EXERCISE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_HEALTH
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_PLAN
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_SETTINGS
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_SHARED
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_WORKOUT
@@ -18,6 +19,7 @@ import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHAR
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_EXERCISE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_HEALTH
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_LOCALIZATION
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_PLAN
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_PLATFORM
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_SECURITY
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_STATE
@@ -35,8 +37,8 @@ enum class GradleModule(
         directoryName = "core/common",
         packageModules = setOf(
             INTEGRATION_MODULE,
-            INTEGRATION_EXERCISE, INTEGRATION_WORKOUT, INTEGRATION_HEALTH, INTEGRATION_SETTINGS, INTEGRATION_SHARED,
-            SHARED_EXERCISE, SHARED_WORKOUT, SHARED_HEALTH, SHARED_DATABASE,
+            INTEGRATION_EXERCISE, INTEGRATION_WORKOUT, INTEGRATION_PLAN, INTEGRATION_HEALTH, INTEGRATION_SETTINGS, INTEGRATION_SHARED,
+            SHARED_EXERCISE, SHARED_WORKOUT, SHARED_PLAN, SHARED_HEALTH, SHARED_DATABASE,
             FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_HEALTH, FEATURE_SETTINGS,
         ),
     ),

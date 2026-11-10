@@ -1,5 +1,7 @@
 package com.github.sebastianp265.aitrainer.shared.database.impl
 
+import androidx.room.DeleteColumn
+import androidx.room.migration.AutoMigrationSpec
 import androidx.room.migration.Migration
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.execSQL
@@ -52,3 +54,6 @@ internal val migration7To8 = object : Migration(7, 8) {
 }
 
 internal val allMigrations = arrayOf(migration7To8)
+
+@DeleteColumn(tableName = "workout_session", columnName = "planSessionRef")
+internal class Migration8To9 : AutoMigrationSpec

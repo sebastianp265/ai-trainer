@@ -43,3 +43,4 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-10 · RPE chart caption · a general sentence instead of the mockup's data-specific one · The mockup text describes sample data.
 - 2026-11-10 · "Zapytaj trenera o to ćwiczenie" on the exercise history · added with the coach in phase 6 · Requirements 2: no coach elements until then.
 - 2026-11-10 · Session rows of the exercise history · open the finished workout once its detail exists (5.13) · The detail screen does not exist yet.
+- 2026-11-10 · A plan is done when · a finished workout has its id (`workout_session.planId`, replacing the unused `planSessionRef`); deleting that workout makes the plan upcoming again · One source of truth, no copy of the state in the plan; schema 8→9 is an auto-migration.

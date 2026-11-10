@@ -70,7 +70,7 @@ internal class DefaultWorkoutService(
                 date = clock.todayIn(TimeZone.currentSystemDefault()),
                 startedAt = clock.now(),
                 finishedAt = null,
-                planSessionRef = null,
+                planId = null,
                 notes = null,
             )
         )
@@ -151,7 +151,7 @@ internal class DefaultWorkoutService(
 
 private fun SessionSummaryRow.toModel() = SessionSummary(id, date, startedAt, finishedAt, exerciseCount, setCount)
 
-private fun WorkoutSessionEntity.toModel() = WorkoutSession(id, date, startedAt, finishedAt, planSessionRef, notes)
+private fun WorkoutSessionEntity.toModel() = WorkoutSession(id, date, startedAt, finishedAt, planId, notes)
 
 private fun SetEntryEntity.toModel() = SetEntry(id, sessionId, exerciseKey, positionInSession, reps, weightKg, rpe, isWarmup)
 

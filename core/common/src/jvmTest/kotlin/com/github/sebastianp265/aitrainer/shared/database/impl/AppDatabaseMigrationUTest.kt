@@ -64,6 +64,20 @@ class AppDatabaseMigrationUTest {
         assertEquals(SIX_GROUPS, fresh.groups)
     }
 
+    @Test
+    fun `migration from 8 to 9 keeps workouts without a plan and adds empty plan tables`() {
+        helper.createDatabase(8).use { connection ->
+            connection.execSQL("INSERT INTO workout_session (id, date, startedAt, finishedAt, planSessionRef, notes) VALUES (1, '2026-11-01', 1000, 2000, NULL, 'felt good')")
+        }
+
+        helper.runMigrationsAndValidate(9).use { connection ->
+            assertEquals(1, connection.count("workout_session"))
+            assertEquals(1, connection.count("workout_session WHERE planId IS NULL AND notes = 'felt good'"))
+            assertEquals(0, connection.count("plan"))
+            assertEquals(0, connection.count("planned_set"))
+        }
+    }
+
     private fun migratedSeedOfVersion7(): MuscleSnapshot {
         helper.createDatabase(7).use { runSeed(it, "/seed-v7.sql") }
         return helper.runMigrationsAndValidate(8, listOf(migration7To8)).use { it.snapshotOfMuscles() }

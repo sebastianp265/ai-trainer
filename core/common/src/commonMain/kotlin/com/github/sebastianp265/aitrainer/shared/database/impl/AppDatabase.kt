@@ -17,6 +17,9 @@ import com.github.sebastianp265.aitrainer.shared.exercise.ExerciseDao
 import com.github.sebastianp265.aitrainer.shared.health.HealthDao
 import com.github.sebastianp265.aitrainer.shared.health.HealthDayEntity
 import com.github.sebastianp265.aitrainer.shared.health.HealthWorkoutEntity
+import com.github.sebastianp265.aitrainer.shared.plan.PlanDao
+import com.github.sebastianp265.aitrainer.shared.plan.PlanEntity
+import com.github.sebastianp265.aitrainer.shared.plan.PlannedSetEntity
 import com.github.sebastianp265.aitrainer.shared.workout.SetEntryEntity
 import com.github.sebastianp265.aitrainer.shared.workout.WorkoutDao
 import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
@@ -34,9 +37,11 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
         SetEntryEntity::class,
         HealthDayEntity::class,
         HealthWorkoutEntity::class,
+        PlanEntity::class,
+        PlannedSetEntity::class,
     ],
-    version = 8,
-    autoMigrations = [AutoMigration(from = 6, to = 7)],
+    version = 9,
+    autoMigrations = [AutoMigration(from = 6, to = 7), AutoMigration(from = 8, to = 9, spec = Migration8To9::class)],
     exportSchema = true,
 )
 @TypeConverters(TimeConverters::class)
@@ -45,6 +50,7 @@ internal abstract class AppDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
     abstract fun workoutDao(): WorkoutDao
     abstract fun healthDao(): HealthDao
+    abstract fun planDao(): PlanDao
 
     companion object {
         const val NAME = "aitrainer.db"
