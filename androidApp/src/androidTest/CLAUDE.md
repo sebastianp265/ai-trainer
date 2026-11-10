@@ -16,4 +16,4 @@
 - `AbstractE2ETest`: abstract base class every app flow test extends. Before each test it sets the app language (`appLanguage`, English by default) and starts from cleared workouts, settings and secrets (the database is emptied through its file, never recreated, so the seeded exercises stay). It provides the Compose rule, `launchApp()` (optionally with a `FakeHealthService` swapped in through Koin) and `restartApp()`, and closes the app afterwards.
 - `Screen`: base class of the screen objects.
 - Screen objects used by several test classes (`LogWorkoutScreen`, `ExercisePickerScreen`).
-- Fakes of external systems (`FakeHealthService`, later Polar/Claude) always live here, even if only one test uses them so far.
+- Fakes of external systems (`FakeHealthService`, later Claude) always live here, even if only one test uses them so far.

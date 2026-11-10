@@ -8,7 +8,7 @@ I may later add an iOS, web or desktop version, as extra targets of `:core:commo
 
 - Services, models, interfaces and later the Claude client go in `:core:common` and must be **pure Kotlin** (use kotlinx-datetime, not `java.time`; no `android.*`, no `java.*`).
 - Prefer multiplatform-capable libraries for anything in `:core:common` (Room, DataStore, Koin and kotlinx are).
-- Android-only capabilities (Health Connect, WorkManager, Keystore secrets, Custom Tabs / OAuth redirect, file export/import) sit behind interfaces declared in `:core:common`'s `integration` and implemented in `:core:android`, or in `androidApp` when they're UI (e.g. permission screens). `:core:android` reaches `:core:common` only through its `integration`.
+- Android-only capabilities (Health Connect, WorkManager, Keystore secrets, file export/import) sit behind interfaces declared in `:core:common`'s `integration` and implemented in `:core:android`, or in `androidApp` when they're UI (e.g. permission screens). `:core:android` reaches `:core:common` only through its `integration`.
 
 ## Services
 
