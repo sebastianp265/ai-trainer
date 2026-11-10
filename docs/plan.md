@@ -61,7 +61,7 @@ Requirements 2, 7, 8. Screens: `Progress`, `ProgressNoHealth`, `ProgressMetric`,
       end-to-end test opens Settings from the gear on each tab and returns.
 - [x] 4.2 Tables `health_day` (one row per date, every column nullable) and `health_workout`,
       in `shared.health`, with an auto-migration from schema 6. Done when: the migration test passes.
-- [ ] 4.3 `HealthDataSource` reads each data type separately and reports which permissions are
+- [x] 4.3 `HealthDataSource` reads each data type separately and reports which permissions are
       granted, including the history permission. Done when: `FakeHealthService` can grant any subset.
 - [ ] 4.4 Sync service: first sync one year or 30 days, later syncs the last 14 days, overwrite
       by date, skip types without permission, ignore this app's own workouts. Done when: unit tests
