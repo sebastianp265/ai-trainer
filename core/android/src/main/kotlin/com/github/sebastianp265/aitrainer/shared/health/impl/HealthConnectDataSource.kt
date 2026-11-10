@@ -131,7 +131,7 @@ internal class HealthConnectDataSource(private val context: Context) : HealthDat
         return readAll<ExerciseSessionRecord>(from, toInclusive).map { session ->
             val details = workoutDetails(session, granted)
             ExternalWorkoutReading(
-                type = ExerciseSessionRecord.EXERCISE_TYPE_INT_TO_STRING_MAP[session.exerciseType] ?: "other",
+                type = exerciseTypeName(session.exerciseType),
                 startedAt = session.startTime.toKotlin(),
                 durationMinutes = Duration.between(session.startTime, session.endTime).toMinutes().toInt(),
                 distanceM = details.distanceM,
@@ -200,6 +200,27 @@ internal class HealthConnectDataSource(private val context: Context) : HealthDat
             pageToken = response.pageToken
         } while (pageToken != null)
         return records
+    }
+
+    private fun exerciseTypeName(type: Int): String = when (type) {
+        ExerciseSessionRecord.EXERCISE_TYPE_RUNNING -> "running"
+        ExerciseSessionRecord.EXERCISE_TYPE_RUNNING_TREADMILL -> "running_treadmill"
+        ExerciseSessionRecord.EXERCISE_TYPE_BIKING -> "biking"
+        ExerciseSessionRecord.EXERCISE_TYPE_BIKING_STATIONARY -> "biking_stationary"
+        ExerciseSessionRecord.EXERCISE_TYPE_WALKING -> "walking"
+        ExerciseSessionRecord.EXERCISE_TYPE_HIKING -> "hiking"
+        ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_POOL -> "swimming_pool"
+        ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_OPEN_WATER -> "swimming_open_water"
+        ExerciseSessionRecord.EXERCISE_TYPE_ROWING -> "rowing"
+        ExerciseSessionRecord.EXERCISE_TYPE_ROWING_MACHINE -> "rowing_machine"
+        ExerciseSessionRecord.EXERCISE_TYPE_ELLIPTICAL -> "elliptical"
+        ExerciseSessionRecord.EXERCISE_TYPE_YOGA -> "yoga"
+        ExerciseSessionRecord.EXERCISE_TYPE_PILATES -> "pilates"
+        ExerciseSessionRecord.EXERCISE_TYPE_STRETCHING -> "stretching"
+        ExerciseSessionRecord.EXERCISE_TYPE_WEIGHTLIFTING -> "weightlifting"
+        ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING -> "strength_training"
+        ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING -> "high_intensity_interval_training"
+        else -> "other"
     }
 
     private fun java.time.Instant.toKotlin(): Instant = Instant.fromEpochMilliseconds(toEpochMilli())
