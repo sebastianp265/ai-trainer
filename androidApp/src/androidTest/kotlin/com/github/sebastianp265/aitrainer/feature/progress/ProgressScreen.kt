@@ -36,6 +36,11 @@ class ProgressScreen(compose: ComposeTestRule) : Screen(compose) {
         compose.onAllNodes(hasText("Details") and hasClickAction()).onFirst().performClick()
     }
 
+    fun openStrengthExercise(exercise: String) {
+        waitForText(exercise)
+        clickText(exercise)
+    }
+
     fun assertWeightDetailsShown() {
         waitForText("7-day average")
         waitForText("lowest")

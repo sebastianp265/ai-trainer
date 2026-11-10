@@ -29,6 +29,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.github.sebastianp265.aitrainer.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.github.sebastianp265.aitrainer.feature.exercise.ExerciseHistoryScreen
 import com.github.sebastianp265.aitrainer.feature.exercise.ExercisePickerScreen
 import com.github.sebastianp265.aitrainer.feature.exercise.PICKED_EXERCISE_KEY
 import com.github.sebastianp265.aitrainer.feature.health.HealthConnectScreen
@@ -80,11 +81,14 @@ internal fun AppNavigation() {
             composable<ActiveWorkoutRoute> { entry ->
                 val picked by entry.savedStateHandle.getStateFlow<String?>(PICKED_EXERCISE_KEY, null).collectAsStateWithLifecycle()
                 ActiveWorkoutScreen(
-                    onOpenExerciseHistory = {},
+                    onOpenExerciseHistory = { navController.navigate(ExerciseHistoryRoute(it)) },
                     onOpenExercisePicker = { navController.navigate(ExercisePickerRoute) },
                     pickedExerciseKey = picked,
                     onPickedExerciseHandled = { entry.savedStateHandle[PICKED_EXERCISE_KEY] = null },
                 )
+            }
+            composable<ExerciseHistoryRoute> { entry ->
+                ExerciseHistoryScreen(entry.toRoute<ExerciseHistoryRoute>().exerciseKey, onOpenWorkout = {})
             }
             composable<ExercisePickerRoute> {
                 ExercisePickerScreen(
@@ -104,6 +108,7 @@ internal fun AppNavigation() {
                 ProgressScreen(
                     onOpenMetric = { navController.navigate(ProgressMetricRoute(it)) },
                     onOpenDay = { navController.navigate(DayDetailRoute(it.toString())) },
+                    onOpenExercise = { navController.navigate(ExerciseHistoryRoute(it)) },
                 )
             }
             composable<ProgressMetricRoute> { entry ->

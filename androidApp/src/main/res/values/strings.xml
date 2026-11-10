@@ -227,4 +227,17 @@
     <string name="primary_group">Main muscle group</string>
     <string name="secondary_groups">Additional groups</string>
     <string name="exercise_with_last_time">%1$s · last %2$s</string>
+    <plurals name="workout_count">
+        <item quantity="one">%d workout</item>
+        <item quantity="other">%d workouts</item>
+    </plurals>
+    <string name="exercise_history_subtitle">%1$s · %2$s</string>
+    <string name="exercise_history_estimate">est. 1RM</string>
+    <string name="exercise_history_best_set">best set</string>
+    <string name="exercise_history_best_set_value">%1$s kg × %2$d</string>
+    <string name="exercise_history_change">1RM in 3 months</string>
+    <string name="exercise_history_one_rep_max_chart">Estimated one-rep max (1RM)</string>
+    <string name="exercise_history_rpe_chart">Average RPE of working sets</string>
+    <string name="exercise_history_rpe_caption">At the same weight a falling RPE means the weight is getting easier.</string>
+    <string name="exercise_history_sessions_title">History · working sets</string>
 </resources>

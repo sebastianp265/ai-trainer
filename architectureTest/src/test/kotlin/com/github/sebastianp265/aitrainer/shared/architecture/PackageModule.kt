@@ -22,6 +22,7 @@ enum class PackageModule(val path: String) {
     SHARED_PLATFORM("shared.platform"),
     SHARED_LOCALIZATION("shared.localization"),
     SHARED_STATE("shared.state"),
+    SHARED_CHARTS("shared.charts"),
     FEATURE_EXERCISE("feature.exercise"),
     FEATURE_WORKOUT("feature.workout"),
     FEATURE_HEALTH("feature.health"),

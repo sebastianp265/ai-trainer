@@ -70,3 +70,10 @@ internal fun formatTime(instant: Instant): String {
     val format = remember(locale) { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale) }
     return format.format(instant.toLocalDateTime(TimeZone.currentSystemDefault()).toJavaLocalDateTime())
 }
+
+@Composable
+internal fun formatWeight(kg: Double): String {
+    val locale = LocalConfiguration.current.locales[0]
+    val format = remember(locale) { NumberFormat.getNumberInstance(locale).apply { maximumFractionDigits = 2 } }
+    return format.format(kg)
+}

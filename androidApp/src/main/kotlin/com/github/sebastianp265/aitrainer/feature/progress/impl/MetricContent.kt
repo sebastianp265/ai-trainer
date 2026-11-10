@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.feature.progress.impl
 
+import com.github.sebastianp265.aitrainer.shared.charts.LineChart
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

@@ -1,5 +1,7 @@
 package com.github.sebastianp265.aitrainer.feature.progress.impl
 
+import com.github.sebastianp265.aitrainer.shared.charts.LineChart
+import com.github.sebastianp265.aitrainer.shared.charts.BarChart
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +46,7 @@ internal fun ProgressContent(
     onHealthConnectChanged: () -> Unit,
     onOpenMetric: (ProgressMetric) -> Unit,
     onOpenDay: (LocalDate) -> Unit,
+    onOpenExercise: (String) -> Unit,
 ) {
     val cards = state.cards
     if (cards == null) {
@@ -74,7 +77,7 @@ internal fun ProgressContent(
                 }
             }
         }
-        if (state.strength.isNotEmpty()) item { StrengthCard(state.strength) }
+        if (state.strength.isNotEmpty()) item { StrengthCard(state.strength, onOpenExercise) }
         cards.workouts?.let { item { WorkoutsCard(it, state.range) } }
         if (cards.recentDays.isNotEmpty()) item { DaysCard(cards.recentDays, onOpenDay) }
     }
@@ -179,11 +182,15 @@ private fun RestingHeartRateCard(card: TrendCard, range: ProgressRange, onDetail
 }
 
 @Composable
-private fun StrengthCard(rows: List<StrengthRow>) {
+private fun StrengthCard(rows: List<StrengthRow>, onOpenExercise: (String) -> Unit) {
     val locale = LocalConfiguration.current.locales[0]
     ProgressCard(R.string.progress_strength_title, Modifier.testTag(ProgressTags.STRENGTH_CARD)) {
         rows.forEach { row ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.fillMaxWidth().clickable { onOpenExercise(row.exercise.key) },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Column {
                     Text(row.exercise.displayName(locale), style = MaterialTheme.typography.bodyMedium)
                     if (row.isRecord) Text(stringResource(R.string.progress_record), style = MaterialTheme.typography.labelSmall)
@@ -291,6 +298,7 @@ private fun ProgressContentPreview() {
                 onHealthConnectChanged = {},
                 onOpenMetric = {},
                 onOpenDay = {},
+                onOpenExercise = {},
             )
         }
     }

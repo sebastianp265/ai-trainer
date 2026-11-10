@@ -39,3 +39,7 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-10 · Muscle filter in the picker · by the exercise's primary group; the chip row lists the six groups · Mockup shows five chips; requirements name six.
 - 2026-11-10 · Custom exercise names · stored in English only (the typed name), shown in every language · One name field in the form.
 - 2026-11-10 · Last-time text helpers · moved to `shared.workout` in `androidApp` · Used by the workout card and the picker.
+- 2026-11-10 · Exercise history numbers · "est. 1RM" is the best set of the latest session; "best set" is the highest estimate of all sessions; "1RM in 3 months" is the latest minus the first estimate within three months (needs two); "record" marks a session beating all earlier ones (the first session is never a record) · Mockup gives no definitions.
+- 2026-11-10 · RPE chart caption · a general sentence instead of the mockup's data-specific one · The mockup text describes sample data.
+- 2026-11-10 · "Zapytaj trenera o to ćwiczenie" on the exercise history · added with the coach in phase 6 · Requirements 2: no coach elements until then.
+- 2026-11-10 · Session rows of the exercise history · open the finished workout once its detail exists (5.13) · The detail screen does not exist yet.

@@ -76,6 +76,18 @@ internal interface WorkoutDao {
     )
     suspend fun recentExerciseKeys(limit: Int): List<String>
 
+    @Query(
+        """
+        SELECT s.id AS sessionId, s.date AS date, e.positionInSession AS positionInSession,
+               e.reps AS reps, e.weightKg AS weightKg, e.rpe AS rpe
+        FROM set_entry e
+        JOIN workout_session s ON s.id = e.sessionId
+        WHERE e.exerciseKey = :exerciseKey AND s.finishedAt IS NOT NULL AND e.isWarmup = 0
+        ORDER BY s.startedAt, e.positionInSession
+        """
+    )
+    fun observeHistorySets(exerciseKey: String): Flow<List<HistorySetRow>>
+
     @Query("SELECT * FROM set_entry WHERE sessionId = :sessionId ORDER BY positionInSession")
     fun observeSets(sessionId: Long): Flow<List<SetEntryEntity>>
 

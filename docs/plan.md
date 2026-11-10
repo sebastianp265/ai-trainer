@@ -95,7 +95,7 @@ Requirements 3, 4, 5, 6. Screens: `Main`, `StartSheet`, `ActiveWorkout`, `Workou
       different sets, mixed RPE, no RPE, bodyweight, overflow to `+N`, and no previous workout.
 - [x] 5.5 Discard confirmation.
 - [x] 5.6 Exercise picker: search, muscle filter, recently used, create an exercise.
-- [ ] 5.7 Exercise history: stats, 1RM chart, RPE chart, past sessions.
+- [x] 5.7 Exercise history: stats, 1RM chart, RPE chart, past sessions.
 - [ ] 5.8 Plan tables (plan, planned exercise, planned set; author; optional date; done link to
       a workout) with a migration.
 - [ ] 5.9 Plan list, empty state, details, new, edit, delete with confirmation.

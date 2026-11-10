@@ -15,6 +15,8 @@ interface WorkoutService {
 
     fun observeStrength(from: LocalDate, toInclusive: LocalDate): Flow<List<ExerciseStrength>>
 
+    fun observeExerciseHistory(exerciseKey: String): Flow<ExerciseHistory>
+
     fun groupSetsByExercise(sets: List<SetEntry>, exercises: Map<String, Exercise>): List<ExerciseBlock>
 
     fun groupLastTimeSets(sets: List<SetEntry>): List<LastTimeGroup>

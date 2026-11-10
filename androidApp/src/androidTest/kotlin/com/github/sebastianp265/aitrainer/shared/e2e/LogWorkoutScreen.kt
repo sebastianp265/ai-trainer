@@ -95,6 +95,12 @@ class LogWorkoutScreen(
         }
     }
 
+    fun openLastTimeHistory(exercise: String) {
+        val matcher = hasTestTag(ActiveWorkoutTags.LAST_TIME) and inExerciseCard(exercise)
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(matcher, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
+        compose.onAllNodes(matcher, useUnmergedTree = true)[0].performClick()
+    }
+
     fun assertExerciseShown(name: String) = waitForText(name)
 
     fun assertHistoryEntry(summary: String) {

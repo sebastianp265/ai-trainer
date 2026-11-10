@@ -14,7 +14,7 @@ import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-internal fun ProgressScreen(onOpenMetric: (ProgressMetric) -> Unit, onOpenDay: (LocalDate) -> Unit) {
+internal fun ProgressScreen(onOpenMetric: (ProgressMetric) -> Unit, onOpenDay: (LocalDate) -> Unit, onOpenExercise: (String) -> Unit) {
     val viewModel: ProgressViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     ProgressContent(
@@ -23,6 +23,7 @@ internal fun ProgressScreen(onOpenMetric: (ProgressMetric) -> Unit, onOpenDay: (
         onHealthConnectChanged = viewModel::syncAfterConnecting,
         onOpenMetric = onOpenMetric,
         onOpenDay = onOpenDay,
+        onOpenExercise = onOpenExercise,
     )
 }
 

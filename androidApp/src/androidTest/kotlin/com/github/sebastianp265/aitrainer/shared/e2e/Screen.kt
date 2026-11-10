@@ -11,8 +11,8 @@ const val TEST_TIMEOUT_MS = 5_000L
 
 abstract class Screen(protected val compose: ComposeTestRule) {
 
-    protected fun waitForText(text: String) =
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty() }
+    protected fun waitForText(text: String, substring: Boolean = false) =
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
 
     protected fun waitForTextShownOnce(text: String) =
         compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText(text).fetchSemanticsNodes().size == 1 }

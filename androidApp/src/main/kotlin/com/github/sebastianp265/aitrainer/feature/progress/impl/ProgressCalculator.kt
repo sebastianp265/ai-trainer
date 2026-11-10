@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.feature.progress.impl
 
+import com.github.sebastianp265.aitrainer.shared.charts.DailyPoint
 import com.github.sebastianp265.aitrainer.integration.health.HealthDay
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
@@ -12,7 +13,6 @@ internal enum class ProgressRange(val days: Int) {
     YEAR(365),
 }
 
-internal data class DailyPoint(val date: LocalDate, val value: Double)
 
 internal data class TrendCard(
     val current: Double,

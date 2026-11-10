@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.feature.progress.impl
+package com.github.sebastianp265.aitrainer.shared.charts
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
@@ -16,6 +16,8 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import kotlin.math.abs
+
+internal data class DailyPoint(val date: LocalDate, val value: Double)
 
 @Composable
 internal fun LineChart(points: List<DailyPoint>, average: List<DailyPoint>, modifier: Modifier = Modifier) {

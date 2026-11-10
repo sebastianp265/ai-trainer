@@ -44,6 +44,7 @@ import com.github.sebastianp265.aitrainer.integration.workout.RPE_MIN
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_STEP
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
+import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
 import com.github.sebastianp265.aitrainer.shared.workout.hiddenSetCount
 import com.github.sebastianp265.aitrainer.shared.workout.rememberLastTimeLabels
 import com.github.sebastianp265.aitrainer.shared.workout.text

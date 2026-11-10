@@ -7,6 +7,7 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
 import com.github.sebastianp265.aitrainer.integration.workout.CopyResult
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
+import com.github.sebastianp265.aitrainer.integration.workout.ExerciseHistory
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseStrength
 import com.github.sebastianp265.aitrainer.integration.workout.LastTimeGroup
 import com.github.sebastianp265.aitrainer.integration.workout.RecentExercise
@@ -46,6 +47,9 @@ internal class DefaultWorkoutService(
 
     override fun observeStrength(from: LocalDate, toInclusive: LocalDate): Flow<List<ExerciseStrength>> =
         dao.observeWorkingSets().map { sets -> strengthInRange(sets, from, toInclusive) }
+
+    override fun observeExerciseHistory(exerciseKey: String): Flow<ExerciseHistory> =
+        dao.observeHistorySets(exerciseKey).map { exerciseHistory(exerciseKey, it, clock.todayIn(TimeZone.currentSystemDefault())) }
 
     override fun groupSetsByExercise(sets: List<SetEntry>, exercises: Map<String, Exercise>): List<ExerciseBlock> =
         groupSetsByExerciseInLoggingOrder(sets, exercises)

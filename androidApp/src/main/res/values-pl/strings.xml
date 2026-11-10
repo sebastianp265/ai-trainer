@@ -230,4 +230,19 @@
     <string name="primary_group">Główna partia</string>
     <string name="secondary_groups">Dodatkowe partie</string>
     <string name="exercise_with_last_time">%1$s · ostatnio %2$s</string>
+    <plurals name="workout_count">
+        <item quantity="one">%d trening</item>
+        <item quantity="few">%d treningi</item>
+        <item quantity="many">%d treningów</item>
+        <item quantity="other">%d treningu</item>
+    </plurals>
+    <string name="exercise_history_subtitle">%1$s · %2$s</string>
+    <string name="exercise_history_estimate">szac. 1RM</string>
+    <string name="exercise_history_best_set">najlepsza seria</string>
+    <string name="exercise_history_best_set_value">%1$s kg × %2$d</string>
+    <string name="exercise_history_change">1RM w 3 mies.</string>
+    <string name="exercise_history_one_rep_max_chart">Szacowany ciężar maksymalny (1RM)</string>
+    <string name="exercise_history_rpe_chart">Średnie RPE serii roboczych</string>
+    <string name="exercise_history_rpe_caption">Przy tym samym ciężarze spadające RPE oznacza, że ciężar robi się lżejszy.</string>
+    <string name="exercise_history_sessions_title">Historia · serie robocze</string>
 </resources>

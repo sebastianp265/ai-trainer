@@ -50,6 +50,9 @@ internal object ActiveWorkoutRoute
 internal object ExercisePickerRoute
 
 @Serializable
+internal data class ExerciseHistoryRoute(val exerciseKey: String)
+
+@Serializable
 internal object HistoryRoute
 
 @Serializable
@@ -63,5 +66,6 @@ internal val nestedRoutes = listOf(
     ProgressMetricRoute::class,
     DayDetailRoute::class,
     HistoryRoute::class,
+    ExerciseHistoryRoute::class,
     ExternalWorkoutRoute::class,
 )
