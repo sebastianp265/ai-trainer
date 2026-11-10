@@ -6,6 +6,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.LocalDate
 
 @Dao
 internal interface WorkoutDao {
@@ -38,6 +39,20 @@ internal interface WorkoutDao {
         """
     )
     fun observeRecentSessions(limit: Int): Flow<List<SessionSummaryRow>>
+
+    @Query(
+        """
+        SELECT s.id, s.date, s.startedAt, s.finishedAt,
+               COUNT(DISTINCT e.exerciseKey) AS exerciseCount,
+               COUNT(e.id) AS setCount
+        FROM workout_session s
+        LEFT JOIN set_entry e ON e.sessionId = s.id
+        WHERE s.finishedAt IS NOT NULL AND s.date BETWEEN :from AND :toInclusive
+        GROUP BY s.id
+        ORDER BY s.startedAt DESC
+        """
+    )
+    fun observeFinishedSessions(from: LocalDate, toInclusive: LocalDate): Flow<List<SessionSummaryRow>>
 
     @Query("SELECT * FROM set_entry WHERE sessionId = :sessionId ORDER BY positionInSession")
     fun observeSets(sessionId: Long): Flow<List<SetEntryEntity>>

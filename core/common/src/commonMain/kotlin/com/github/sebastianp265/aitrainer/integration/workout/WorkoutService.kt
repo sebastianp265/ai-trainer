@@ -2,6 +2,7 @@ package com.github.sebastianp265.aitrainer.integration.workout
 
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.LocalDate
 
 interface WorkoutService {
     fun observeActiveSession(): Flow<WorkoutSession?>
@@ -9,6 +10,8 @@ interface WorkoutService {
     fun observeSets(sessionId: Long): Flow<List<SetEntry>>
 
     fun observeRecentSessions(): Flow<List<SessionSummary>>
+
+    fun observeFinishedSessions(from: LocalDate, toInclusive: LocalDate): Flow<List<SessionSummary>>
 
     fun groupSetsByExercise(sets: List<SetEntry>, exercises: Map<String, Exercise>): List<ExerciseBlock>
 

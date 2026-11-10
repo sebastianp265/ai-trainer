@@ -41,7 +41,7 @@
     <string name="settings_api_key_missing">Brak zapisanego klucza API</string>
     <string name="settings_claude_model">Model Claude</string>
     <string name="health_connect">Health Connect</string>
-    <string name="health_connect_not_connected">Połącz, aby importować zjedzone kalorie i makroskładniki.</string>
+    <string name="health_connect_not_connected">Połącz, żeby widzieć tu wagę, kalorie, sen i tętno. Wybierasz, które dane udostępnić.</string>
     <string name="health_connect_connect">Połącz</string>
     <string name="health_connect_unavailable">Health Connect nie jest dostępny na tym urządzeniu.</string>
     <string name="health_connect_update_required">Health Connect wymaga aktualizacji.</string>
@@ -127,6 +127,10 @@
     <string name="day_burned">spalone %1$s</string>
     <string name="day_sleep">sen %1$s</string>
     <string name="day_steps">%1$s kroków</string>
+
+    <string name="progress_workouts">Treningi</string>
+    <string name="progress_workouts_summary">%1$d %2$s · %3$s na tydzień</string>
+    <string name="progress_connect_title">Więcej danych z Health Connect</string>
 
     <plurals name="exercise_count">
         <item quantity="one">%d ćwiczenie</item>

@@ -48,8 +48,8 @@ internal fun ProgressContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize(),
     ) {
-        item { HealthConnectCard(onConnectionChanged = onHealthConnectChanged) }
         item { RangeSwitch(state.range, onRangeSelected) }
+        item { HealthConnectCard(onConnectionChanged = onHealthConnectChanged) }
         cards.weight?.let { item { WeightCard(it, state.range) } }
         cards.balance?.let { item { BalanceCard(it) } }
         cards.macros?.let { item { MacrosCard(it) } }
@@ -61,6 +61,7 @@ internal fun ProgressContent(
         cards.hrvMs?.let {
             item { AverageCard(R.string.progress_hrv, R.string.progress_sleep_hint, stringResource(R.string.value_ms, formatNumber(it))) }
         }
+        cards.workouts?.let { item { WorkoutsCard(it, state.range) } }
         if (cards.recentDays.isNotEmpty()) item { DaysCard(cards.recentDays) }
     }
 }
@@ -156,6 +157,21 @@ private fun RestingHeartRateCard(card: TrendCard, range: ProgressRange) {
 }
 
 @Composable
+private fun WorkoutsCard(card: WorkoutsCard, range: ProgressRange) {
+    ProgressCard(R.string.progress_workouts, Modifier.testTag(ProgressTags.WORKOUTS_CARD)) {
+        Text(
+            stringResource(
+                R.string.progress_workouts_summary,
+                card.count,
+                stringResource(range.inRangeRes()),
+                formatNumber(card.perWeek, 1),
+            ),
+            style = MaterialTheme.typography.titleMedium,
+        )
+    }
+}
+
+@Composable
 private fun DaysCard(days: List<HealthDay>) {
     ProgressCard(R.string.progress_days, Modifier.testTag(ProgressTags.DAYS_CARD)) {
         days.forEach { day -> DayRow(day) }
@@ -211,6 +227,7 @@ internal object ProgressTags {
     const val WEIGHT_CARD = "progress_weight_card"
     const val BALANCE_CARD = "progress_balance_card"
     const val MACROS_CARD = "progress_macros_card"
+    const val WORKOUTS_CARD = "progress_workouts_card"
     const val DAYS_CARD = "progress_days_card"
     fun card(@StringRes title: Int) = "progress_card:$title"
     fun range(range: ProgressRange) = "progress_range:${range.name}"
@@ -230,7 +247,7 @@ private fun ProgressContentPreview() {
                 )
             }
             ProgressContent(
-                state = ProgressUiState(cards = ProgressCalculator.calculate(days, ProgressRange.FOUR_WEEKS, today)),
+                state = ProgressUiState(cards = ProgressCalculator.calculate(days, 14, ProgressRange.FOUR_WEEKS, today)),
                 onRangeSelected = {},
                 onHealthConnectChanged = {},
             )

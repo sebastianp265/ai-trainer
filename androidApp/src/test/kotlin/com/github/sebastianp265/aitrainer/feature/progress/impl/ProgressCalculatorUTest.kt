@@ -30,8 +30,8 @@ class ProgressCalculatorUTest {
 
     private fun daysAgo(days: Int) = LocalDate.fromEpochDays(today.toEpochDays() - days)
 
-    private fun cards(vararg days: HealthDay, range: ProgressRange = ProgressRange.FOUR_WEEKS) =
-        ProgressCalculator.calculate(days.toList(), range, today)
+    private fun cards(vararg days: HealthDay, finishedWorkouts: Int = 0, range: ProgressRange = ProgressRange.FOUR_WEEKS) =
+        ProgressCalculator.calculate(days.toList(), finishedWorkouts, range, today)
 
     @Test
     fun `without data every card is missing`() {
@@ -45,6 +45,19 @@ class ProgressCalculatorUTest {
         assertNull(cards.restingHeartRate)
         assertNull(cards.hrvMs)
         assertTrue(cards.isEmpty)
+    }
+
+    @Test
+    fun `workouts card counts the finished workouts and averages them per week`() {
+        val workouts = assertNotNull(cards(finishedWorkouts = 14).workouts)
+
+        assertEquals(14, workouts.count)
+        assertEquals(3.5, workouts.perWeek)
+    }
+
+    @Test
+    fun `workouts card is missing without workouts`() {
+        assertNull(cards().workouts)
     }
 
     @Test

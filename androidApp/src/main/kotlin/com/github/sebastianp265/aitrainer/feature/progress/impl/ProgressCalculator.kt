@@ -37,7 +37,10 @@ internal data class MacrosCard(
     val fiberG: Double?,
 )
 
+internal data class WorkoutsCard(val count: Int, val perWeek: Double)
+
 internal data class ProgressCards(
+    val workouts: WorkoutsCard?,
     val weight: TrendCard?,
     val balance: BalanceCard?,
     val macros: MacrosCard?,
@@ -48,7 +51,7 @@ internal data class ProgressCards(
     val recentDays: List<HealthDay>,
 ) {
     val isEmpty: Boolean
-        get() = weight == null && balance == null && macros == null && steps == null && sleepMinutes == null &&
+        get() = workouts == null && weight == null && balance == null && macros == null && steps == null && sleepMinutes == null &&
             restingHeartRate == null && hrvMs == null && recentDays.isEmpty()
 }
 
@@ -56,12 +59,19 @@ internal object ProgressCalculator {
 
     private const val AVERAGE_WINDOW_DAYS = 7
     private const val RECENT_DAYS = 7
+    private const val DAYS_PER_WEEK = 7.0
 
-    fun calculate(storedDays: List<HealthDay>, range: ProgressRange, today: LocalDate): ProgressCards {
+    fun calculate(
+        storedDays: List<HealthDay>,
+        finishedWorkouts: Int,
+        range: ProgressRange,
+        today: LocalDate,
+    ): ProgressCards {
         val firstDay = today.minus(DatePeriod(days = range.days - 1))
         val days = storedDays.filter { it.date in firstDay..today }.sortedBy { it.date }
         val finishedDays = days.filter { it.date < today }
         return ProgressCards(
+            workouts = finishedWorkouts.takeIf { it > 0 }?.let { WorkoutsCard(it, it * DAYS_PER_WEEK / range.days) },
             weight = trend(days) { it.weightKg },
             balance = balance(finishedDays),
             macros = macros(finishedDays),

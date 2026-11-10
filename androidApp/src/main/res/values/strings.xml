@@ -42,7 +42,7 @@
     <string name="settings_api_key_missing">No API key saved</string>
     <string name="settings_claude_model">Claude model</string>
     <string name="health_connect">Health Connect</string>
-    <string name="health_connect_not_connected">Connect to import calories eaten and macronutrients.</string>
+    <string name="health_connect_not_connected">Connect to see weight, calories, sleep and heart rate here. You choose which data to share.</string>
     <string name="health_connect_connect">Connect</string>
     <string name="health_connect_unavailable">Health Connect is not available on this device.</string>
     <string name="health_connect_update_required">Health Connect needs an update.</string>
@@ -129,6 +129,10 @@
     <string name="day_burned">burned %1$s</string>
     <string name="day_sleep">sleep %1$s</string>
     <string name="day_steps">%1$s steps</string>
+
+    <string name="progress_workouts">Workouts</string>
+    <string name="progress_workouts_summary">%1$d %2$s · %3$s per week</string>
+    <string name="progress_connect_title">More data from Health Connect</string>
 
     <plurals name="exercise_count">
         <item quantity="one">%d exercise</item>

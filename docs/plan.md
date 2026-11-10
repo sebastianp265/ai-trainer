@@ -75,7 +75,7 @@ Requirements 2, 7, 8. Screens: `Progress`, `ProgressNoHealth`, `ProgressMetric`,
       resting HR, HRV, days. Charts drawn with Compose `Canvas`. Hidden when their data is missing.
       Done when: unit tests cover each card's numbers; an end-to-end test shows cards for a fake
       with partial permissions.
-- [ ] 4.9 Progress without any Health Connect data.
+- [x] 4.9 Progress without any Health Connect data.
 - [ ] 4.10 Metric detail and day detail.
 - [ ] 4.11 Strength card (estimated 1RM per exercise, requirement 4 "Records and estimates").
 - [ ] 4.12 All workouts list with workouts from other apps, its filter, and the read-only detail.

@@ -25,7 +25,7 @@ internal fun HealthConnectCardContent(
 ) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.health_connect), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.progress_connect_title), style = MaterialTheme.typography.titleMedium)
             val description = when (access) {
                 HealthConnectAccess.UNAVAILABLE -> R.string.health_connect_unavailable
                 HealthConnectAccess.UPDATE_REQUIRED -> R.string.health_connect_update_required
