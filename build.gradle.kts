@@ -16,8 +16,8 @@ plugins {
 
 tasks.register("unitTest") {
     group = "verification"
-    description = "Runs all fast JVM tests: the architecture rules and the app unit tests"
-    dependsOn(":architectureTest:test", ":androidApp:testDebugUnitTest")
+    description = "Runs all fast JVM tests: the architecture rules, the core unit tests and the app unit tests"
+    dependsOn(":architectureTest:test", ":core:common:jvmTest", ":androidApp:testDebugUnitTest")
 }
 
 val androidCompileSdk = 37

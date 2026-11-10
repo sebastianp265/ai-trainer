@@ -20,6 +20,14 @@ kotlin {
             api(project.dependencies.platform(libs.koin.bom))
             api(libs.koin.core)
         }
+        jvmTest.dependencies {
+            implementation(project.dependencies.platform(libs.junit.bom))
+            implementation(libs.kotlin.test.junit5)
+            implementation(libs.androidx.room.testing)
+            implementation(libs.androidx.sqlite.bundled)
+            implementation(libs.kotlinx.coroutines.test)
+            runtimeOnly(libs.junit.platform.launcher)
+        }
     }
 }
 
@@ -29,4 +37,8 @@ room {
 
 dependencies {
     add("kspJvm", libs.androidx.room.compiler)
+}
+
+tasks.named<Test>("jvmTest") {
+    useJUnitPlatform()
 }

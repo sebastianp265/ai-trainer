@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.shared.database.impl
 
+import androidx.room.AutoMigration
 import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
@@ -13,6 +14,8 @@ import com.github.sebastianp265.aitrainer.shared.exercise.ExerciseTranslationEnt
 import com.github.sebastianp265.aitrainer.shared.exercise.MuscleGroupEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.MuscleGroupTranslationEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.ExerciseDao
+import com.github.sebastianp265.aitrainer.shared.health.HealthDayEntity
+import com.github.sebastianp265.aitrainer.shared.health.HealthWorkoutEntity
 import com.github.sebastianp265.aitrainer.shared.workout.SetEntryEntity
 import com.github.sebastianp265.aitrainer.shared.workout.WorkoutDao
 import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
@@ -28,8 +31,11 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
         ExerciseMuscleEntity::class,
         WorkoutSessionEntity::class,
         SetEntryEntity::class,
+        HealthDayEntity::class,
+        HealthWorkoutEntity::class,
     ],
-    version = 6,
+    version = 7,
+    autoMigrations = [AutoMigration(from = 6, to = 7)],
     exportSchema = true,
 )
 @TypeConverters(TimeConverters::class)
