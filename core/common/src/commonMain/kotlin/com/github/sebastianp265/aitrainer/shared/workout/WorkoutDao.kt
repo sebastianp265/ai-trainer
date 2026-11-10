@@ -54,6 +54,16 @@ internal interface WorkoutDao {
     )
     fun observeFinishedSessions(from: LocalDate, toInclusive: LocalDate): Flow<List<SessionSummaryRow>>
 
+    @Query(
+        """
+        SELECT s.date AS date, e.exerciseKey AS exerciseKey, e.weightKg AS weightKg, e.reps AS reps
+        FROM set_entry e
+        JOIN workout_session s ON s.id = e.sessionId
+        WHERE s.finishedAt IS NOT NULL AND e.isWarmup = 0
+        """
+    )
+    fun observeWorkingSets(): Flow<List<WorkingSetRow>>
+
     @Query("SELECT * FROM set_entry WHERE sessionId = :sessionId ORDER BY positionInSession")
     fun observeSets(sessionId: Long): Flow<List<SetEntryEntity>>
 

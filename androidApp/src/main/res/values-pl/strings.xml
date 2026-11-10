@@ -170,6 +170,9 @@
     <string name="workout_type_hiit">Trening interwałowy</string>
     <string name="workout_type_other">Inna aktywność</string>
 
+    <string name="progress_strength_title">Siła · szacowany ciężar maksymalny (1RM)</string>
+    <string name="progress_record">rekord</string>
+
     <plurals name="exercise_count">
         <item quantity="one">%d ćwiczenie</item>
         <item quantity="few">%d ćwiczenia</item>

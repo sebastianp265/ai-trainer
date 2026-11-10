@@ -13,6 +13,8 @@ interface WorkoutService {
 
     fun observeFinishedSessions(from: LocalDate, toInclusive: LocalDate): Flow<List<SessionSummary>>
 
+    fun observeStrength(from: LocalDate, toInclusive: LocalDate): Flow<List<ExerciseStrength>>
+
     fun groupSetsByExercise(sets: List<SetEntry>, exercises: Map<String, Exercise>): List<ExerciseBlock>
 
     suspend fun startSession()

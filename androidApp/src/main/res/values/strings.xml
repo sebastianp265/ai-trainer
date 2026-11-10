@@ -172,6 +172,9 @@
     <string name="workout_type_hiit">Interval training</string>
     <string name="workout_type_other">Other activity</string>
 
+    <string name="progress_strength_title">Strength · estimated one-rep max (1RM)</string>
+    <string name="progress_record">record</string>
+
     <plurals name="exercise_count">
         <item quantity="one">%d exercise</item>
         <item quantity="other">%d exercises</item>

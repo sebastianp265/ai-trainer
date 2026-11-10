@@ -77,7 +77,7 @@ Requirements 2, 7, 8. Screens: `Progress`, `ProgressNoHealth`, `ProgressMetric`,
       with partial permissions.
 - [x] 4.9 Progress without any Health Connect data.
 - [x] 4.10 Metric detail and day detail.
-- [ ] 4.11 Strength card (estimated 1RM per exercise, requirement 4 "Records and estimates").
+- [x] 4.11 Strength card (estimated 1RM per exercise, requirement 4 "Records and estimates").
 - [ ] 4.12 All workouts list with workouts from other apps, its filter, and the read-only detail.
 - [ ] 4.13 Remove the old Progress list and the source-app line. `status.md` updated.
 

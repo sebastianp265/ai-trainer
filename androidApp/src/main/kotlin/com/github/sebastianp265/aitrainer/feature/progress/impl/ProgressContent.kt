@@ -23,11 +23,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.feature.exercise.displayName
 import com.github.sebastianp265.aitrainer.feature.health.HealthConnectCard
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetric
 import com.github.sebastianp265.aitrainer.integration.health.HealthDay
@@ -72,6 +74,7 @@ internal fun ProgressContent(
                 }
             }
         }
+        if (state.strength.isNotEmpty()) item { StrengthCard(state.strength) }
         cards.workouts?.let { item { WorkoutsCard(it, state.range) } }
         if (cards.recentDays.isNotEmpty()) item { DaysCard(cards.recentDays, onOpenDay) }
     }
@@ -176,6 +179,22 @@ private fun RestingHeartRateCard(card: TrendCard, range: ProgressRange, onDetail
 }
 
 @Composable
+private fun StrengthCard(rows: List<StrengthRow>) {
+    val locale = LocalConfiguration.current.locales[0]
+    ProgressCard(R.string.progress_strength_title, Modifier.testTag(ProgressTags.STRENGTH_CARD)) {
+        rows.forEach { row ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    Text(row.exercise.displayName(locale), style = MaterialTheme.typography.bodyMedium)
+                    if (row.isRecord) Text(stringResource(R.string.progress_record), style = MaterialTheme.typography.labelSmall)
+                }
+                Text(stringResource(R.string.value_kg, formatNumber(row.estimatedOneRepMaxKg)), style = MaterialTheme.typography.titleMedium)
+            }
+        }
+    }
+}
+
+@Composable
 private fun WorkoutsCard(card: WorkoutsCard, range: ProgressRange) {
     ProgressCard(R.string.progress_workouts, Modifier.testTag(ProgressTags.WORKOUTS_CARD)) {
         Text(
@@ -246,6 +265,7 @@ internal object ProgressTags {
     const val WEIGHT_CARD = "progress_weight_card"
     const val BALANCE_CARD = "progress_balance_card"
     const val MACROS_CARD = "progress_macros_card"
+    const val STRENGTH_CARD = "progress_strength_card"
     const val WORKOUTS_CARD = "progress_workouts_card"
     const val DAYS_CARD = "progress_days_card"
     fun card(@StringRes title: Int) = "progress_card:$title"
