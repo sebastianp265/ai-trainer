@@ -87,7 +87,7 @@ Requirements 3, 4, 5, 6. Screens: `Main`, `StartSheet`, `ActiveWorkout`, `Workou
 `WorkoutDetail`, `TrainingEmpty`, `ExercisePicker`, `ExerciseHistory`, `MainNoCoach`, `Plan`,
 `PlanDetail`, `PlanEdit`, `PlanEmpty`, `PlanNew`, `VolumeTargets`, `SettingsNoCoach`.
 
-- [ ] 5.1 Exercises get a primary and secondary muscle groups; the migration fills them for the
+- [x] 5.1 Exercises get a primary and secondary muscle groups; the migration fills them for the
       seeded exercises. Done when: a test asserts every seeded exercise has a primary group.
 - [ ] 5.2 RPE per set (migration), picker under the set row.
 - [ ] 5.3 Set row as designed: typed weight, reps stepper, RPE, delete; several warm-up sets.

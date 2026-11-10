@@ -35,7 +35,7 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
         HealthDayEntity::class,
         HealthWorkoutEntity::class,
     ],
-    version = 7,
+    version = 8,
     autoMigrations = [AutoMigration(from = 6, to = 7)],
     exportSchema = true,
 )
