@@ -24,7 +24,7 @@ class DefaultPlanServiceUTest {
     }
     private val database = inMemoryDatabase().also { it.seedExercises("bench", "squat") }
     private val plans = DefaultPlanService(database.planDao(), clock)
-    private val workouts = DefaultWorkoutService(database.workoutDao(), database.planDao(), clock)
+    private val workouts = DefaultWorkoutService(database.workoutDao(), database.planDao(), plans, clock)
 
     @AfterTest
     fun close() = database.close()

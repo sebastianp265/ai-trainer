@@ -8,6 +8,7 @@ enum class Secret {
 
 interface SecretStore {
     suspend fun write(secret: Secret, value: String)
+    suspend fun read(secret: Secret): String?
     suspend fun delete(secret: Secret)
     fun observeIsStored(secret: Secret): Flow<Boolean>
 }

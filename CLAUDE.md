@@ -4,7 +4,7 @@ Personal, single-user Android app that acts as an AI personal trainer. The only 
 
 ## Current phase
 
-**Phase 5: training, plans and weekly sets, without the coach.** The tasks, their order and how to work through them without asking are in `docs/plan.md`. What the app must do is in `docs/requirements.md`; the mockups of every screen are in `docs/design/`. Finish each phase in a working, runnable state (builds, tests pass, app launches), then summarize what was done and what I should check manually.
+**Phase 6: the coach.** The tasks, their order and how to work through them without asking are in `docs/plan.md`. What the app must do is in `docs/requirements.md`; the mockups of every screen are in `docs/design/`. Finish each phase in a working, runnable state (builds, tests pass, app launches), then summarize what was done and what I should check manually.
 
 `docs/status.md` tells me how to run the app, what works and what doesn't. Update it at the end of each phase and whenever a change affects what I'd see when running the app (new or removed screens/features, known bugs, things to verify manually).
 

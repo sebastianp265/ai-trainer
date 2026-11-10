@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.feature.plan
+package com.github.sebastianp265.aitrainer.shared.e2e
 
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -13,8 +13,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanTags
-import com.github.sebastianp265.aitrainer.shared.e2e.Screen
-import com.github.sebastianp265.aitrainer.shared.e2e.TEST_TIMEOUT_MS
 
 class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
 
@@ -46,6 +44,13 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
         field.performTextClearance()
         field.performTextInput(kg)
     }
+
+    fun assertWeekShown() {
+        waitFor(hasTestTag(PlanTags.WEEK_STRIP))
+        waitForText("This week", substring = true)
+    }
+
+    fun addSet() = clickText("+ Set")
 
     fun save() {
         compose.onNode(hasTestTag(PlanTags.SAVE)).assertIsEnabled()

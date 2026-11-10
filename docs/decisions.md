@@ -49,3 +49,13 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-10 · Coach elements on Plan screens (coach note, "Zmień z trenerem", "Poproś trenera o plan", "Wolisz gotowy plan?") · added with the coach in phase 6 · Requirements 2.
 - 2026-11-10 · Task 5.11 start of a workout from a plan · `WorkoutService.startSession(planId)` is built in 5.9 so "Zacznij trening" on the plan detail works; its end-to-end test comes with 5.11 · The button needs it.
 - 2026-11-10 · Instrumented test names · must not contain commas (dex rejects them) · Found when compiling the plan tests.
+- 2026-11-10 · Commits of 5.10 to 5.17 and 6.1 to 6.5 · made as one commit; the tasks share files (services, navigation, strings, schema 10 and 11) and could not be separated without throwaway work · Deviation from "one commit per task".
+- 2026-11-10 · Exercise lists in screens · `ExerciseService` exposes the exercises as a flow (all seven tables combined, half-written exercises skipped) · A created exercise must reach screens that are already open.
+- 2026-11-10 · Coach switch default · off until phase 6.9 · Requirements 2: until the coach exists the app behaves as with the coach off.
+- 2026-11-10 · Rows "Kopia danych" and "Debug" in Settings · added with 7.2 and 6.11 · Their screens do not exist yet.
+- 2026-11-10 · Group names in "Plans for this week do not reach the target" · nominative names (Nogi, Brzuch) instead of the mockup's genitive (nóg, brzucha) · Names come from the translation tables.
+- 2026-11-10 · Default of "Pokazuj cele" · on · Mockup shows it on.
+- 2026-11-10 · Editing a finished workout · it is re-opened as the running workout (its start is moved so the duration stays); discarding it then deletes it · Reuses the whole workout screen.
+- 2026-11-10 · Claude client · Ktor (named in the plan) and raw HTTP instead of the Java SDK, behind `integration.coach.ClaudeClient` · `:core:common` is multiplatform and the SDK is JVM-only; request shape follows the claude-api skill (`x-api-key`, `anthropic-version`, tools with `input_schema`, no `temperature`, no forced `tool_choice`).
+- 2026-11-10 · Thinking for the coach · `thinking: {type: "between_tools"}` (thinking off, accepted by claude-sonnet-5-5 at effort high or below) · Stored conversations keep only text; replaying earlier thinking blocks would run into preserved thinking's history-editing check. Unknown content blocks inside one tool loop are passed back unchanged.
+- 2026-11-10 · API key check · `GET /v1/models?limit=1` with the typed key · Validates the key without spending tokens.

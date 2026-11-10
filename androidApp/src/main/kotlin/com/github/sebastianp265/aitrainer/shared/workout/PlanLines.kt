@@ -1,6 +1,10 @@
-package com.github.sebastianp265.aitrainer.feature.plan.impl
+package com.github.sebastianp265.aitrainer.shared.workout
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
+import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
 
 internal sealed interface PlanLine {
     data class Warmup(val reps: Int, val weightKg: Double) : PlanLine
@@ -42,3 +46,21 @@ private fun planLines(sets: List<PlannedSet>): List<PlanLine> {
 internal fun workingSetCount(sets: List<PlannedSet>): Int = sets.count { !it.isWarmup }
 
 internal fun exerciseCount(sets: List<PlannedSet>): Int = sets.map { it.exerciseKey }.distinct().size
+
+@Composable
+internal fun planNumberText(line: PlanLine.Working): String =
+    if (line.firstNumber == line.lastNumber) line.firstNumber.toString() else stringResource(R.string.plan_set_range, line.firstNumber, line.lastNumber)
+
+@Composable
+internal fun planWarmupText(line: PlanLine.Warmup): String =
+    if (line.weightKg > 0) stringResource(R.string.plan_line_warmup, line.reps, formatWeight(line.weightKg))
+    else stringResource(R.string.plan_line_warmup_bodyweight, line.reps, stringResource(R.string.bodyweight_label))
+
+@Composable
+internal fun planWorkingText(line: PlanLine.Working): String =
+    if (line.weightKg > 0) stringResource(R.string.plan_line_load, line.setCount, line.reps, formatWeight(line.weightKg))
+    else stringResource(R.string.plan_line_load_bodyweight, line.setCount, line.reps, stringResource(R.string.bodyweight_label))
+
+@Composable
+internal fun planWorkingRpeText(line: PlanLine.Working): String =
+    line.rpe?.let { stringResource(R.string.plan_rpe, formatWeight(it)) }.orEmpty()

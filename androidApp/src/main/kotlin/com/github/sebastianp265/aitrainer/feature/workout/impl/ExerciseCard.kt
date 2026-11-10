@@ -38,7 +38,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.feature.exercise.displayName
+import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_MAX
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_MIN
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_STEP

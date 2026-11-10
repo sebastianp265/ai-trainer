@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
+import com.github.sebastianp265.aitrainer.integration.plan.Plan
+import com.github.sebastianp265.aitrainer.integration.plan.PlanService
 import com.github.sebastianp265.aitrainer.integration.workout.CopyResult
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.integration.workout.LastTimeGroup
@@ -34,15 +36,17 @@ internal data class ActiveWorkoutUiState(
     val isLoading: Boolean = true,
     val session: WorkoutSession? = null,
     val blocks: List<ExerciseBlockUi> = emptyList(),
+    val plan: Plan? = null,
     val message: ActiveWorkoutMessage? = null,
 )
 
 internal class ActiveWorkoutViewModel(
     private val workoutService: WorkoutService,
+    planService: PlanService,
     exerciseService: ExerciseService,
 ) : ViewModel() {
 
-    private val exercisesByKey = flow { emit(exerciseService.exercises().associateBy { it.key }) }
+    private val exercisesByKey = exerciseService.observeExercisesByKey()
 
     private val message = MutableStateFlow<ActiveWorkoutMessage?>(null)
 
@@ -68,24 +72,35 @@ internal class ActiveWorkoutViewModel(
             }
         }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val plan = activeSessionWithSets
+        .map { it?.first?.planId }
+        .distinctUntilChanged()
+        .flatMapLatest { planId -> if (planId == null) flowOf(null) else planService.observePlan(planId) }
+
     val uiState: StateFlow<ActiveWorkoutUiState> = combine(
         activeSessionWithSets,
         exercisesByKey,
         lastTimeByExercise,
+        plan,
         message,
-    ) { active, exercisesByKey, lastTime, msg ->
+    ) { active, exercisesByKey, lastTime, plan, msg ->
         ActiveWorkoutUiState(
             isLoading = false,
             session = active?.first,
             blocks = active?.second?.let { sets ->
-                workoutService.groupSetsByExercise(sets, exercisesByKey)
+                workoutService.groupSetsByExercise(sets.filter { it.exerciseKey in exercisesByKey }, exercisesByKey)
                     .map { ExerciseBlockUi(it, lastTime[it.exercise.key].orEmpty()) }
             }.orEmpty(),
+            plan = plan,
             message = msg,
         )
     }.stateIn(viewModelScope, WhileUiSubscribed, ActiveWorkoutUiState())
 
-    fun finishSession() = withSession { workoutService.finishSession(it.id) }
+    fun finishSession(onFinished: (sessionId: Long) -> Unit) = withSession {
+        workoutService.finishSession(it.id)
+        onFinished(it.id)
+    }
 
     fun discardSession() = withSession { workoutService.discardSession(it.id) }
 

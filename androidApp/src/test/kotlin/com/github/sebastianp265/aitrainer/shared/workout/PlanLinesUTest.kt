@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.feature.plan.impl
+package com.github.sebastianp265.aitrainer.shared.workout
 
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import kotlin.test.Test

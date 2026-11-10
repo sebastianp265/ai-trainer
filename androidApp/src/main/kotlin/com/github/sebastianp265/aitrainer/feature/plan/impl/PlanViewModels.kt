@@ -4,7 +4,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
+import com.github.sebastianp265.aitrainer.integration.health.HealthService
 import com.github.sebastianp265.aitrainer.integration.plan.Plan
+import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
+import com.github.sebastianp265.aitrainer.integration.volume.VolumeService
+import com.github.sebastianp265.aitrainer.shared.localization.mondayOf
+import com.github.sebastianp265.aitrainer.shared.volume.VolumeRow
+import com.github.sebastianp265.aitrainer.shared.volume.volumeRows
+import kotlinx.datetime.DatePeriod
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
 import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.plan.PlanDraft
 import com.github.sebastianp265.aitrainer.integration.plan.PlanService
@@ -18,7 +30,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -30,16 +41,60 @@ internal data class PlanListUiState(
     val isLoading: Boolean = true,
     val plans: List<Plan> = emptyList(),
     val exercises: Map<String, Exercise> = emptyMap(),
+    val week: WeekUi? = null,
+    val volumeRows: List<VolumeRow> = emptyList(),
+    val showTargets: Boolean = true,
 )
 
-internal class PlanListViewModel(planService: PlanService, exerciseService: ExerciseService) : ViewModel() {
+internal class PlanListViewModel(
+    planService: PlanService,
+    workoutService: WorkoutService,
+    healthService: HealthService,
+    volumeService: VolumeService,
+    settingsService: SettingsService,
+    exerciseService: ExerciseService,
+    clock: Clock,
+) : ViewModel() {
 
-    val uiState: StateFlow<PlanListUiState> = combine(
+    private val zone = TimeZone.currentSystemDefault()
+    private val monday = mondayOf(clock.todayIn(zone))
+    private val sunday = monday.plus(DatePeriod(days = 6))
+    private val today = clock.todayIn(zone)
+
+    private val weekAndPlans = combine(
         planService.observeUpcoming(),
-        flow { emit(exerciseService.exercises().associateBy { it.key }) },
-    ) { plans, exercises -> PlanListUiState(false, plans, exercises) }
-        .stateIn(viewModelScope, WhileUiSubscribed, PlanListUiState())
+        workoutService.observeFinishedSessions(monday, sunday),
+        healthService.observeWorkouts(),
+    ) { plans, sessions, external ->
+        val doneDays = sessions.map { it.date }.toSet()
+        val plannedDays = plans.mapNotNull { it.date }.filter { it in monday..sunday }
+        val externalDays = external.map { it.startedAt.toLocalDateTime(zone).date }.filter { it in monday..sunday }.toSet()
+        plans to WeekUi(
+            days = (0..6).map { offset ->
+                val date = monday.plus(DatePeriod(days = offset))
+                WeekDay(date, date == today, date in doneDays, date in plannedDays, date in externalDays)
+            },
+            doneCount = sessions.size,
+            plannedCount = plannedDays.size,
+        )
+    }
+
+    private val volume = combine(
+        volumeService.observeWeeklySets(monday, sunday),
+        volumeService.observePlannedSets(monday, sunday),
+        volumeService.observeTargets(),
+        exerciseService.observeMuscleGroups(),
+        settingsService.observeShowTargets(),
+    ) { weeks, planned, targets, groups, showTargets ->
+        VolumeState(volumeRows(groups, targets, weeks.firstOrNull()?.setsByGroup.orEmpty(), planned), showTargets)
+    }
+
+    val uiState: StateFlow<PlanListUiState> = combine(weekAndPlans, volume, exerciseService.observeExercisesByKey()) { (plans, week), volumeState, exercises ->
+        PlanListUiState(false, plans, exercises, week, volumeState.rows, volumeState.showTargets)
+    }.stateIn(viewModelScope, WhileUiSubscribed, PlanListUiState())
 }
+
+private class VolumeState(val rows: List<VolumeRow>, val showTargets: Boolean)
 
 internal data class PlanDetailUiState(val isLoading: Boolean = true, val plan: Plan? = null, val exercises: Map<String, Exercise> = emptyMap())
 
@@ -54,7 +109,7 @@ internal class PlanDetailViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<PlanDetailUiState> = combine(
         planId.filterNotNull().flatMapLatest { planService.observePlan(it) },
-        flow { emit(exerciseService.exercises().associateBy { it.key }) },
+        exerciseService.observeExercisesByKey(),
     ) { plan, exercises -> PlanDetailUiState(false, plan, exercises) }
         .stateIn(viewModelScope, WhileUiSubscribed, PlanDetailUiState())
 
@@ -115,24 +170,24 @@ internal class PlanEditViewModel(
     private var loadedPlanId: Long? = null
     private var nextSetId = 1L
 
+    init {
+        viewModelScope.launch {
+            exerciseService.observeExercisesByKey().collect { exercises -> state.update { it.copy(exercises = exercises) } }
+        }
+    }
+
     fun load(planId: Long) {
         if (loadedPlanId == planId) return
         loadedPlanId = planId
         viewModelScope.launch {
-            val exercises = exerciseService.exercises().associateBy { it.key }
             if (planId == NEW_PLAN_ID) {
-                state.value = PlanEditUiState(isLoading = false, isNew = true, exercises = exercises)
+                state.update { it.copy(isLoading = false, isNew = true) }
                 return@launch
             }
             val plan = planService.observePlan(planId).first() ?: return@launch
-            state.value = PlanEditUiState(
-                isLoading = false,
-                isNew = false,
-                name = plan.name,
-                date = plan.date,
-                sets = plan.sets.map { it.toEditable() },
-                exercises = exercises,
-            )
+            state.update {
+                it.copy(isLoading = false, isNew = false, name = plan.name, date = plan.date, sets = plan.sets.map { set -> set.toEditable() })
+            }
         }
     }
 

@@ -151,7 +151,7 @@ private fun HistoryContentPreview() {
                     items = listOf(
                         HistoryItem.External(HealthWorkout("running", Instant.parse("2026-11-08T07:40:00Z"), 42, 6800.0, 480, 148)),
                         HistoryItem.Gym(
-                            SessionSummary(1, LocalDate(2026, 11, 7), Instant.parse("2026-11-07T17:00:00Z"), Instant.parse("2026-11-07T18:01:00Z"), 4, 15),
+                            SessionSummary(1, LocalDate(2026, 11, 7), Instant.parse("2026-11-07T17:00:00Z"), Instant.parse("2026-11-07T18:01:00Z"), 4, 15, null, null),
                         ),
                     ),
                 ),

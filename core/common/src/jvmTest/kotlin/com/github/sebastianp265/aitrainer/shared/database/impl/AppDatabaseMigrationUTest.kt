@@ -78,6 +78,33 @@ class AppDatabaseMigrationUTest {
         }
     }
 
+    @Test
+    fun `migration from 9 to 10 adds an empty weekly target table and keeps plans`() {
+        helper.createDatabase(9).use { connection ->
+            connection.execSQL("INSERT INTO plan (id, name, date, author, createdAt) VALUES (1, 'Push', '2026-11-12', 'COACH', 1000)")
+        }
+
+        helper.runMigrationsAndValidate(10).use { connection ->
+            assertEquals(1, connection.count("plan"))
+            assertEquals(0, connection.count("weekly_target"))
+        }
+    }
+
+    @Test
+    fun `migration from 10 to 11 adds empty coach tables and keeps targets`() {
+        helper.createDatabase(10).use { connection ->
+            connection.execSQL("INSERT INTO muscle_group (key) VALUES ('ABS')")
+            connection.execSQL("INSERT INTO weekly_target (muscleGroupKey, minSets, maxSets, source, setOn, reason) VALUES ('ABS', 6, 10, 'USER', '2026-10-20', NULL)")
+        }
+
+        helper.runMigrationsAndValidate(11).use { connection ->
+            assertEquals(1, connection.count("weekly_target"))
+            listOf("coach_message", "coach_proposal", "coach_note", "coach_profile", "coach_usage", "coach_log").forEach {
+                assertEquals(0, connection.count(it))
+            }
+        }
+    }
+
     private fun migratedSeedOfVersion7(): MuscleSnapshot {
         helper.createDatabase(7).use { runSeed(it, "/seed-v7.sql") }
         return helper.runMigrationsAndValidate(8, listOf(migration7To8)).use { it.snapshotOfMuscles() }

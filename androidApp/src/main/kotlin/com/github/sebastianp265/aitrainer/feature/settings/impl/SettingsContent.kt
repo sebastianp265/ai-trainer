@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,11 +12,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,6 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -44,10 +49,36 @@ internal fun SettingsContent(state: SettingsUiState, actions: SettingsActions, h
         modifier = Modifier.fillMaxSize(),
     ) {
         item { SectionTitle(R.string.settings_ai_trainer) }
-        item { ClaudeApiKeyField(state.isClaudeApiKeyStored, actions::saveClaudeApiKey, actions::removeClaudeApiKey) }
-        item { ClaudeModelField(state.claudeModel, actions::setClaudeModel) }
+        item { CoachSwitchRow(state.isCoachEnabled, actions::setCoachEnabled) }
+        if (state.isCoachEnabled) {
+            item { ClaudeApiKeyField(state.isClaudeApiKeyStored, actions::saveClaudeApiKey, actions::removeClaudeApiKey) }
+            item { ClaudeModelField(state.claudeModel, actions::setClaudeModel) }
+        } else {
+            item { Text(stringResource(R.string.settings_coach_off_explanation), style = MaterialTheme.typography.bodyMedium) }
+        }
         item { SectionTitle(R.string.settings_data) }
         item { healthConnectRow() }
+    }
+}
+
+@Composable
+internal fun CoachSwitchRow(enabled: Boolean, onChange: (Boolean) -> Unit) {
+    val description = stringResource(R.string.settings_coach_title)
+    Card(Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(R.string.settings_coach_title), style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    stringResource(if (enabled) R.string.settings_coach_on_text else R.string.settings_coach_off),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = onChange,
+                modifier = Modifier.semantics { contentDescription = description }.testTag(SettingsTags.COACH_SWITCH),
+            )
+        }
     }
 }
 
@@ -107,11 +138,13 @@ internal interface SettingsActions {
     fun saveClaudeApiKey(apiKey: String)
     fun removeClaudeApiKey()
     fun setClaudeModel(modelId: String)
+    fun setCoachEnabled(enabled: Boolean)
 }
 
 internal object SettingsTags {
     const val CLAUDE_API_KEY = "settings_claude_api_key"
     const val CLAUDE_MODEL = "settings_claude_model"
+    const val COACH_SWITCH = "settings_coach_switch"
 }
 
 @PreviewLightDark
@@ -120,11 +153,12 @@ private fun SettingsPreview() {
     MaterialTheme {
         Surface {
             SettingsContent(
-                state = SettingsUiState(isLoading = false, isClaudeApiKeyStored = true),
+                state = SettingsUiState(isLoading = false, isClaudeApiKeyStored = true, isCoachEnabled = true),
                 actions = object : SettingsActions {
                     override fun saveClaudeApiKey(apiKey: String) = Unit
                     override fun removeClaudeApiKey() = Unit
                     override fun setClaudeModel(modelId: String) = Unit
+                    override fun setCoachEnabled(enabled: Boolean) = Unit
                 },
                 healthConnectRow = {},
             )

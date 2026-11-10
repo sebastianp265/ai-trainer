@@ -1,6 +1,8 @@
 package com.github.sebastianp265.aitrainer.feature.progress
 
 import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasScrollAction
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
@@ -39,6 +41,31 @@ class ProgressScreen(compose: ComposeTestRule) : Screen(compose) {
     fun openStrengthExercise(exercise: String) {
         waitForText(exercise)
         clickText(exercise)
+    }
+
+    fun assertVolumeCardShown() {
+        scrollToVolumeCard()
+        waitForText("Sets per muscle group · weekly average")
+    }
+
+    fun assertVolumeTarget(text: String) {
+        scrollToVolumeCard()
+        waitForText(text)
+    }
+
+    fun assertNoVolumeTargets() {
+        scrollToVolumeCard()
+        assertTextNotShown("target ")
+    }
+
+    fun openTargets() {
+        scrollToVolumeCard()
+        compose.onNode(hasTestTag(ProgressTags.VOLUME_TARGETS_LINK)).performClick()
+    }
+
+    private fun scrollToVolumeCard() {
+        waitFor(hasTestTag(ProgressTags.VOLUME_CARD).or(hasText("Details")))
+        compose.onNode(hasScrollAction()).performScrollToNode(hasTestTag(ProgressTags.VOLUME_CARD))
     }
 
     fun assertWeightDetailsShown() {

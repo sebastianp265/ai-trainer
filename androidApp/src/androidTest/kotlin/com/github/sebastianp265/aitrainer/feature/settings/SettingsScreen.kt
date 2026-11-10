@@ -28,6 +28,18 @@ class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
         compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithContentDescription("Settings").fetchSemanticsNodes().isNotEmpty() }
     }
 
+    fun switchCoach() {
+        waitFor(hasTestTag(SettingsTags.COACH_SWITCH))
+        compose.onNode(hasTestTag(SettingsTags.COACH_SWITCH)).performClick()
+    }
+
+    fun assertCoachOff() {
+        waitForText("Off")
+        waitForText("Without the coach the app works in full", substring = true)
+    }
+
+    fun assertCoachOn() = waitForText("Chat, plan proposals and weekly review")
+
     fun typeClaudeApiKey(key: String) = scrollTo(hasTestTag(SettingsTags.CLAUDE_API_KEY)).performTextInput(key)
 
     fun save() = clickText("Save")

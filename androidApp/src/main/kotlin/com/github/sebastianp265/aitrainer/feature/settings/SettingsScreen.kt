@@ -19,6 +19,7 @@ internal fun SettingsScreen(onOpenHealthConnect: () -> Unit) {
             override fun saveClaudeApiKey(apiKey: String) = viewModel.saveClaudeApiKey(apiKey)
             override fun removeClaudeApiKey() = viewModel.removeClaudeApiKey()
             override fun setClaudeModel(modelId: String) = viewModel.setClaudeModel(modelId)
+            override fun setCoachEnabled(enabled: Boolean) = viewModel.setCoachEnabled(enabled)
         }
     }
     SettingsContent(state, actions, healthConnectRow = { HealthConnectSettingsRow(onOpenHealthConnect) })

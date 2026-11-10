@@ -7,6 +7,7 @@ import androidx.room.Transaction
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
+import kotlin.time.Instant
 
 @Dao
 internal interface WorkoutDao {
@@ -36,9 +37,11 @@ internal interface WorkoutDao {
         """
         SELECT s.id, s.date, s.startedAt, s.finishedAt,
                COUNT(DISTINCT e.exerciseKey) AS exerciseCount,
-               COUNT(e.id) AS setCount
+               COUNT(CASE WHEN e.isWarmup = 0 THEN e.id END) AS setCount,
+               s.planId AS planId, p.name AS planName
         FROM workout_session s
         LEFT JOIN set_entry e ON e.sessionId = s.id
+        LEFT JOIN plan p ON p.id = s.planId
         WHERE s.finishedAt IS NOT NULL
         GROUP BY s.id
         ORDER BY s.startedAt DESC
@@ -51,9 +54,11 @@ internal interface WorkoutDao {
         """
         SELECT s.id, s.date, s.startedAt, s.finishedAt,
                COUNT(DISTINCT e.exerciseKey) AS exerciseCount,
-               COUNT(e.id) AS setCount
+               COUNT(CASE WHEN e.isWarmup = 0 THEN e.id END) AS setCount,
+               s.planId AS planId, p.name AS planName
         FROM workout_session s
         LEFT JOIN set_entry e ON e.sessionId = s.id
+        LEFT JOIN plan p ON p.id = s.planId
         WHERE s.finishedAt IS NOT NULL AND s.date BETWEEN :from AND :toInclusive
         GROUP BY s.id
         ORDER BY s.startedAt DESC
@@ -107,6 +112,33 @@ internal interface WorkoutDao {
     @Transaction
     suspend fun insertSetAtEnd(set: SetEntryEntity): Long =
         insertSet(set.copy(positionInSession = nextSetOrder(set.sessionId)))
+
+    @Query("SELECT * FROM set_entry WHERE sessionId = :sessionId ORDER BY positionInSession")
+    suspend fun getSets(sessionId: Long): List<SetEntryEntity>
+
+    @Query(
+        """
+        SELECT s.date AS date, e.exerciseKey AS exerciseKey, e.weightKg AS weightKg, e.reps AS reps
+        FROM set_entry e
+        JOIN workout_session s ON s.id = e.sessionId
+        WHERE s.finishedAt IS NOT NULL AND s.startedAt < :before AND e.isWarmup = 0 AND e.exerciseKey IN (:exerciseKeys)
+        """
+    )
+    suspend fun workingSetsBefore(before: Instant, exerciseKeys: List<String>): List<WorkingSetRow>
+
+    @Query(
+        """
+        SELECT s.* FROM workout_session s
+        JOIN plan p ON p.id = s.planId
+        WHERE p.name = :planName AND s.finishedAt IS NOT NULL AND s.startedAt < :before
+        ORDER BY s.startedAt DESC
+        LIMIT 1
+        """
+    )
+    suspend fun previousSessionOfPlanNamed(planName: String, before: Instant): WorkoutSessionEntity?
+
+    @Query("SELECT * FROM workout_session WHERE finishedAt IS NULL LIMIT 1")
+    suspend fun getActiveSession(): WorkoutSessionEntity?
 
     @Query("SELECT * FROM set_entry WHERE id = :id")
     suspend fun getSet(id: Long): SetEntryEntity?

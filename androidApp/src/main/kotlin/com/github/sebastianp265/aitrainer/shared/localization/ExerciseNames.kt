@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.feature.exercise
+package com.github.sebastianp265.aitrainer.shared.localization
 
 import com.github.sebastianp265.aitrainer.integration.exercise.DEFAULT_EXERCISE_LANGUAGE
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise

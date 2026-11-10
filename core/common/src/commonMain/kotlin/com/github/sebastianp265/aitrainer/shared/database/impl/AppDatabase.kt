@@ -6,6 +6,13 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import androidx.room.TypeConverters
+import com.github.sebastianp265.aitrainer.shared.coach.CoachDao
+import com.github.sebastianp265.aitrainer.shared.coach.CoachLogEntity
+import com.github.sebastianp265.aitrainer.shared.coach.CoachMessageEntity
+import com.github.sebastianp265.aitrainer.shared.coach.CoachNoteEntity
+import com.github.sebastianp265.aitrainer.shared.coach.CoachProfileEntity
+import com.github.sebastianp265.aitrainer.shared.coach.CoachProposalEntity
+import com.github.sebastianp265.aitrainer.shared.coach.CoachUsageEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.EquipmentEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.EquipmentTranslationEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.ExerciseEntity
@@ -20,6 +27,8 @@ import com.github.sebastianp265.aitrainer.shared.health.HealthWorkoutEntity
 import com.github.sebastianp265.aitrainer.shared.plan.PlanDao
 import com.github.sebastianp265.aitrainer.shared.plan.PlanEntity
 import com.github.sebastianp265.aitrainer.shared.plan.PlannedSetEntity
+import com.github.sebastianp265.aitrainer.shared.volume.VolumeDao
+import com.github.sebastianp265.aitrainer.shared.volume.WeeklyTargetEntity
 import com.github.sebastianp265.aitrainer.shared.workout.SetEntryEntity
 import com.github.sebastianp265.aitrainer.shared.workout.WorkoutDao
 import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
@@ -39,9 +48,21 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
         HealthWorkoutEntity::class,
         PlanEntity::class,
         PlannedSetEntity::class,
+        WeeklyTargetEntity::class,
+        CoachMessageEntity::class,
+        CoachProposalEntity::class,
+        CoachNoteEntity::class,
+        CoachProfileEntity::class,
+        CoachUsageEntity::class,
+        CoachLogEntity::class,
     ],
-    version = 9,
-    autoMigrations = [AutoMigration(from = 6, to = 7), AutoMigration(from = 8, to = 9, spec = Migration8To9::class)],
+    version = 11,
+    autoMigrations = [
+        AutoMigration(from = 6, to = 7),
+        AutoMigration(from = 8, to = 9, spec = Migration8To9::class),
+        AutoMigration(from = 9, to = 10),
+        AutoMigration(from = 10, to = 11),
+    ],
     exportSchema = true,
 )
 @TypeConverters(TimeConverters::class)
@@ -51,6 +72,8 @@ internal abstract class AppDatabase : RoomDatabase() {
     abstract fun workoutDao(): WorkoutDao
     abstract fun healthDao(): HealthDao
     abstract fun planDao(): PlanDao
+    abstract fun volumeDao(): VolumeDao
+    abstract fun coachDao(): CoachDao
 
     companion object {
         const val NAME = "aitrainer.db"

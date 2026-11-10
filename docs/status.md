@@ -1,70 +1,60 @@
 # Project status
 
-Last updated: 2026-11-10 · Branch `phase-4` · Phase 4 of 7 (Health Connect data and Progress) is done.
-Phase 3 (design) is done: [`requirements.md`](requirements.md), [`design/`](design/README.md), [`plan.md`](plan.md).
+Last updated: 2026-11-10 · Branch `phase-5-7` · Phase 5 of 7 (training, plans and weekly sets, without the coach) is done.
+Phases 1–4 are done and merged. The design (phase 3) is in [`requirements.md`](requirements.md), [`design/`](design/README.md) and [`plan.md`](plan.md).
 Choices made without asking are in [`decisions.md`](decisions.md).
 
-**Can I run it? Yes.** The debug build compiles with no errors. The app launches into a working
-workout log, a Progress tab with cards and charts from Health Connect data, a Settings screen
-behind the gear icon, and the Health Connect screen. The Plan tab is still a placeholder and the AI
-parts don't exist yet.
+**Can I run it? Yes.** The debug build compiles with no errors. The app starts on the new Training screen and has working
+plans, workouts with RPE, a summary after each workout, exercise history, weekly sets per muscle group with targets, the
+Progress tab with Health Connect data and the Settings screen. The AI coach does not exist yet (phase 6); the app behaves as
+with the coach switched off.
 
 ## How to run
 
-Devices and commands: [`CLAUDE.md`, Build and verify](../CLAUDE.md#build-and-verify). After the
-split into Gradle modules, sync Gradle first; if the old `app` run configuration is still listed in
-Android Studio, delete it.
+Devices and commands: [`CLAUDE.md`, Build and verify](../CLAUDE.md#build-and-verify). After a pull, sync Gradle first.
+The emulator needs API 34+ with a *Google Play* image.
 
 ## What to expect, screen by screen
 
-The app opens on **Training**. The bottom bar has three tabs: Training · Plan · Progress. Every tab
-has a gear icon in the top bar that opens **Settings**; Settings and the screens opened from it have
-a back arrow and no bottom bar.
+The app opens on **Training**. The bottom bar has three tabs: Training · Plan · Progress. Every tab has a gear icon in the top
+bar that opens **Settings**. While a workout runs, the workout screen covers everything (no bottom bar, no top bar); if you close
+the app during a workout, it opens on the workout again.
 
 | Screen | State | What you can do |
 |---|---|---|
-| **Training** | ✅ Works (old design) | Start a workout, add exercises (searchable picker), log sets with +/- steppers, "Same as last time", mark warm-up sets, delete sets, finish or discard. Recent workouts are listed below; "All" opens the list of all workouts. The new Training screen with plans comes in phase 5. |
-| **Plan** | ⏳ Placeholder | Shows a placeholder text. Nothing to do yet. |
-| **Progress** | ✅ Works | Range switch (4 weeks, 3 months, year) and cards: weight (daily points and 7-day average), calorie balance (weekly bars), macros, steps, sleep, resting heart rate, HRV, strength (estimated 1RM), workouts, days. A card is hidden when its data is missing. "Details" opens the metric (chart, lowest, highest, change per week, list of values); a day opens everything stored for that date. Without Health Connect an invitation card appears and the strength and workouts cards remain. |
-| **All workouts** | ✅ Works | Gym workouts and workouts from other apps by month, filter All / Gym / From other apps. A workout from another app opens read-only. Gym workouts are not tappable yet (phase 5). |
-| **Settings** | ✅ Works | Claude API key (stored encrypted) and model, and the Health Connect row ("X of 8 data types · synced …"). |
-| **Health Connect** | ✅ Works | State per data type, history permission, last sync time, "Sync now", a button to change permissions in Health Connect. When not connected: "Connect"; when missing or outdated: install or update. |
+| **Training** | ✅ Works | Shows the next plan with "Start" and "Other workout" (a sheet with every plan and "Empty workout"), or "Start on your own" when you have no plans. Below: recent workouts (tap one to see it) and "All". |
+| **Workout in progress** | ✅ Works | Exercise cards with a "Last time" line (tap for the exercise history). Per set: tap the number to mark a warm-up, tap the weight or the reps to type, − / + for reps, tap RPE to pick 6 to 10, delete. "+ Set", "Same as last time", remove an exercise, add an exercise. "Discard" asks for confirmation; "Finish" saves and opens the summary. |
+| **Summary** | ✅ Works | Time, working sets, average RPE; new records; comparison with the plan ("on plan", "−1 set", "+2.5 kg", "+1 reps"); the previous workout of the same plan; "See all sets". |
+| **Finished workout** | ✅ Works | All sets with RPE and, for a planned workout, the plan line and the difference. Edit (re-opens it as a running workout) and delete (with confirmation). |
+| **Exercise picker** | ✅ Works | Search, muscle group chips, recently used (with the last time), all exercises, "New exercise" (name, main group, additional groups). |
+| **Exercise history** | ✅ Works | Estimated 1RM, best set, change over 3 months, 1RM chart, average RPE chart, past sessions (tap to open the workout). Opens from the "Last time" line and from the strength card in Progress. |
+| **Plan** | ✅ Works | This week (Monday to Sunday) with done, planned and other-app markers; sets this week against the targets (done + planned); upcoming plans by date, then plans without a date. "New plan". |
+| **Plan details / edit / new** | ✅ Works | Details with warm-ups and grouped sets; "Start workout"; edit (name, optional date, exercises, weight, reps, RPE, warm-up flag); delete with confirmation. |
+| **Progress** | ✅ Works | As before, plus the card "Sets per muscle group · weekly average" with the target band, legend, an info box and a link to the targets. |
+| **Weekly set targets** | ✅ Works | Ranges per muscle group (default 10–20), source and date, "Show targets" switch, "Restore defaults". |
+| **All workouts** | ✅ Works | Gym workouts (tap to open) and workouts from other apps. |
+| **Settings** | ⏳ Partly | Coach switch (off at first). With it on you can enter the Claude API key and model; they are stored but not used yet. Health Connect row. The rows "Data backup" and "Debug" come with phases 7 and 6. |
+| **Health Connect** | ✅ Works | Unchanged from phase 4. |
 
-### Health Connect
+### Things to check by hand on the phone
 
-- Data is copied into the app (Room) and stays there even when it disappears from Health Connect.
-  Types: nutrition, calories burned, weight, steps, sleep, resting heart rate, HRV and workouts from
-  other apps. Each type has its own permission and is optional. The app never writes to Health Connect.
-- Sync runs when the app comes to the foreground and from "Sync now". The first sync reads one year
-  back when the "past data" permission is granted, otherwise 30 days. Every later sync reads the last
-  14 days again and overwrites them, so edits and deletions in the source apps show up.
-- Progress averages leave out today for calorie balance, macros and steps (the day is not over).
-- **Please verify on your phone:** connect and allow some types but not all; check that Progress shows
-  only the cards for allowed types, that weight, sleep, steps and calories match Health Connect, and
-  that a meal removed in Health Connect disappears within the last 14 days after reopening the app.
-- **Please verify:** a workout recorded by another app shows in All workouts with the right type,
-  duration and, when Health Connect has them, distance, calories and average heart rate.
-- On a fresh emulator Health Connect has no data; add entries in the Health Connect app to see cards.
-- Health Connect requires an entry point for "how your data is used"; the app declares one that
-  closes immediately when opened from Health Connect's settings.
+- Write a plan with a warm-up set and a date, start it from Training, change a weight, remove a set, finish. Check the summary
+  ("Compared to plan") and the finished workout.
+- The "Last time" line with several groups (it should break only at " · " and show "+N" when it does not fit in two lines).
+- A second workout with a heavier set shows a record in the summary.
+- Weekly sets: after a workout the Plan tab and the Progress card move; bench press counts 1 for chest and 0.5 for arms and shoulders.
+- Polish texts of all new screens (they were written from the mockups and have not been read on a phone).
+- The workout screen after closing and reopening the app in the middle of a workout.
 
 ### Database
 
-- Installing a new build keeps your logged workouts: every schema change comes with a migration.
-  Phase 4 moved the schema from version 6 to 7 (tables `health_day` and `health_workout`). If the app
-  on your phone has an older schema than 6, it crashes on start; uninstall it once and install again.
-- Exercise names come from the database, so the picker should show Polish names on a Polish phone.
+Installing a new build keeps your data: schema 7 → 8 (six muscle groups, "Other" equipment), 8 → 9 (plans, workout ↔ plan link),
+9 → 10 (weekly targets). If the app on your phone has a schema older than 6, uninstall it once.
 
 ## What's not there yet
 
-The tasks behind each row are in [`plan.md`](plan.md).
-
 | Feature | Phase |
 |---|---|
-| RPE per set, the new set row, the "last time" label, discard confirmation | 5 |
-| Summary after a workout with records; exercise history; edit and delete a finished workout | 5 |
-| Planned workouts written by hand; start a workout from a plan; the new Training screen | 5 |
-| Weekly sets per muscle group with targets, in Progress and Plan | 5 |
 | Coach: chat, tools, proposals for plans and targets, memory, API key and model screens | 6 |
 | Debug screen (debug builds only) | 6 |
 | Weekly review, export and import, loading states, polished empty and error states | 7 |
@@ -72,8 +62,7 @@ The tasks behind each row are in [`plan.md`](plan.md).
 ## Known gaps
 
 - The Polish texts of the new screens were written from the mockups and have not been read on a phone.
-- Only the strings of Health Connect workout types listed in `ExternalWorkoutText.kt` have their own
-  names; other types show "Other activity".
-- A first sync made without the "past data" permission is not extended to a year when the permission
-  is granted later.
-- Sync errors (for example a permission revoked during a sync) are not shown to the user.
+- Only the strings of Health Connect workout types listed in `ExternalWorkoutText.kt` have their own names; other types show "Other activity".
+- A first sync made without the "past data" permission is not extended to a year when the permission is granted later.
+- Sync errors are not shown to the user.
+- The IDE shows unresolved references in `jvmTest` files; Gradle compiles them (see `decisions.md`).

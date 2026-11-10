@@ -15,6 +15,7 @@ internal data class SettingsUiState(
     val isLoading: Boolean = true,
     val claudeModel: String = SettingsService.DEFAULT_CLAUDE_MODEL,
     val isClaudeApiKeyStored: Boolean = false,
+    val isCoachEnabled: Boolean = false,
 )
 
 internal class SettingsViewModel(
@@ -24,8 +25,9 @@ internal class SettingsViewModel(
     val uiState: StateFlow<SettingsUiState> = combine(
         settingsService.observeClaudeModel(),
         settingsService.observeIsClaudeApiKeyStored(),
-    ) { claudeModel, isKeyStored ->
-        SettingsUiState(isLoading = false, claudeModel = claudeModel, isClaudeApiKeyStored = isKeyStored)
+        settingsService.observeCoachEnabled(),
+    ) { claudeModel, isKeyStored, coachEnabled ->
+        SettingsUiState(isLoading = false, claudeModel = claudeModel, isClaudeApiKeyStored = isKeyStored, isCoachEnabled = coachEnabled)
     }.stateIn(viewModelScope, WhileUiSubscribed, SettingsUiState())
 
     fun saveClaudeApiKey(apiKey: String) {
@@ -34,6 +36,8 @@ internal class SettingsViewModel(
     }
 
     fun removeClaudeApiKey() = saveEvenIfScreenIsLeft { settingsService.removeClaudeApiKey() }
+
+    fun setCoachEnabled(enabled: Boolean) = saveEvenIfScreenIsLeft { settingsService.setCoachEnabled(enabled) }
 
     fun setClaudeModel(modelId: String) = saveEvenIfScreenIsLeft { settingsService.setClaudeModel(modelId) }
 

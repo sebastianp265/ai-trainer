@@ -43,10 +43,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.feature.exercise.displayName
+import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.MuscleGroup
+import com.github.sebastianp265.aitrainer.integration.plan.Plan
+import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.integration.workout.LastTimeGroup
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
@@ -102,7 +104,7 @@ internal fun ActiveWorkoutContent(
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    item { WorkoutHeader(session) }
+                    item { WorkoutHeader(session, state.plan) }
                     if (state.blocks.isEmpty()) {
                         item { Text(stringResource(R.string.add_first_exercise_hint)) }
                     }
@@ -122,7 +124,7 @@ internal fun ActiveWorkoutContent(
 
     if (confirmDiscard) {
         DiscardWorkoutDialog(
-            planName = null,
+            planName = state.plan?.name,
             onConfirm = {
                 confirmDiscard = false
                 actions.discardSession()
@@ -133,7 +135,7 @@ internal fun ActiveWorkoutContent(
 }
 
 @Composable
-private fun WorkoutHeader(session: WorkoutSession) {
+private fun WorkoutHeader(session: WorkoutSession, plan: Plan?) {
     var elapsedSeconds by remember { mutableLongStateOf(0) }
     LaunchedEffect(session.startedAt) {
         while (true) {
@@ -142,9 +144,14 @@ private fun WorkoutHeader(session: WorkoutSession) {
         }
     }
     Column {
-        Text(stringResource(R.string.workout_empty_title), style = MaterialTheme.typography.headlineSmall)
+        Text(plan?.name ?: stringResource(R.string.workout_empty_title), style = MaterialTheme.typography.headlineSmall)
+        val origin = when (plan?.author) {
+            null -> stringResource(R.string.workout_empty_subtitle)
+            PlanAuthor.USER -> stringResource(R.string.workout_from_own_plan)
+            PlanAuthor.COACH -> stringResource(R.string.workout_from_coach_plan)
+        }
         Text(
-            stringResource(R.string.workout_subtitle, stringResource(R.string.workout_empty_subtitle), formatElapsed(elapsedSeconds)),
+            stringResource(R.string.workout_subtitle, origin, formatElapsed(elapsedSeconds)),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.testTag(ActiveWorkoutTags.SUBTITLE),
         )

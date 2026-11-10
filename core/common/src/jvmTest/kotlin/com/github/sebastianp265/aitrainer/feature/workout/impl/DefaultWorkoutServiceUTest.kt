@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.feature.workout.impl
 
+import com.github.sebastianp265.aitrainer.feature.plan.impl.DefaultPlanService
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
@@ -21,7 +22,7 @@ class DefaultWorkoutServiceUTest {
         override fun now() = now
     }
     private val database = inMemoryDatabase().also { it.seedExercises("bench", "squat") }
-    private val service = DefaultWorkoutService(database.workoutDao(), database.planDao(), clock)
+    private val service = DefaultWorkoutService(database.workoutDao(), database.planDao(), DefaultPlanService(database.planDao(), clock), clock)
 
     @AfterTest
     fun close() = database.close()

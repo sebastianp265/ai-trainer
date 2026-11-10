@@ -1,12 +1,11 @@
 package com.github.sebastianp265.aitrainer.feature.workout
 
-import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.sebastianp265.aitrainer.feature.workout.impl.ActiveSessionState
 import com.github.sebastianp265.aitrainer.feature.workout.impl.ActiveSessionViewModel
@@ -14,6 +13,9 @@ import com.github.sebastianp265.aitrainer.feature.workout.impl.ActiveWorkoutActi
 import com.github.sebastianp265.aitrainer.feature.workout.impl.ActiveWorkoutContent
 import com.github.sebastianp265.aitrainer.feature.workout.impl.ActiveWorkoutViewModel
 import com.github.sebastianp265.aitrainer.feature.workout.impl.LogWorkoutContent
+import com.github.sebastianp265.aitrainer.feature.workout.impl.WorkoutDetailContent
+import com.github.sebastianp265.aitrainer.feature.workout.impl.WorkoutReportViewModel
+import com.github.sebastianp265.aitrainer.feature.workout.impl.WorkoutSummaryContent
 import com.github.sebastianp265.aitrainer.feature.workout.impl.LogWorkoutViewModel
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
@@ -22,14 +24,21 @@ import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-internal fun LogWorkoutScreen(onOpenHistory: () -> Unit) {
+internal fun LogWorkoutScreen(onOpenHistory: () -> Unit, onOpenWorkout: (Long) -> Unit) {
     val viewModel: LogWorkoutViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    LogWorkoutContent(state = state, onStart = viewModel::startSession, onOpenHistory = onOpenHistory)
+    LogWorkoutContent(
+        state = state,
+        onStartEmpty = viewModel::startEmptyWorkout,
+        onStartFromPlan = viewModel::startWorkoutFromPlan,
+        onOpenHistory = onOpenHistory,
+        onOpenWorkout = onOpenWorkout,
+    )
 }
 
 @Composable
 internal fun ActiveWorkoutScreen(
+    onFinished: (sessionId: Long) -> Unit,
     onOpenExerciseHistory: (String) -> Unit,
     onOpenExercisePicker: () -> Unit,
     pickedExerciseKey: String?,
@@ -37,7 +46,7 @@ internal fun ActiveWorkoutScreen(
 ) {
     val viewModel: ActiveWorkoutViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val activity = LocalContext.current as Activity
+    val activity = checkNotNull(LocalActivity.current)
     BackHandler { activity.moveTaskToBack(true) }
     LaunchedEffect(pickedExerciseKey) {
         pickedExerciseKey?.let {
@@ -47,7 +56,7 @@ internal fun ActiveWorkoutScreen(
     }
     val actions = remember(viewModel) {
         object : ActiveWorkoutActions {
-            override fun finishSession() = viewModel.finishSession()
+            override fun finishSession() = viewModel.finishSession(onFinished)
             override fun discardSession() = viewModel.discardSession()
             override fun addExercise(exerciseKey: String) = viewModel.addExercise(exerciseKey)
             override fun removeExercise(exercise: Exercise) = viewModel.removeExercise(exercise)
@@ -77,4 +86,28 @@ internal fun ActiveWorkoutRedirect(isActiveWorkoutOpen: () -> Boolean, onSession
             ActiveSessionState.None -> if (isActiveWorkoutOpen()) onSessionEnded()
         }
     }
+}
+
+@Composable
+internal fun WorkoutSummaryScreen(sessionId: Long, onDone: () -> Unit, onShowAllSets: () -> Unit) {
+    val viewModel: WorkoutReportViewModel = koinViewModel()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(sessionId) { viewModel.show(sessionId) }
+    BackHandler(onBack = onDone)
+    LaunchedEffect(state) { if (!state.isLoading && state.report == null) onDone() }
+    WorkoutSummaryContent(state, onDone, onShowAllSets)
+}
+
+@Composable
+internal fun WorkoutDetailScreen(sessionId: Long, onBack: () -> Unit, onDeleted: () -> Unit) {
+    val viewModel: WorkoutReportViewModel = koinViewModel()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(sessionId) { viewModel.show(sessionId) }
+    LaunchedEffect(state) { if (!state.isLoading && state.report == null) onBack() }
+    WorkoutDetailContent(
+        state = state,
+        onBack = onBack,
+        onEdit = { viewModel.edit(onReopened = {}) },
+        onDelete = { viewModel.delete(onDeleted) },
+    )
 }

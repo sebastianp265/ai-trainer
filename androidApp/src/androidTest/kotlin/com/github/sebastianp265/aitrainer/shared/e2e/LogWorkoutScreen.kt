@@ -3,6 +3,7 @@ package com.github.sebastianp265.aitrainer.shared.e2e
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
@@ -17,7 +18,7 @@ import com.github.sebastianp265.aitrainer.feature.workout.impl.ActiveWorkoutTags
 
 class LogWorkoutScreen(
     compose: ComposeTestRule,
-    private val startWorkoutText: String = "Start workout",
+    private val startWorkoutText: String = "Empty workout",
     private val addExerciseText: String = "Add exercise",
 ) : Screen(compose) {
 
@@ -30,32 +31,45 @@ class LogWorkoutScreen(
     fun openExercisePicker() = clickText(addExerciseText)
 
     fun typeWeight(exercise: String, setIndex: Int, kg: String) {
-        compose.onAllNodes(hasTestTag(ActiveWorkoutTags.WEIGHT) and inExerciseCard(exercise), useUnmergedTree = true)[setIndex].performClick()
+        nodeInCard(hasTestTag(ActiveWorkoutTags.WEIGHT), exercise, setIndex).performClick()
         typeIntoNumberDialog(kg)
     }
 
     fun typeReps(exercise: String, setIndex: Int, reps: String) {
-        compose.onAllNodes(hasTestTag(ActiveWorkoutTags.REPS) and inExerciseCard(exercise), useUnmergedTree = true)[setIndex].performClick()
+        nodeInCard(hasTestTag(ActiveWorkoutTags.REPS), exercise, setIndex).performClick()
         typeIntoNumberDialog(reps)
     }
 
-    fun decreaseReps(exercise: String) =
-        compose.onAllNodes(hasContentDescription("Decrease reps") and inExerciseCard(exercise))[0].performClick()
+    fun decreaseReps(exercise: String) = nodeInCard(hasContentDescription("Decrease reps"), exercise, 0).performClick()
 
     fun chooseRpe(exercise: String, setIndex: Int, rpe: String) {
-        compose.onAllNodes(hasTestTag(ActiveWorkoutTags.RPE) and inExerciseCard(exercise), useUnmergedTree = true)[setIndex].performClick()
+        nodeInCard(hasTestTag(ActiveWorkoutTags.RPE), exercise, setIndex).performClick()
         compose.onNode(hasText(rpe) and hasAnyAncestor(hasContentDescription("RPE of set ${setIndex + 1}"))).performClick()
     }
 
     fun toggleWarmup(exercise: String, setIndex: Int) {
-        compose.onAllNodes(hasTestTag(ActiveWorkoutTags.WARMUP_TOGGLE) and inExerciseCard(exercise))[setIndex].performClick()
+        nodeInCard(hasTestTag(ActiveWorkoutTags.WARMUP_TOGGLE), exercise, setIndex).performClick()
     }
 
     fun addSet() = clickText("+ Set")
 
+    fun deleteSet(exercise: String, setIndex: Int) {
+        nodeInCard(hasContentDescription("Delete set"), exercise, setIndex).performClick()
+    }
+
+    fun assertTitle(title: String) = waitForText(title)
+
     fun clickSameAsLastTime() = clickText("Same as last time")
 
-    fun finish() = clickText("Finish")
+    fun finish() {
+        finishAndSeeSummary()
+        clickText("Done")
+    }
+
+    fun finishAndSeeSummary() {
+        clickText("Finish")
+        waitForText("Workout saved")
+    }
 
     fun askToDiscard() = clickText("Discard")
 
@@ -105,12 +119,12 @@ class LogWorkoutScreen(
 
     fun assertHistoryEntry(summary: String) {
         waitForText(startWorkoutText)
-        waitForTextShownOnce(summary)
+        waitForText(summary, substring = true)
     }
 
     fun assertNoWorkoutsYet() {
         waitForText(startWorkoutText)
-        waitForText("No workouts logged yet.")
+        waitForText("You have no workouts yet")
     }
 
     private fun typeIntoNumberDialog(text: String) {
@@ -124,6 +138,12 @@ class LogWorkoutScreen(
         compose.onAllNodes(matcher, useUnmergedTree = true).fetchSemanticsNodes().firstOrNull()
             ?.config?.get(SemanticsProperties.Text)?.joinToString("") { it.text }
             ?.replace(' ', ' ')
+
+    private fun nodeInCard(matcher: SemanticsMatcher, exercise: String, index: Int): SemanticsNodeInteraction {
+        val inCard = matcher and inExerciseCard(exercise)
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(inCard, useUnmergedTree = true).fetchSemanticsNodes().size > index }
+        return compose.onAllNodes(inCard, useUnmergedTree = true)[index]
+    }
 
     private fun inExerciseCard(exercise: String): SemanticsMatcher =
         hasAnyAncestor(hasTestTag(ActiveWorkoutTags.exerciseCard(exercise)))

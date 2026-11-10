@@ -11,6 +11,10 @@ import kotlin.test.Test
 @RunWith(AndroidJUnit4::class)
 class LogWorkoutFlowE2ETest : AbstractE2ETest() {
 
+    private companion object {
+        const val BARBELL_BENCH_PRESS = "BARBELL_BENCH_PRESS"
+    }
+
     private val workout = LogWorkoutScreen(compose)
     private val picker = ExercisePickerScreen(compose)
 
@@ -89,9 +93,5 @@ class LogWorkoutFlowE2ETest : AbstractE2ETest() {
         workout.openExercisePicker()
         picker.search("Bench Press")
         picker.pick("Barbell Bench Press")
-    }
-
-    private companion object {
-        const val BARBELL_BENCH_PRESS = "BARBELL_BENCH_PRESS"
     }
 }

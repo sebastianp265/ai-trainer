@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.sebastianp265.aitrainer.feature.app.impl.MainActivity
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeClient
 import com.github.sebastianp265.aitrainer.integration.health.HealthDataSource
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -31,6 +32,7 @@ abstract class AbstractE2ETest {
     private val localeManager = context.getSystemService(LocaleManager::class.java)
     private var scenario: ActivityScenario<MainActivity>? = null
     private var realHealthDataSource: HealthDataSource? = null
+    private var realClaudeClient: ClaudeClient? = null
 
     @BeforeTest
     fun startWithFreshData() {
@@ -49,9 +51,15 @@ abstract class AbstractE2ETest {
         localeManager.applicationLocales = LocaleList.getEmptyLocaleList()
         realHealthDataSource?.let { real -> loadKoinModules(module { single<HealthDataSource> { real } }) }
         realHealthDataSource = null
+        realClaudeClient?.let { real -> loadKoinModules(module { factory<ClaudeClient> { real } }) }
+        realClaudeClient = null
     }
 
-    protected fun launchApp(healthDataSource: HealthDataSource? = null) {
+    protected fun launchApp(healthDataSource: HealthDataSource? = null, claudeClient: ClaudeClient? = null) {
+        if (claudeClient != null) {
+            realClaudeClient = GlobalContext.get().get<ClaudeClient>()
+            loadKoinModules(module { factory<ClaudeClient> { claudeClient } })
+        }
         if (healthDataSource != null) {
             realHealthDataSource = GlobalContext.get().get<HealthDataSource>()
             loadKoinModules(module { single<HealthDataSource> { healthDataSource } })

@@ -52,7 +52,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.feature.exercise.displayName
+import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_MAX
@@ -115,7 +115,7 @@ internal fun PlanEditContent(state: PlanEditUiState, actions: PlanEditActions) {
                 Text(stringResource(R.string.plan_save_hint), style = MaterialTheme.typography.bodyMedium)
             } else {
                 val setsByExercise = state.sets.groupBy { it.exerciseKey }
-                setsByExercise.forEach { (exerciseKey, sets) -> ExerciseEditor(state.exercises.getValue(exerciseKey), sets, actions) }
+                setsByExercise.forEach { (exerciseKey, sets) -> state.exercises[exerciseKey]?.let { ExerciseEditor(it, sets, actions) } }
                 OutlinedButton(onClick = actions::addExercise, Modifier.fillMaxWidth().testTag(PlanTags.ADD_EXERCISE)) {
                     Icon(Icons.Default.Add, contentDescription = null)
                     Text(stringResource(R.string.add_exercise))

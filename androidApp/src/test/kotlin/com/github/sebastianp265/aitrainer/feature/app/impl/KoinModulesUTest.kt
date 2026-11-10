@@ -2,6 +2,7 @@ package com.github.sebastianp265.aitrainer.feature.app.impl
 
 import android.content.Context
 import androidx.work.WorkerParameters
+import io.ktor.client.engine.HttpClientEngine
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.dsl.module
 import org.koin.test.verify.verify
@@ -12,7 +13,7 @@ class KoinModulesUTest {
 
     @Test
     fun `all modules resolve`() {
-        val typesProvidedByAndroidOrWorkManager = listOf(Context::class, WorkerParameters::class)
+        val typesProvidedByAndroidOrWorkManager = listOf(Context::class, WorkerParameters::class, HttpClientEngine::class)
         module { includes(appModules) }.verify(extraTypes = typesProvidedByAndroidOrWorkManager)
     }
 }

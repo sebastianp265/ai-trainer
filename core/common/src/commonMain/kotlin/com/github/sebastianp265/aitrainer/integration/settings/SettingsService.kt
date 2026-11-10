@@ -7,6 +7,14 @@ interface SettingsService {
 
     suspend fun setClaudeModel(modelId: String)
 
+    fun observeShowTargets(): Flow<Boolean>
+
+    suspend fun setShowTargets(show: Boolean)
+
+    fun observeCoachEnabled(): Flow<Boolean>
+
+    suspend fun setCoachEnabled(enabled: Boolean)
+
     fun observeIsClaudeApiKeyStored(): Flow<Boolean>
 
     suspend fun saveClaudeApiKey(apiKey: String)

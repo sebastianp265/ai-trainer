@@ -32,7 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.feature.exercise.displayName
+import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.plan.Plan
@@ -40,6 +40,10 @@ import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import com.github.sebastianp265.aitrainer.shared.localization.formatLongWeekdayDate
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
+import com.github.sebastianp265.aitrainer.shared.workout.PlanLine
+import com.github.sebastianp265.aitrainer.shared.workout.exerciseCount
+import com.github.sebastianp265.aitrainer.shared.workout.planExercises
+import com.github.sebastianp265.aitrainer.shared.workout.workingSetCount
 import kotlinx.datetime.LocalDate
 
 @Composable
@@ -47,6 +51,7 @@ internal fun PlanListContent(
     state: PlanListUiState,
     onOpenPlan: (Long) -> Unit,
     onNewPlan: () -> Unit,
+    onOpenTargets: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -66,7 +71,7 @@ internal fun PlanListContent(
             when {
                 state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 state.plans.isEmpty() -> EmptyPlans(onNewPlan)
-                else -> PlanList(state, onOpenPlan)
+                else -> PlanList(state, onOpenPlan, onOpenTargets)
             }
         }
     }
@@ -86,7 +91,7 @@ private fun EmptyPlans(onNewPlan: () -> Unit) {
 }
 
 @Composable
-private fun PlanList(state: PlanListUiState, onOpenPlan: (Long) -> Unit) {
+private fun PlanList(state: PlanListUiState, onOpenPlan: (Long) -> Unit, onOpenTargets: () -> Unit) {
     val dated = state.plans.filter { it.date != null }
     val undated = state.plans.filter { it.date == null }
     LazyColumn(
@@ -94,6 +99,11 @@ private fun PlanList(state: PlanListUiState, onOpenPlan: (Long) -> Unit) {
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        state.week?.let { week ->
+            item { WeekHeader(week) }
+            item { WeekStrip(week) }
+        }
+        if (state.volumeRows.isNotEmpty()) item { WeekVolumeCard(state.volumeRows, state.showTargets, onOpenTargets) }
         if (dated.isNotEmpty()) {
             item { SectionTitle(stringResource(R.string.plan_upcoming)) }
             items(dated, key = { it.id }) { PlanCard(it, state.exercises) { onOpenPlan(it.id) } }
@@ -167,12 +177,17 @@ internal object PlanTags {
     const val NAME_FIELD = "plan_name"
     const val DATE_FIELD = "plan_date"
     const val SAVE = "plan_save"
+    const val WEEK_STRIP = "plan_week_strip"
+    const val WEEK_VOLUME = "plan_week_volume"
+    const val WEEK_TARGETS_LINK = "plan_week_targets_link"
     const val START = "plan_start"
     const val ADD_EXERCISE = "plan_add_exercise"
     const val SET_WEIGHT = "plan_set_weight"
     const val SET_REPS = "plan_set_reps"
 
     fun card(name: String) = "plan_card:$name"
+
+    fun weekDay(date: kotlinx.datetime.LocalDate) = "plan_week_day:$date"
 }
 
 @PreviewLightDark
@@ -191,6 +206,7 @@ private fun PlanListPreview() {
             ),
             onOpenPlan = {},
             onNewPlan = {},
+            onOpenTargets = {},
         )
     }
 }

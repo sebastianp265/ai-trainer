@@ -5,14 +5,20 @@ import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
 import com.github.sebastianp265.aitrainer.integration.health.HealthService
+import com.github.sebastianp265.aitrainer.integration.health.HealthDay
+import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
+import com.github.sebastianp265.aitrainer.integration.volume.VolumeService
+import com.github.sebastianp265.aitrainer.integration.workout.ExerciseStrength
 import com.github.sebastianp265.aitrainer.integration.workout.WorkoutService
+import com.github.sebastianp265.aitrainer.shared.volume.VolumeRow
+import com.github.sebastianp265.aitrainer.shared.volume.averageSetsPerWeek
+import com.github.sebastianp265.aitrainer.shared.volume.volumeRows
 import com.github.sebastianp265.aitrainer.shared.state.WhileUiSubscribed
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
@@ -25,6 +31,15 @@ internal data class ProgressUiState(
     val range: ProgressRange = ProgressRange.FOUR_WEEKS,
     val cards: ProgressCards? = null,
     val strength: List<StrengthRow> = emptyList(),
+    val volumeRows: List<VolumeRow> = emptyList(),
+    val showTargets: Boolean = true,
+)
+
+private class StoredProgress(
+    val days: List<HealthDay>,
+    val sessionCount: Int,
+    val strength: List<ExerciseStrength>,
+    val exercises: Map<String, Exercise>,
 )
 
 internal data class StrengthRow(val exercise: Exercise, val estimatedOneRepMaxKg: Double, val isRecord: Boolean)
@@ -32,28 +47,43 @@ internal data class StrengthRow(val exercise: Exercise, val estimatedOneRepMaxKg
 internal class ProgressViewModel(
     private val healthService: HealthService,
     private val workoutService: WorkoutService,
+    private val volumeService: VolumeService,
+    settingsService: SettingsService,
     exerciseService: ExerciseService,
     private val clock: Clock,
 ) : ViewModel() {
 
     private val range = MutableStateFlow(ProgressRange.FOUR_WEEKS)
 
-    private val exercisesByKey = flow { emit(exerciseService.exercises().associateBy { it.key }) }
+    private val exercisesByKey = exerciseService.observeExercisesByKey()
+
+    private val targetsAndGroups = combine(
+        volumeService.observeTargets(),
+        exerciseService.observeMuscleGroups(),
+        settingsService.observeShowTargets(),
+    ) { targets, groups, showTargets -> Triple(targets, groups, showTargets) }
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<ProgressUiState> = range.flatMapLatest { selected ->
         val today = clock.todayIn(TimeZone.currentSystemDefault())
         val firstDay = today.minus(DatePeriod(days = selected.days - 1))
-        combine(
+        val stored = combine(
             healthService.observeDays(firstDay, today),
             workoutService.observeFinishedSessions(firstDay, today),
             workoutService.observeStrength(firstDay, today),
             exercisesByKey,
-        ) { days, sessions, strength, exercises ->
+        ) { days, sessions, strength, exercises -> StoredProgress(days, sessions.size, strength, exercises) }
+        val volume = combine(volumeService.observeWeeklySets(firstDay, today), targetsAndGroups) { weeks, (targets, groups, showTargets) ->
+            volumeRows(groups, targets, averageSetsPerWeek(weeks, selected.days)) to showTargets
+        }
+        combine(stored, volume) { data, (rows, showTargets) ->
             ProgressUiState(
                 range = selected,
-                cards = ProgressCalculator.calculate(days, sessions.size, selected, today),
-                strength = strength.take(STRENGTH_ROWS).map { StrengthRow(exercises.getValue(it.exerciseKey), it.estimatedOneRepMaxKg, it.isRecord) },
+                cards = ProgressCalculator.calculate(data.days, data.sessionCount, selected, today),
+                strength = data.strength.take(STRENGTH_ROWS).map { StrengthRow(data.exercises.getValue(it.exerciseKey), it.estimatedOneRepMaxKg, it.isRecord) },
+                volumeRows = rows.takeIf { list -> list.any { it.done > 0 } }.orEmpty(),
+                showTargets = showTargets,
             )
         }
     }.stateIn(viewModelScope, WhileUiSubscribed, ProgressUiState())

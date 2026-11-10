@@ -40,14 +40,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.feature.exercise.displayName
+import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.plan.Plan
 import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import com.github.sebastianp265.aitrainer.shared.localization.formatLongWeekdayDate
-import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
+import com.github.sebastianp265.aitrainer.shared.workout.PlanExercise
+import com.github.sebastianp265.aitrainer.shared.workout.PlanLine
+import com.github.sebastianp265.aitrainer.shared.workout.planExercises
+import com.github.sebastianp265.aitrainer.shared.workout.planNumberText
+import com.github.sebastianp265.aitrainer.shared.workout.planWarmupText
+import com.github.sebastianp265.aitrainer.shared.workout.planWorkingRpeText
+import com.github.sebastianp265.aitrainer.shared.workout.planWorkingText
 import kotlinx.datetime.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -118,8 +124,8 @@ private fun ExerciseLines(exercise: PlanExercise, exercises: Map<String, Exercis
             Text(exercises.getValue(exercise.exerciseKey).displayName(locale), style = MaterialTheme.typography.titleMedium)
             exercise.lines.forEach { line ->
                 when (line) {
-                    is PlanLine.Warmup -> LineRow("R", warmupText(line), stringResource(R.string.plan_warmup))
-                    is PlanLine.Working -> LineRow(numberText(line), workingText(line), line.rpe?.let { stringResource(R.string.plan_rpe, formatWeight(it)) }.orEmpty())
+                    is PlanLine.Warmup -> LineRow("R", planWarmupText(line), stringResource(R.string.plan_warmup))
+                    is PlanLine.Working -> LineRow(planNumberText(line), planWorkingText(line), planWorkingRpeText(line))
                 }
             }
         }
@@ -134,20 +140,6 @@ private fun LineRow(number: String, text: String, trailing: String) {
         Text(trailing, style = MaterialTheme.typography.bodyMedium)
     }
 }
-
-@Composable
-private fun numberText(line: PlanLine.Working): String =
-    if (line.firstNumber == line.lastNumber) line.firstNumber.toString() else stringResource(R.string.plan_set_range, line.firstNumber, line.lastNumber)
-
-@Composable
-private fun warmupText(line: PlanLine.Warmup): String =
-    if (line.weightKg > 0) stringResource(R.string.plan_line_warmup, line.reps, formatWeight(line.weightKg))
-    else stringResource(R.string.plan_line_warmup_bodyweight, line.reps, stringResource(R.string.bodyweight_label))
-
-@Composable
-private fun workingText(line: PlanLine.Working): String =
-    if (line.weightKg > 0) stringResource(R.string.plan_line_load, line.setCount, line.reps, formatWeight(line.weightKg))
-    else stringResource(R.string.plan_line_load_bodyweight, line.setCount, line.reps, stringResource(R.string.bodyweight_label))
 
 @Composable
 internal fun DeletePlanDialog(name: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {

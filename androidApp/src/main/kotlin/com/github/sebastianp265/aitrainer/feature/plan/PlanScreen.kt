@@ -19,10 +19,10 @@ import org.koin.compose.viewmodel.koinViewModel
 internal const val NEW_PLAN = NEW_PLAN_ID
 
 @Composable
-internal fun PlanScreen(onOpenPlan: (planId: Long) -> Unit, onNewPlan: () -> Unit) {
+internal fun PlanScreen(onOpenPlan: (planId: Long) -> Unit, onNewPlan: () -> Unit, onOpenTargets: () -> Unit) {
     val viewModel: PlanListViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    PlanListContent(state, onOpenPlan, onNewPlan)
+    PlanListContent(state, onOpenPlan, onNewPlan, onOpenTargets)
 }
 
 @Composable

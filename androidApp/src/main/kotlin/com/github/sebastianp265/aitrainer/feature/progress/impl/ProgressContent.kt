@@ -31,12 +31,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.feature.exercise.displayName
+import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.feature.health.HealthConnectCard
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetric
 import com.github.sebastianp265.aitrainer.integration.health.HealthDay
 import com.github.sebastianp265.aitrainer.shared.localization.formatDate
 import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
+import com.github.sebastianp265.aitrainer.shared.volume.VolumeRow
 import kotlinx.datetime.LocalDate
 
 @Composable
@@ -47,6 +48,7 @@ internal fun ProgressContent(
     onOpenMetric: (ProgressMetric) -> Unit,
     onOpenDay: (LocalDate) -> Unit,
     onOpenExercise: (String) -> Unit,
+    onOpenTargets: () -> Unit,
 ) {
     val cards = state.cards
     if (cards == null) {
@@ -79,6 +81,7 @@ internal fun ProgressContent(
         }
         if (state.strength.isNotEmpty()) item { StrengthCard(state.strength, onOpenExercise) }
         cards.workouts?.let { item { WorkoutsCard(it, state.range) } }
+        if (state.volumeRows.isNotEmpty()) item { VolumeCard(state.volumeRows, state.showTargets, onOpenTargets) }
         if (cards.recentDays.isNotEmpty()) item { DaysCard(cards.recentDays, onOpenDay) }
     }
 }
@@ -273,6 +276,8 @@ internal object ProgressTags {
     const val BALANCE_CARD = "progress_balance_card"
     const val MACROS_CARD = "progress_macros_card"
     const val STRENGTH_CARD = "progress_strength_card"
+    const val VOLUME_CARD = "progress_volume_card"
+    const val VOLUME_TARGETS_LINK = "progress_volume_targets_link"
     const val WORKOUTS_CARD = "progress_workouts_card"
     const val DAYS_CARD = "progress_days_card"
     fun card(@StringRes title: Int) = "progress_card:$title"
@@ -299,6 +304,7 @@ private fun ProgressContentPreview() {
                 onOpenMetric = {},
                 onOpenDay = {},
                 onOpenExercise = {},
+                onOpenTargets = {},
             )
         }
     }

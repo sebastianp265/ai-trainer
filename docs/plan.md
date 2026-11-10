@@ -99,32 +99,32 @@ Requirements 3, 4, 5, 6. Screens: `Main`, `StartSheet`, `ActiveWorkout`, `Workou
 - [x] 5.8 Plan tables (plan, planned exercise, planned set; author; optional date; done link to
       a workout) with a migration.
 - [x] 5.9 Plan list, empty state, details, new, edit, delete with confirmation.
-- [ ] 5.10 Start screen with the next plan, the plan picker sheet, starting empty, first launch.
-- [ ] 5.11 Starting a workout from a plan fills it; saving links the workout and marks the plan done.
+- [x] 5.10 Start screen with the next plan, the plan picker sheet, starting empty, first launch.
+- [x] 5.11 Starting a workout from a plan fills it; saving links the workout and marks the plan done.
       Done when: an end-to-end test starts from a plan, removes a set, changes a weight, finishes,
       and sees the changed sets in the finished workout and the plan gone from the list.
-- [ ] 5.12 Summary after finishing: stats, records, comparison with the plan.
-- [ ] 5.13 Finished workout: details with plan comparison, edit, delete.
-- [ ] 5.14 Weekly sets: fractional counting, Monday to Sunday. Done when: unit tests cover
+- [x] 5.12 Summary after finishing: stats, records, comparison with the plan.
+- [x] 5.13 Finished workout: details with plan comparison, edit, delete.
+- [x] 5.14 Weekly sets: fractional counting, Monday to Sunday. Done when: unit tests cover
       primary and secondary counting, warm-ups excluded, week boundaries.
-- [ ] 5.15 Weekly targets: table with defaults 10–20, source, date, reason; targets screen with
+- [x] 5.15 Weekly targets: table with defaults 10–20, source, date, reason; targets screen with
       manual edit, restore defaults, show-targets switch.
-- [ ] 5.16 Sets-per-group card in Progress with the info box; week strip and "sets this week"
+- [x] 5.16 Sets-per-group card in Progress with the info box; week strip and "sets this week"
       card in Plan.
-- [ ] 5.17 Coach switch in Settings (stored). With it off: three tabs, no coach elements.
+- [x] 5.17 Coach switch in Settings (stored). With it off: three tabs, no coach elements.
 
 ## Phase 6: the coach
 
 Requirement 9, 10. Screens: `Coach`, `CoachEmpty`, `CoachNoKey`, `CoachError`, `CoachProposal`,
 `CoachTargets`, `CoachMemory`, `ApiKey`, `ModelPicker`, `Debug`.
 
-- [ ] 6.1 Claude client behind an `integration` interface, with a fake. Use the `claude-api`
+- [x] 6.1 Claude client behind an `integration` interface, with a fake. Use the `claude-api`
       skill for the request shape, tool use and model ids. HTTP with Ktor.
-- [ ] 6.2 Tables: conversation messages, proposals (type, payload, state), coach notes, profile.
-- [ ] 6.3 Request builder: profile, notes, targets, data summary, conversation. Done when: a unit
+- [x] 6.2 Tables: conversation messages, proposals (type, payload, state), coach notes, profile.
+- [x] 6.3 Request builder: profile, notes, targets, data summary, conversation. Done when: a unit
       test asserts the request for a known database state.
-- [ ] 6.4 Read tools. Done when: each tool has a unit test against an in-memory database.
-- [ ] 6.5 Proposal tools and lifecycle: pending, accepted, superseded; accepting applies the change.
+- [x] 6.4 Read tools. Done when: each tool has a unit test against an in-memory database.
+- [x] 6.5 Proposal tools and lifecycle: pending, accepted, superseded; accepting applies the change.
       Done when: unit tests cover accept, supersede, and a target change leaving plans untouched.
 - [ ] 6.6 Memory tools and the memory screen.
 - [ ] 6.7 Chat screen: messages, proposal cards, "Sprawdzono" line, tool-in-progress indicator.

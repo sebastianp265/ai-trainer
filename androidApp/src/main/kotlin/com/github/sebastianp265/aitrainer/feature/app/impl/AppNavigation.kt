@@ -44,9 +44,12 @@ import com.github.sebastianp265.aitrainer.feature.progress.DayDetailScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetricScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressScreen
 import com.github.sebastianp265.aitrainer.feature.settings.SettingsScreen
+import com.github.sebastianp265.aitrainer.feature.volume.VolumeTargetsScreen
 import com.github.sebastianp265.aitrainer.feature.workout.ActiveWorkoutRedirect
 import com.github.sebastianp265.aitrainer.feature.workout.ActiveWorkoutScreen
 import com.github.sebastianp265.aitrainer.feature.workout.LogWorkoutScreen
+import com.github.sebastianp265.aitrainer.feature.workout.WorkoutDetailScreen
+import com.github.sebastianp265.aitrainer.feature.workout.WorkoutSummaryScreen
 import kotlinx.datetime.LocalDate
 
 @Composable
@@ -80,10 +83,16 @@ internal fun AppNavigation() {
             startDestination = LogRoute,
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
-            composable<LogRoute> { LogWorkoutScreen(onOpenHistory = { navController.navigate(HistoryRoute) }) }
+            composable<LogRoute> { LogWorkoutScreen(
+                    onOpenHistory = { navController.navigate(HistoryRoute) },
+                    onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) },
+                ) }
             composable<ActiveWorkoutRoute> { entry ->
                 val picked by entry.savedStateHandle.getStateFlow<String?>(PICKED_EXERCISE_KEY, null).collectAsStateWithLifecycle()
                 ActiveWorkoutScreen(
+                    onFinished = { id ->
+                        navController.navigate(WorkoutSummaryRoute(id)) { popUpTo<ActiveWorkoutRoute> { inclusive = true } }
+                    },
                     onOpenExerciseHistory = { navController.navigate(ExerciseHistoryRoute(it)) },
                     onOpenExercisePicker = { navController.navigate(ExercisePickerRoute) },
                     pickedExerciseKey = picked,
@@ -91,7 +100,22 @@ internal fun AppNavigation() {
                 )
             }
             composable<ExerciseHistoryRoute> { entry ->
-                ExerciseHistoryScreen(entry.toRoute<ExerciseHistoryRoute>().exerciseKey, onOpenWorkout = {})
+                ExerciseHistoryScreen(entry.toRoute<ExerciseHistoryRoute>().exerciseKey, onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) })
+            }
+            composable<WorkoutSummaryRoute> { entry ->
+                val sessionId = entry.toRoute<WorkoutSummaryRoute>().sessionId
+                WorkoutSummaryScreen(
+                    sessionId = sessionId,
+                    onDone = { navController.popBackStack<LogRoute>(inclusive = false) },
+                    onShowAllSets = { navController.navigate(WorkoutDetailRoute(sessionId)) },
+                )
+            }
+            composable<WorkoutDetailRoute> { entry ->
+                WorkoutDetailScreen(
+                    sessionId = entry.toRoute<WorkoutDetailRoute>().sessionId,
+                    onBack = navController::popBackStack,
+                    onDeleted = navController::popBackStack,
+                )
             }
             composable<ExercisePickerRoute> {
                 ExercisePickerScreen(
@@ -102,6 +126,7 @@ internal fun AppNavigation() {
                     },
                 )
             }
+            composable<VolumeTargetsRoute> { VolumeTargetsScreen() }
             composable<HistoryRoute> {
                 HistoryScreen(onOpenExternalWorkout = { navController.navigate(ExternalWorkoutRoute(it)) })
             }
@@ -110,6 +135,7 @@ internal fun AppNavigation() {
                 PlanScreen(
                     onOpenPlan = { navController.navigate(PlanDetailRoute(it)) },
                     onNewPlan = { navController.navigate(PlanEditRoute(NEW_PLAN)) },
+                    onOpenTargets = { navController.navigate(VolumeTargetsRoute) },
                 )
             }
             composable<PlanDetailRoute> { entry ->
@@ -145,6 +171,7 @@ internal fun AppNavigation() {
                     onOpenMetric = { navController.navigate(ProgressMetricRoute(it)) },
                     onOpenDay = { navController.navigate(DayDetailRoute(it.toString())) },
                     onOpenExercise = { navController.navigate(ExerciseHistoryRoute(it)) },
+                    onOpenTargets = { navController.navigate(VolumeTargetsRoute) },
                 )
             }
             composable<ProgressMetricRoute> { entry ->

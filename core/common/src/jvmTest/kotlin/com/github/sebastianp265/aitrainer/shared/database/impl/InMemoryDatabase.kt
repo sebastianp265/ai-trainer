@@ -29,3 +29,18 @@ internal fun AppDatabase.seedExercises(vararg keys: String) = runBlocking {
         keys.forEach { connection.usePrepared("INSERT INTO exercise (key, equipmentKey) VALUES ('$it', 'BARBELL')") { statement -> statement.step() } }
     }
 }
+
+internal fun AppDatabase.seedExerciseMuscles(exerciseKey: String, primary: String, vararg secondary: String) = runBlocking {
+    useWriterConnection { connection ->
+        connection.usePrepared("INSERT INTO exercise_muscle (exerciseKey, muscleGroupKey, isPrimary) VALUES ('$exerciseKey', '$primary', 1)") { it.step() }
+        secondary.forEach { group ->
+            connection.usePrepared("INSERT INTO exercise_muscle (exerciseKey, muscleGroupKey, isPrimary) VALUES ('$exerciseKey', '$group', 0)") { it.step() }
+        }
+    }
+}
+
+internal fun AppDatabase.seedExerciseName(exerciseKey: String, name: String) = runBlocking {
+    useWriterConnection { connection ->
+        connection.usePrepared("INSERT INTO exercise_translation (exerciseKey, language, name) VALUES ('$exerciseKey', 'en', '$name')") { it.step() }
+    }
+}

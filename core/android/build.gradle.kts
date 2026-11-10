@@ -17,6 +17,7 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.health.connect.client)
+    implementation(libs.ktor.client.okhttp)
 
     androidTestImplementation(libs.kotlin.test.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -47,6 +47,12 @@ internal data class DayDetailRoute(val date: String)
 internal object ActiveWorkoutRoute
 
 @Serializable
+internal data class WorkoutSummaryRoute(val sessionId: Long)
+
+@Serializable
+internal data class WorkoutDetailRoute(val sessionId: Long)
+
+@Serializable
 internal object ExercisePickerRoute
 
 @Serializable
@@ -59,12 +65,17 @@ internal data class PlanDetailRoute(val planId: Long)
 internal data class PlanEditRoute(val planId: Long)
 
 @Serializable
+internal object VolumeTargetsRoute
+
+@Serializable
 internal object HistoryRoute
 
 @Serializable
 internal data class ExternalWorkoutRoute(val startedAtMillis: Long)
 
-internal val fullScreenRoutes = listOf(ActiveWorkoutRoute::class, ExercisePickerRoute::class, PlanDetailRoute::class, PlanEditRoute::class)
+internal val fullScreenRoutes = listOf(ActiveWorkoutRoute::class, ExercisePickerRoute::class, PlanDetailRoute::class, PlanEditRoute::class,
+    WorkoutSummaryRoute::class, WorkoutDetailRoute::class,
+)
 
 internal val nestedRoutes = listOf(
     SettingsRoute::class,
@@ -72,6 +83,7 @@ internal val nestedRoutes = listOf(
     ProgressMetricRoute::class,
     DayDetailRoute::class,
     HistoryRoute::class,
+    VolumeTargetsRoute::class,
     ExerciseHistoryRoute::class,
     ExternalWorkoutRoute::class,
 )

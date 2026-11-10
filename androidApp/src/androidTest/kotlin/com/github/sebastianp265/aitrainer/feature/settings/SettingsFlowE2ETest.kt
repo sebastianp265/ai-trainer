@@ -27,8 +27,32 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
+    fun `the coach is off at first and the coach settings appear when it is switched on`() {
+        settings.open()
+        settings.assertCoachOff()
+        settings.assertNotShownAnywhere("Claude API key")
+
+        settings.switchCoach()
+
+        settings.assertCoachOn()
+        settings.assertNoClaudeApiKeySaved()
+    }
+
+    @Test
+    fun `the coach switch is remembered after restart`() {
+        settings.open()
+        settings.switchCoach()
+
+        restartApp()
+        settings.open()
+
+        settings.assertCoachOn()
+    }
+
+    @Test
     fun `Claude API key is saved but never shown`() {
         settings.open()
+        settings.switchCoach()
         settings.assertNoClaudeApiKeySaved()
         settings.typeClaudeApiKey("test-key")
         settings.save()
@@ -37,7 +61,6 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
 
         restartApp()
         settings.open()
-
         settings.assertClaudeApiKeySaved()
         settings.assertNotShownAnywhere("test-key")
         settings.removeClaudeApiKey()

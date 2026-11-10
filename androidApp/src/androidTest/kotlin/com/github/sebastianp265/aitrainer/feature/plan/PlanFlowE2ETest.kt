@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.sebastianp265.aitrainer.shared.e2e.AbstractE2ETest
 import com.github.sebastianp265.aitrainer.shared.e2e.BottomBarScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.ExercisePickerScreen
+import com.github.sebastianp265.aitrainer.shared.e2e.PlanScreen
 import org.junit.runner.RunWith
 import kotlin.test.BeforeTest
 import kotlin.test.Test
