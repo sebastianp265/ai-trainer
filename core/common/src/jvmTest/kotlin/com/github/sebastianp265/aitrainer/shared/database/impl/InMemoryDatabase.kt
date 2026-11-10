@@ -13,7 +13,12 @@ internal fun inMemoryDatabase(): AppDatabase {
         .build()
     runBlocking {
         database.useWriterConnection { connection ->
-            connection.usePrepared("INSERT INTO equipment (key) VALUES ('BARBELL')") { it.step() }
+            listOf(
+                "INSERT INTO equipment (key) VALUES ('BARBELL'), ('OTHER')",
+                "INSERT INTO muscle_group (key) VALUES ('CHEST'), ('BACK'), ('LEGS'), ('SHOULDERS'), ('ARMS'), ('ABS')",
+                "INSERT INTO muscle_group_translation (muscleGroupKey, language, name) VALUES ('CHEST', 'en', 'Chest'), ('BACK', 'en', 'Back'), ('LEGS', 'en', 'Legs'), ('SHOULDERS', 'en', 'Shoulders'), ('ARMS', 'en', 'Arms'), ('ABS', 'en', 'Abs')",
+                "INSERT INTO equipment_translation (equipmentKey, language, name) VALUES ('BARBELL', 'en', 'Barbell'), ('OTHER', 'en', 'Other')",
+            ).forEach { sql -> connection.usePrepared(sql) { it.step() } }
         }
     }
     return database

@@ -89,7 +89,7 @@ internal class ActiveWorkoutViewModel(
 
     fun discardSession() = withSession { workoutService.discardSession(it.id) }
 
-    fun addExercise(exercise: Exercise) = withSession { workoutService.addExercise(it.id, exercise.key) }
+    fun addExercise(exerciseKey: String) = withSession { workoutService.addExercise(it.id, exerciseKey) }
 
     fun removeExercise(exercise: Exercise) = withSession { workoutService.removeExercise(it.id, exercise.key) }
 

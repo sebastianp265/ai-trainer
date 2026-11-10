@@ -9,6 +9,7 @@ import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseStrength
 import com.github.sebastianp265.aitrainer.integration.workout.LastTimeGroup
+import com.github.sebastianp265.aitrainer.integration.workout.RecentExercise
 import com.github.sebastianp265.aitrainer.integration.workout.SessionSummary
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
@@ -28,6 +29,7 @@ internal class DefaultWorkoutService(
 
     private companion object {
         const val RECENT_SESSIONS_LIMIT = 20
+        const val NO_SESSION = -1L
     }
 
     override fun observeActiveSession(): Flow<WorkoutSession?> =
@@ -52,6 +54,11 @@ internal class DefaultWorkoutService(
 
     override suspend fun lastWorkingSets(exerciseKey: String, excludingSessionId: Long): List<SetEntry> =
         lastSetsFor(exerciseKey, excludingSessionId).filter { !it.isWarmup }
+
+    override suspend fun recentExercises(limit: Int): List<RecentExercise> =
+        dao.recentExerciseKeys(limit).map { key ->
+            RecentExercise(key, lastTimeGroups(lastWorkingSets(key, excludingSessionId = NO_SESSION)))
+        }
 
     override suspend fun startSession() {
         dao.insertSession(

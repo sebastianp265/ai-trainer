@@ -8,12 +8,33 @@ import com.github.sebastianp265.aitrainer.shared.exercise.ExerciseMuscleEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.ExerciseTranslationEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.MuscleGroupEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.MuscleGroupTranslationEntity
+import com.github.sebastianp265.aitrainer.integration.exercise.DEFAULT_EXERCISE_LANGUAGE
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
 import com.github.sebastianp265.aitrainer.integration.exercise.MuscleGroup
+import com.github.sebastianp265.aitrainer.integration.exercise.NewExercise
+import kotlin.time.Clock
 
-internal class DefaultExerciseService(private val dao: ExerciseDao) : ExerciseService {
+internal class DefaultExerciseService(private val dao: ExerciseDao, private val clock: Clock) : ExerciseService {
+
+    private companion object {
+        const val CUSTOM_EQUIPMENT_KEY = "OTHER"
+        const val CUSTOM_KEY_PREFIX = "CUSTOM_"
+    }
+
+    override suspend fun createExercise(newExercise: NewExercise): String {
+        val key = CUSTOM_KEY_PREFIX + clock.now().toEpochMilliseconds()
+        dao.insertExerciseWithMuscles(
+            exercise = ExerciseEntity(key, CUSTOM_EQUIPMENT_KEY),
+            translation = ExerciseTranslationEntity(key, DEFAULT_EXERCISE_LANGUAGE, newExercise.name.trim()),
+            muscles = listOf(ExerciseMuscleEntity(key, newExercise.primaryGroupKey, isPrimary = true)) +
+                (newExercise.secondaryGroupKeys - newExercise.primaryGroupKey).distinct()
+                    .map { ExerciseMuscleEntity(key, it, isPrimary = false) },
+        )
+        return key
+    }
+
 
     override suspend fun exercises(): List<Exercise> {
         val muscleNames = dao.muscleGroupTranslations().muscleNamesByKey()

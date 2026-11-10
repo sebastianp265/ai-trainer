@@ -94,7 +94,7 @@ Requirements 3, 4, 5, 6. Screens: `Main`, `StartSheet`, `ActiveWorkout`, `Workou
 - [x] 5.4 "Last time" label with the format rules. Done when: unit tests cover equal sets,
       different sets, mixed RPE, no RPE, bodyweight, overflow to `+N`, and no previous workout.
 - [x] 5.5 Discard confirmation.
-- [ ] 5.6 Exercise picker: search, muscle filter, recently used, create an exercise.
+- [x] 5.6 Exercise picker: search, muscle filter, recently used, create an exercise.
 - [ ] 5.7 Exercise history: stats, 1RM chart, RPE chart, past sessions.
 - [ ] 5.8 Plan tables (plan, planned exercise, planned set; author; optional date; done link to
       a workout) with a migration.

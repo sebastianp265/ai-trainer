@@ -29,16 +29,27 @@ internal fun LogWorkoutScreen(onOpenHistory: () -> Unit) {
 }
 
 @Composable
-internal fun ActiveWorkoutScreen(onOpenExerciseHistory: (String) -> Unit) {
+internal fun ActiveWorkoutScreen(
+    onOpenExerciseHistory: (String) -> Unit,
+    onOpenExercisePicker: () -> Unit,
+    pickedExerciseKey: String?,
+    onPickedExerciseHandled: () -> Unit,
+) {
     val viewModel: ActiveWorkoutViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val activity = LocalContext.current as Activity
     BackHandler { activity.moveTaskToBack(true) }
+    LaunchedEffect(pickedExerciseKey) {
+        pickedExerciseKey?.let {
+            viewModel.addExercise(it)
+            onPickedExerciseHandled()
+        }
+    }
     val actions = remember(viewModel) {
         object : ActiveWorkoutActions {
             override fun finishSession() = viewModel.finishSession()
             override fun discardSession() = viewModel.discardSession()
-            override fun addExercise(exercise: Exercise) = viewModel.addExercise(exercise)
+            override fun addExercise(exerciseKey: String) = viewModel.addExercise(exerciseKey)
             override fun removeExercise(exercise: Exercise) = viewModel.removeExercise(exercise)
             override fun addSet(block: ExerciseBlock) = viewModel.addSet(block)
             override fun copySetsFromLastTime(block: ExerciseBlock) = viewModel.copySetsFromLastTime(block)
@@ -51,6 +62,7 @@ internal fun ActiveWorkoutScreen(onOpenExerciseHistory: (String) -> Unit) {
         actions = actions,
         onMessageShown = viewModel::messageShown,
         onOpenExerciseHistory = onOpenExerciseHistory,
+        onOpenExercisePicker = onOpenExercisePicker,
     )
 }
 

@@ -35,3 +35,7 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-10 · RPE picker values · all nine steps 6 to 10 by 0.5 (the mockup omits 6.5) · Requirements 4.
 - 2026-11-10 · Bodyweight sets · weight 0 is shown as "–" and counts as bodyweight in the last-time label · No separate flag in the data.
 - 2026-11-10 · "+N" in the last-time label · The text is measured; a group is dropped until two lines fit and its sets are counted in "+N"; spaces inside a group do not break · Compose's flow-row overflow API is deprecated.
+- 2026-11-10 · Exercise picker · a full-screen route; the chosen exercise key is handed back to the previous screen through its saved state; a newly created exercise is picked at once · Plan editing (5.9) reuses the picker.
+- 2026-11-10 · Muscle filter in the picker · by the exercise's primary group; the chip row lists the six groups · Mockup shows five chips; requirements name six.
+- 2026-11-10 · Custom exercise names · stored in English only (the typed name), shown in every language · One name field in the form.
+- 2026-11-10 · Last-time text helpers · moved to `shared.workout` in `androidApp` · Used by the workout card and the picker.

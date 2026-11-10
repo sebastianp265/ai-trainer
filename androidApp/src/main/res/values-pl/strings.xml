@@ -220,4 +220,14 @@
     <string name="back_to_workout">Wróć do treningu</string>
     <string name="ok">OK</string>
     <string name="workout_subtitle">%1$s · %2$s</string>
+    <string name="close">Zamknij</string>
+    <string name="search_exercise">Szukaj ćwiczenia</string>
+    <string name="filter_all">Wszystkie</string>
+    <string name="recently_used">Ostatnio używane</string>
+    <string name="all_exercises">Wszystkie</string>
+    <string name="new_exercise">Nowe ćwiczenie</string>
+    <string name="exercise_name">Nazwa</string>
+    <string name="primary_group">Główna partia</string>
+    <string name="secondary_groups">Dodatkowe partie</string>
+    <string name="exercise_with_last_time">%1$s · ostatnio %2$s</string>
 </resources>

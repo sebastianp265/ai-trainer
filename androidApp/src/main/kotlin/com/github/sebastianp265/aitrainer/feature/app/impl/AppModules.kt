@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.feature.app.impl
 
+import com.github.sebastianp265.aitrainer.feature.exercise.exerciseUiModule
 import com.github.sebastianp265.aitrainer.feature.health.healthUiModule
 import com.github.sebastianp265.aitrainer.feature.history.historyUiModule
 import com.github.sebastianp265.aitrainer.feature.progress.progressUiModule
@@ -15,6 +16,7 @@ private val clockModule = module {
 }
 
 internal val uiModules = listOf(
+    exerciseUiModule,
     workoutUiModule,
     healthUiModule,
     historyUiModule,

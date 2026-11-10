@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.feature.workout.impl
+package com.github.sebastianp265.aitrainer.shared.workout
 
 import com.github.sebastianp265.aitrainer.integration.workout.LastTimeGroup
 import java.text.NumberFormat
@@ -47,11 +47,5 @@ class LastTimeTextUTest {
 
         assertEquals(3, hiddenSetCount(groups, shownGroupCount = 2))
         assertEquals(0, hiddenSetCount(groups, shownGroupCount = 4))
-    }
-
-    @Test
-    fun `elapsed time shows minutes and seconds, and hours when needed`() {
-        assertEquals("32:14", formatElapsed(32 * 60 + 14L))
-        assertEquals("1:05:09", formatElapsed(3600 + 5 * 60 + 9L))
     }
 }

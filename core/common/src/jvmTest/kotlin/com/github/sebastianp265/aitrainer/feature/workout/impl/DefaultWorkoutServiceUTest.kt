@@ -119,6 +119,25 @@ class DefaultWorkoutServiceUTest {
         assertEquals(emptyList(), service.lastWorkingSets("bench", excludingSessionId = current))
     }
 
+    @Test
+    fun `recent exercises are those of finished workouts, latest first, with what was done last time`() = runBlocking {
+        val first = startSession()
+        service.addExercise(first, "squat")
+        service.finishSession(first)
+        now += 1.days
+        val second = startSession()
+        service.addExercise(second, "bench")
+        service.changeSet(setsOf(second).single().id, SetChange.WeightTo(60.0))
+        service.finishSession(second)
+        val running = startSession()
+        service.addExercise(running, "squat")
+
+        val recent = service.recentExercises(limit = 10)
+
+        assertEquals(listOf("bench", "squat"), recent.map { it.exerciseKey })
+        assertEquals(60.0, recent.first().lastTime.single().weightKg)
+    }
+
     private fun exercises() = listOf("bench", "squat").associateWith {
         Exercise(it, emptyMap(), Equipment("BARBELL", emptyMap()), emptyList(), emptyList())
     }

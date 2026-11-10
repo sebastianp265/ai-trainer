@@ -43,7 +43,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.feature.exercise.ExercisePickerDialog
 import com.github.sebastianp265.aitrainer.feature.exercise.displayName
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
@@ -65,6 +64,7 @@ internal fun ActiveWorkoutContent(
     actions: ActiveWorkoutActions,
     onMessageShown: () -> Unit,
     onOpenExerciseHistory: (String) -> Unit,
+    onOpenExercisePicker: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -75,7 +75,6 @@ internal fun ActiveWorkoutContent(
             onMessageShown()
         }
     }
-    var showPicker by rememberSaveable { mutableStateOf(false) }
     var confirmDiscard by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
@@ -111,7 +110,7 @@ internal fun ActiveWorkoutContent(
                         ExerciseCard(ui, actions, onOpenHistory = { onOpenExerciseHistory(ui.block.exercise.key) })
                     }
                     item {
-                        TextButton(onClick = { showPicker = true }) {
+                        TextButton(onClick = onOpenExercisePicker) {
                             Icon(Icons.Default.Add, contentDescription = null)
                             Text(stringResource(R.string.add_exercise))
                         }
@@ -121,15 +120,6 @@ internal fun ActiveWorkoutContent(
         }
     }
 
-    if (showPicker) {
-        ExercisePickerDialog(
-            onPick = {
-                actions.addExercise(it)
-                showPicker = false
-            },
-            onDismiss = { showPicker = false },
-        )
-    }
     if (confirmDiscard) {
         DiscardWorkoutDialog(
             planName = null,
@@ -185,7 +175,7 @@ internal fun DiscardWorkoutDialog(planName: String?, onConfirm: () -> Unit, onDi
 internal interface ActiveWorkoutActions {
     fun finishSession()
     fun discardSession()
-    fun addExercise(exercise: Exercise)
+    fun addExercise(exerciseKey: String)
     fun removeExercise(exercise: Exercise)
     fun addSet(block: ExerciseBlock)
     fun copySetsFromLastTime(block: ExerciseBlock)
@@ -239,7 +229,7 @@ private fun ActiveWorkoutPreview() {
                 actions = object : ActiveWorkoutActions {
                     override fun finishSession() = Unit
                     override fun discardSession() = Unit
-                    override fun addExercise(exercise: Exercise) = Unit
+                    override fun addExercise(exerciseKey: String) = Unit
                     override fun removeExercise(exercise: Exercise) = Unit
                     override fun addSet(block: ExerciseBlock) = Unit
                     override fun copySetsFromLastTime(block: ExerciseBlock) = Unit
@@ -248,6 +238,7 @@ private fun ActiveWorkoutPreview() {
                 },
                 onMessageShown = {},
                 onOpenExerciseHistory = {},
+                onOpenExercisePicker = {},
             )
         }
     }

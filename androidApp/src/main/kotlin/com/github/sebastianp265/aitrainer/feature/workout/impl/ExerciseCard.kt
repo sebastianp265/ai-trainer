@@ -44,7 +44,9 @@ import com.github.sebastianp265.aitrainer.integration.workout.RPE_MIN
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_STEP
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
-import java.text.NumberFormat
+import com.github.sebastianp265.aitrainer.shared.workout.hiddenSetCount
+import com.github.sebastianp265.aitrainer.shared.workout.rememberLastTimeLabels
+import com.github.sebastianp265.aitrainer.shared.workout.text
 
 @Composable
 internal fun ExerciseCard(ui: ExerciseBlockUi, actions: ActiveWorkoutActions, onOpenHistory: () -> Unit) {
@@ -88,14 +90,7 @@ internal fun ExerciseCard(ui: ExerciseBlockUi, actions: ActiveWorkoutActions, on
 @Composable
 private fun LastTimeLabel(ui: ExerciseBlockUi, onOpenHistory: () -> Unit) {
     if (ui.lastTime.isEmpty()) return
-    val locale = LocalConfiguration.current.locales[0]
-    val numberFormat = NumberFormat.getNumberInstance(locale).apply { maximumFractionDigits = 2 }
-    val labels = LastTimeLabels(
-        kg = stringResource(R.string.unit_kg),
-        rpe = stringResource(R.string.rpe_label),
-        bodyweight = stringResource(R.string.bodyweight_label),
-        formatNumber = { numberFormat.format(it) },
-    )
+    val labels = rememberLastTimeLabels()
     val prefix = stringResource(R.string.last_time_prefix)
     val groupTexts = ui.lastTime.map { it.text(labels).replace(' ', NO_BREAK_SPACE) }
     var shownCount by remember(ui.lastTime) { mutableIntStateOf(groupTexts.size) }

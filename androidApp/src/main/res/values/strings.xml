@@ -217,4 +217,14 @@
     <string name="back_to_workout">Back to workout</string>
     <string name="ok">OK</string>
     <string name="workout_subtitle">%1$s · %2$s</string>
+    <string name="close">Close</string>
+    <string name="search_exercise">Search exercise</string>
+    <string name="filter_all">All</string>
+    <string name="recently_used">Recently used</string>
+    <string name="all_exercises">All</string>
+    <string name="new_exercise">New exercise</string>
+    <string name="exercise_name">Name</string>
+    <string name="primary_group">Main muscle group</string>
+    <string name="secondary_groups">Additional groups</string>
+    <string name="exercise_with_last_time">%1$s · last %2$s</string>
 </resources>

@@ -48,7 +48,7 @@ enum class GradleModule(
         directoryName = "androidApp",
         packageModules = setOf(
             FEATURE_APP,
-            SHARED_LOCALIZATION, SHARED_STATE, SHARED_HEALTH,
+            SHARED_LOCALIZATION, SHARED_STATE, SHARED_HEALTH, SHARED_WORKOUT,
             FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_HEALTH, FEATURE_SETTINGS, FEATURE_PROGRESS, FEATURE_PLAN, FEATURE_HISTORY,
         ),
         dependencies = { setOf(CORE_COMMON, CORE_ANDROID) },

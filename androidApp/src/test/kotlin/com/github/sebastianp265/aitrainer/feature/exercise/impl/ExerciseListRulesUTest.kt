@@ -91,4 +91,16 @@ class ExerciseListRulesUTest {
             polishItems().map { it.displayName },
         )
     }
+
+    @Test
+    fun `group filter keeps exercises whose primary group matches and nothing else`() {
+        val legs = com.github.sebastianp265.aitrainer.integration.exercise.MuscleGroup("LEGS", mapOf("en" to "Legs"))
+        val chest = com.github.sebastianp265.aitrainer.integration.exercise.MuscleGroup("CHEST", mapOf("en" to "Chest"))
+        val squat = exercises.first().copy(key = "SQUAT", primaryMuscles = listOf(legs), secondaryMuscles = listOf(chest))
+        val bench = exercises.first().copy(key = "BENCH", primaryMuscles = listOf(chest), secondaryMuscles = listOf(legs))
+        val items = sortedExerciseListItems(listOf(squat, bench), { it.key }, { it.key }, polish)
+
+        assertEquals(listOf("SQUAT"), items.inPrimaryGroup("LEGS").map { it.exercise.key })
+        assertEquals(2, items.inPrimaryGroup(null).size)
+    }
 }

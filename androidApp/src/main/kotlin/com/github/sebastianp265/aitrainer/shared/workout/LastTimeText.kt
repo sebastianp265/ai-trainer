@@ -1,6 +1,11 @@
-package com.github.sebastianp265.aitrainer.feature.workout.impl
+package com.github.sebastianp265.aitrainer.shared.workout
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
+import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.integration.workout.LastTimeGroup
+import java.text.NumberFormat
 
 internal class LastTimeLabels(
     val kg: String,
@@ -26,9 +31,13 @@ private fun LastTimeGroup.rpeText(labels: LastTimeLabels): String {
 internal fun hiddenSetCount(groups: List<LastTimeGroup>, shownGroupCount: Int): Int =
     groups.drop(shownGroupCount).sumOf { it.setCount }
 
-internal fun formatElapsed(totalSeconds: Long): String {
-    val hours = totalSeconds / 3600
-    val minutes = totalSeconds % 3600 / 60
-    val seconds = totalSeconds % 60
-    return if (hours > 0) "%d:%02d:%02d".format(hours, minutes, seconds) else "%02d:%02d".format(minutes, seconds)
+@Composable
+internal fun rememberLastTimeLabels(): LastTimeLabels {
+    val numberFormat = NumberFormat.getNumberInstance(LocalConfiguration.current.locales[0]).apply { maximumFractionDigits = 2 }
+    return LastTimeLabels(
+        kg = stringResource(R.string.unit_kg),
+        rpe = stringResource(R.string.rpe_label),
+        bodyweight = stringResource(R.string.bodyweight_label),
+        formatNumber = { numberFormat.format(it) },
+    )
 }

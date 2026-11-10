@@ -28,6 +28,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.github.sebastianp265.aitrainer.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.github.sebastianp265.aitrainer.feature.exercise.ExercisePickerScreen
+import com.github.sebastianp265.aitrainer.feature.exercise.PICKED_EXERCISE_KEY
 import com.github.sebastianp265.aitrainer.feature.health.HealthConnectScreen
 import com.github.sebastianp265.aitrainer.feature.health.SyncHealthOnForeground
 import com.github.sebastianp265.aitrainer.feature.history.ExternalWorkoutScreen
@@ -74,7 +77,24 @@ internal fun AppNavigation() {
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
             composable<LogRoute> { LogWorkoutScreen(onOpenHistory = { navController.navigate(HistoryRoute) }) }
-            composable<ActiveWorkoutRoute> { ActiveWorkoutScreen(onOpenExerciseHistory = {}) }
+            composable<ActiveWorkoutRoute> { entry ->
+                val picked by entry.savedStateHandle.getStateFlow<String?>(PICKED_EXERCISE_KEY, null).collectAsStateWithLifecycle()
+                ActiveWorkoutScreen(
+                    onOpenExerciseHistory = {},
+                    onOpenExercisePicker = { navController.navigate(ExercisePickerRoute) },
+                    pickedExerciseKey = picked,
+                    onPickedExerciseHandled = { entry.savedStateHandle[PICKED_EXERCISE_KEY] = null },
+                )
+            }
+            composable<ExercisePickerRoute> {
+                ExercisePickerScreen(
+                    onClose = navController::popBackStack,
+                    onPicked = { key ->
+                        navController.previousBackStackEntry?.savedStateHandle?.set(PICKED_EXERCISE_KEY, key)
+                        navController.popBackStack()
+                    },
+                )
+            }
             composable<HistoryRoute> {
                 HistoryScreen(onOpenExternalWorkout = { navController.navigate(ExternalWorkoutRoute(it)) })
             }

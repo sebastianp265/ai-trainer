@@ -95,6 +95,8 @@ class LogWorkoutScreen(
         }
     }
 
+    fun assertExerciseShown(name: String) = waitForText(name)
+
     fun assertHistoryEntry(summary: String) {
         waitForText(startWorkoutText)
         waitForTextShownOnce(summary)

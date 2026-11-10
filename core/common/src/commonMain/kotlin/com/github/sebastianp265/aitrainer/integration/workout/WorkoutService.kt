@@ -21,6 +21,8 @@ interface WorkoutService {
 
     suspend fun lastWorkingSets(exerciseKey: String, excludingSessionId: Long): List<SetEntry>
 
+    suspend fun recentExercises(limit: Int): List<RecentExercise>
+
     suspend fun startSession()
 
     suspend fun finishSession(sessionId: Long)

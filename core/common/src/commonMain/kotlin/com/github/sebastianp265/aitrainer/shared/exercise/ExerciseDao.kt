@@ -1,7 +1,9 @@
 package com.github.sebastianp265.aitrainer.shared.exercise
 
 import androidx.room.Dao
+import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 
 @Dao
 internal interface ExerciseDao {
@@ -25,4 +27,24 @@ internal interface ExerciseDao {
 
     @Query("SELECT * FROM equipment_translation")
     suspend fun equipmentTranslations(): List<EquipmentTranslationEntity>
+
+    @Insert
+    suspend fun insertExercise(exercise: ExerciseEntity)
+
+    @Insert
+    suspend fun insertTranslation(translation: ExerciseTranslationEntity)
+
+    @Insert
+    suspend fun insertMuscles(muscles: List<ExerciseMuscleEntity>)
+
+    @Transaction
+    suspend fun insertExerciseWithMuscles(
+        exercise: ExerciseEntity,
+        translation: ExerciseTranslationEntity,
+        muscles: List<ExerciseMuscleEntity>,
+    ) {
+        insertExercise(exercise)
+        insertTranslation(translation)
+        insertMuscles(muscles)
+    }
 }

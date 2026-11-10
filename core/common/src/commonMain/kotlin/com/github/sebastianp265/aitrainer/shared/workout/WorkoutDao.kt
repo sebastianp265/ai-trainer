@@ -64,6 +64,18 @@ internal interface WorkoutDao {
     )
     fun observeWorkingSets(): Flow<List<WorkingSetRow>>
 
+    @Query(
+        """
+        SELECT e.exerciseKey FROM set_entry e
+        JOIN workout_session s ON s.id = e.sessionId
+        WHERE s.finishedAt IS NOT NULL
+        GROUP BY e.exerciseKey
+        ORDER BY MAX(s.startedAt) DESC
+        LIMIT :limit
+        """
+    )
+    suspend fun recentExerciseKeys(limit: Int): List<String>
+
     @Query("SELECT * FROM set_entry WHERE sessionId = :sessionId ORDER BY positionInSession")
     fun observeSets(sessionId: Long): Flow<List<SetEntryEntity>>
 
