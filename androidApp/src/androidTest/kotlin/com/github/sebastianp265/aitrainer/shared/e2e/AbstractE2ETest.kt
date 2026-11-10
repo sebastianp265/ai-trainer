@@ -78,6 +78,8 @@ abstract class AbstractE2ETest {
         context.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null).use { database ->
             database.execSQL("DELETE FROM set_entry")
             database.execSQL("DELETE FROM workout_session")
+            database.execSQL("DELETE FROM health_day")
+            database.execSQL("DELETE FROM health_workout")
         }
     }
 

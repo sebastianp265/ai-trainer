@@ -1,7 +1,7 @@
 package com.github.sebastianp265.aitrainer.feature.progress
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.sebastianp265.aitrainer.integration.health.HealthDay
+import com.github.sebastianp265.aitrainer.integration.health.NutritionTotals
 import com.github.sebastianp265.aitrainer.shared.e2e.AbstractE2ETest
 import com.github.sebastianp265.aitrainer.shared.e2e.FakeHealthService
 import kotlinx.datetime.DatePeriod
@@ -32,41 +32,40 @@ class ProgressFlowE2ETest : AbstractE2ETest() {
 
         permissions.assertClosedAndAppInFront()
         progress.assertConnectCardHidden()
-        progress.assertImportedDataShown()
     }
 
     @Test
-    fun `days read from Health Connect are listed`() {
-        launchApp(
-            healthService = FakeHealthService(
-                listOf(
-                    HealthDay(daysAgo(1), 2000, 140.0, 230.0, 70.0, listOf("com.example.nutrition")),
-                    HealthDay(daysAgo(3), 1800, null, null, null, emptyList()),
-                ),
-            ),
+    fun `days synced from Health Connect are listed`() {
+        val healthConnect = FakeHealthService()
+        healthConnect.nutrition = listOf(
+            nutrition(daysAgo(1), kcal = 2000, protein = 140.0, carbs = 230.0, fat = 70.0),
+            nutrition(daysAgo(3), kcal = 1800),
         )
+        launchApp(healthDataSource = healthConnect)
 
         progress.open()
 
         progress.assertDay(daysAgo(1), "Eaten 2,000 kcal · Protein 140 g · Carbs 230 g · Fat 70 g")
         progress.assertDay(daysAgo(3), "Eaten 1,800 kcal · Protein – · Carbs – · Fat –")
-        progress.assertDaySources(daysAgo(1), "From: com.example.nutrition")
-        progress.assertDaySources(daysAgo(3), "From: –")
     }
 
     @Test
     fun `data removed from Health Connect disappears after the app is reopened`() {
-        val healthConnect = FakeHealthService(listOf(HealthDay(daysAgo(1), 2000, null, null, null, listOf("com.example.nutrition"))))
-        launchApp(healthService = healthConnect)
+        val healthConnect = FakeHealthService()
+        healthConnect.nutrition = listOf(nutrition(daysAgo(1), kcal = 2000))
+        launchApp(healthDataSource = healthConnect)
         progress.open()
         progress.assertDay(daysAgo(1), "Eaten 2,000 kcal · Protein – · Carbs – · Fat –")
 
-        healthConnect.days = emptyList()
+        healthConnect.nutrition = emptyList()
         restartApp()
         progress.open()
 
-        progress.assertNoCalorieData()
+        progress.assertDayGone(daysAgo(1))
     }
+
+    private fun nutrition(date: LocalDate, kcal: Int, protein: Double? = null, carbs: Double? = null, fat: Double? = null) =
+        NutritionTotals(date, kcal, protein, carbs, null, fat, null, null, null)
 
     private fun daysAgo(days: Int): LocalDate = today.minus(DatePeriod(days = days))
 }

@@ -26,6 +26,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.feature.health.SyncHealthOnForeground
 import com.github.sebastianp265.aitrainer.feature.plan.PlanScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressScreen
 import com.github.sebastianp265.aitrainer.feature.settings.SettingsScreen
@@ -34,6 +35,7 @@ import com.github.sebastianp265.aitrainer.feature.workout.LogWorkoutScreen
 @Composable
 internal fun AppNavigation() {
     val navController = rememberNavController()
+    SyncHealthOnForeground()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val isSettingsOpen = backStackEntry?.destination?.hasRoute(SettingsRoute::class) == true
     Scaffold(

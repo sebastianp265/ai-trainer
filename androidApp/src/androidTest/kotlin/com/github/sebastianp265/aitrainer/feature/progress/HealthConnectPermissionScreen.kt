@@ -16,7 +16,10 @@ class HealthConnectPermissionScreen {
     private val appPackage = instrumentation.targetContext.packageName
     private val allowAllSwitch = By.text("Allow all")
     private val allowButton = By.text("Allow")
-    private val healthPermissions = listOf("android.permission.health.READ_NUTRITION")
+    private val healthPermissions = listOf(
+        "READ_NUTRITION", "READ_TOTAL_CALORIES_BURNED", "READ_WEIGHT", "READ_STEPS", "READ_SLEEP", "READ_RESTING_HEART_RATE",
+        "READ_HEART_RATE_VARIABILITY", "READ_EXERCISE", "READ_DISTANCE", "READ_HEART_RATE", "READ_HEALTH_DATA_HISTORY",
+    ).map { "android.permission.health.$it" }
 
     fun revokeAllPermissions() {
         healthPermissions.forEach { instrumentation.uiAutomation.revokeRuntimePermission(appPackage, it) }

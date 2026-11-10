@@ -38,21 +38,19 @@ internal fun ProgressContent(state: ProgressUiState, onHealthConnectChanged: () 
         modifier = Modifier.fillMaxSize(),
     ) {
         item { HealthConnectCard(onConnectionChanged = onHealthConnectChanged) }
-        state.healthDays?.let { healthDaysSection(it) }
+        if (state.healthDays.isNotEmpty()) healthDaysSection(state.healthDays)
     }
 }
 
 internal fun LazyListScope.healthDaysSection(days: List<HealthDay>) {
-    item { HealthDaysHeader(isEmpty = days.isEmpty()) }
+    item { HealthDaysHeader() }
     items(days, key = { it.date.toString() }) { day -> HealthDayItem(day) }
 }
 
 @Composable
-internal fun HealthDaysHeader(isEmpty: Boolean) {
+internal fun HealthDaysHeader() {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(stringResource(R.string.health_data_title), style = MaterialTheme.typography.titleLarge)
-        Text(stringResource(R.string.health_data_subtitle), style = MaterialTheme.typography.bodyMedium)
-        if (isEmpty) Text(stringResource(R.string.health_data_empty))
     }
 }
 
@@ -63,11 +61,6 @@ internal fun HealthDayItem(day: HealthDay) {
         supportingContent = {
             Column {
                 Text(day.summary(), Modifier.testTag(ProgressTags.healthDay(day.date)))
-                Text(
-                    day.sources(),
-                    Modifier.testTag(ProgressTags.healthDaySources(day.date)),
-                    style = MaterialTheme.typography.bodySmall,
-                )
             }
         },
     )
@@ -83,16 +76,6 @@ private fun HealthDay.summary(): String = stringResource(
 )
 
 @Composable
-private fun HealthDay.sources(): String = stringResource(
-    R.string.health_data_sources,
-    packages(sourcePackages),
-)
-
-@Composable
-private fun packages(packageNames: List<String>): String =
-    packageNames.joinToString().ifEmpty { stringResource(R.string.value_missing) }
-
-@Composable
 private fun kcal(value: Int?): String =
     value?.let { stringResource(R.string.value_kcal, formatKcal(it)) } ?: stringResource(R.string.value_missing)
 
@@ -102,7 +85,6 @@ private fun grams(value: Double?): String =
 
 internal object ProgressTags {
     fun healthDay(date: LocalDate) = "progress_health_day:$date"
-    fun healthDaySources(date: LocalDate) = "progress_health_day_sources:$date"
 }
 
 @PreviewLightDark
@@ -116,8 +98,17 @@ private fun HealthDayItemPreview() {
                     kcalEaten = 2350,
                     proteinG = 160.0,
                     carbsG = 260.5,
+                    sugarG = null,
                     fatG = 70.0,
-                    sourcePackages = listOf("com.example.nutrition"),
+                    saturatedFatG = null,
+                    fiberG = null,
+                    sodiumMg = null,
+                    kcalBurned = null,
+                    weightKg = null,
+                    steps = null,
+                    sleepMinutes = null,
+                    restingHeartRate = null,
+                    hrvMs = null,
                 ),
             )
         }

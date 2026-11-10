@@ -49,11 +49,8 @@
     <string name="health_connect_update">Update</string>
     <string name="value_kcal">%1$s kcal</string>
     <string name="health_data_title">Data read from Health Connect</string>
-    <string name="health_data_subtitle">Last 30 days, newest first. Nothing is stored in the app.</string>
-    <string name="health_data_empty">Health Connect has no calorie data for the last 30 days.</string>
     <string name="health_data_day">Eaten %1$s · Protein %2$s · Carbs %3$s · Fat %4$s</string>
     <string name="value_grams">%1$s g</string>
-    <string name="health_data_sources">From: %1$s</string>
     <string name="value_missing" translatable="false">–</string>
 
     <plurals name="exercise_count">

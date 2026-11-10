@@ -19,12 +19,12 @@ internal class HealthConnectViewModel(
     private val healthService: HealthService,
 ) : ViewModel() {
 
-    private val state = MutableStateFlow(HealthConnectUiState(requiredPermissions = healthService.requiredPermissions))
+    private val state = MutableStateFlow(HealthConnectUiState(requiredPermissions = healthService.permissionsToRequest))
     val uiState: StateFlow<HealthConnectUiState> = state.asStateFlow()
 
     fun refresh() {
         viewModelScope.launch {
-            val access = healthService.checkAccess()
+            val access = healthService.status().access
             state.update { it.copy(access = access) }
         }
     }

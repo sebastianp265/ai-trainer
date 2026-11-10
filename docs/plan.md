@@ -68,7 +68,7 @@ Requirements 2, 7, 8. Screens: `Progress`, `ProgressNoHealth`, `ProgressMetric`,
       cover first sync, re-sync overwriting an edited day, a deleted day, and a missing permission.
 - [x] 4.5 Day rules: weight = last of the day, sleep on the waking day, resting HR and HRV as
       daily averages. Done when: unit tests cover each rule.
-- [ ] 4.6 Sync on app foreground and on "Synchronizuj teraz"; last sync time stored.
+- [x] 4.6 Sync on app foreground and on "Synchronizuj teraz"; last sync time stored.
 - [ ] 4.7 Health Connect screens in Settings: state per type, change permissions, history state,
       not connected, unavailable or outdated. The Settings row shows "X z 8".
 - [ ] 4.8 Progress: range switch and the cards for weight, calorie balance, macros, steps, sleep,

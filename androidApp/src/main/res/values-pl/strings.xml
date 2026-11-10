@@ -48,11 +48,8 @@
     <string name="health_connect_update">Aktualizuj</string>
     <string name="value_kcal">%1$s kcal</string>
     <string name="health_data_title">Dane odczytane z Health Connect</string>
-    <string name="health_data_subtitle">Ostatnie 30 dni, od najnowszych. Aplikacja niczego nie zapisuje.</string>
-    <string name="health_data_empty">Health Connect nie ma danych o kaloriach z ostatnich 30 dni.</string>
     <string name="health_data_day">Zjedzone %1$s · Białko %2$s · Węglowodany %3$s · Tłuszcz %4$s</string>
     <string name="value_grams">%1$s g</string>
-    <string name="health_data_sources">Źródło: %1$s</string>
 
     <plurals name="exercise_count">
         <item quantity="one">%d ćwiczenie</item>

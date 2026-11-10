@@ -26,11 +26,11 @@ class ProgressScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun assertImportedDataShown() = waitForText("Data read from Health Connect")
 
-    fun assertNoCalorieData() = waitForText("Health Connect has no calorie data for the last 30 days.")
+    fun assertDayGone(date: LocalDate) =
+        compose.waitUntil(TEST_TIMEOUT_MS) {
+            compose.onAllNodes(hasTestTag(ProgressTags.healthDay(date)), useUnmergedTree = true).fetchSemanticsNodes().isEmpty()
+        }
 
     fun assertDay(date: LocalDate, expected: String) =
         waitFor(hasTestTag(ProgressTags.healthDay(date)) and hasText(expected))
-
-    fun assertDaySources(date: LocalDate, expected: String) =
-        waitFor(hasTestTag(ProgressTags.healthDaySources(date)) and hasText(expected))
 }
