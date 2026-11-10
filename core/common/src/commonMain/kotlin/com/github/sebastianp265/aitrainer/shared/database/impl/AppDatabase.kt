@@ -14,6 +14,7 @@ import com.github.sebastianp265.aitrainer.shared.exercise.ExerciseTranslationEnt
 import com.github.sebastianp265.aitrainer.shared.exercise.MuscleGroupEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.MuscleGroupTranslationEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.ExerciseDao
+import com.github.sebastianp265.aitrainer.shared.health.HealthDao
 import com.github.sebastianp265.aitrainer.shared.health.HealthDayEntity
 import com.github.sebastianp265.aitrainer.shared.health.HealthWorkoutEntity
 import com.github.sebastianp265.aitrainer.shared.workout.SetEntryEntity
@@ -43,6 +44,7 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
 internal abstract class AppDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
     abstract fun workoutDao(): WorkoutDao
+    abstract fun healthDao(): HealthDao
 
     companion object {
         const val NAME = "aitrainer.db"

@@ -14,4 +14,5 @@ internal val databaseModule = module {
     } onClose { it?.close() }
     single { get<AppDatabase>().exerciseDao() }
     single { get<AppDatabase>().workoutDao() }
+    single { get<AppDatabase>().healthDao() }
 }

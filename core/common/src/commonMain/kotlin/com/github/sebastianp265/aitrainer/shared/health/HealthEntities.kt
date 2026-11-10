@@ -23,7 +23,15 @@ internal data class HealthDayEntity(
     val sleepMinutes: Int?,
     val restingHeartRate: Double?,
     val hrvMs: Double?,
-)
+) {
+    fun isEmpty() = listOf(kcalEaten, kcalBurned, steps, sleepMinutes).all { it == null } &&
+        listOf(proteinG, carbsG, sugarG, fatG, saturatedFatG, fiberG, sodiumMg, weightKg, restingHeartRate, hrvMs).all { it == null }
+
+    companion object {
+        fun empty(date: LocalDate) =
+            HealthDayEntity(date, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
+    }
+}
 
 @Entity(tableName = "health_workout", indices = [Index("startedAt")])
 internal data class HealthWorkoutEntity(

@@ -63,10 +63,10 @@ Requirements 2, 7, 8. Screens: `Progress`, `ProgressNoHealth`, `ProgressMetric`,
       in `shared.health`, with an auto-migration from schema 6. Done when: the migration test passes.
 - [x] 4.3 `HealthDataSource` reads each data type separately and reports which permissions are
       granted, including the history permission. Done when: `FakeHealthService` can grant any subset.
-- [ ] 4.4 Sync service: first sync one year or 30 days, later syncs the last 14 days, overwrite
+- [x] 4.4 Sync service: first sync one year or 30 days, later syncs the last 14 days, overwrite
       by date, skip types without permission, ignore this app's own workouts. Done when: unit tests
       cover first sync, re-sync overwriting an edited day, a deleted day, and a missing permission.
-- [ ] 4.5 Day rules: weight = last of the day, sleep on the waking day, resting HR and HRV as
+- [x] 4.5 Day rules: weight = last of the day, sleep on the waking day, resting HR and HRV as
       daily averages. Done when: unit tests cover each rule.
 - [ ] 4.6 Sync on app foreground and on "Synchronizuj teraz"; last sync time stored.
 - [ ] 4.7 Health Connect screens in Settings: state per type, change permissions, history state,
