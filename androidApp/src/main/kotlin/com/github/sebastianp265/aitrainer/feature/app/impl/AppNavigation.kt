@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.feature.app.impl
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -26,6 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.feature.health.HealthConnectScreen
 import com.github.sebastianp265.aitrainer.feature.health.SyncHealthOnForeground
 import com.github.sebastianp265.aitrainer.feature.plan.PlanScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressScreen
@@ -37,10 +39,15 @@ internal fun AppNavigation() {
     val navController = rememberNavController()
     SyncHealthOnForeground()
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val isSettingsOpen = backStackEntry?.destination?.hasRoute(SettingsRoute::class) == true
+    val destination = backStackEntry?.destination
+    val title = when {
+        destination?.hasRoute(SettingsRoute::class) == true -> R.string.nav_settings
+        destination?.hasRoute(HealthConnectRoute::class) == true -> R.string.health_connect
+        else -> null
+    }
     Scaffold(
-        topBar = { AppTopBar(isSettingsOpen, onOpenSettings = { navController.navigate(SettingsRoute) }, onBack = navController::popBackStack) },
-        bottomBar = { if (!isSettingsOpen) AppBottomBar(navController) },
+        topBar = { AppTopBar(title, onOpenSettings = { navController.navigate(SettingsRoute) }, onBack = navController::popBackStack) },
+        bottomBar = { if (title == null) AppBottomBar(navController) },
     ) { padding ->
         NavHost(
             navController = navController,
@@ -50,25 +57,26 @@ internal fun AppNavigation() {
             composable<LogRoute> { LogWorkoutScreen() }
             composable<PlanRoute> { PlanScreen() }
             composable<ProgressRoute> { ProgressScreen() }
-            composable<SettingsRoute> { SettingsScreen() }
+            composable<SettingsRoute> { SettingsScreen(onOpenHealthConnect = { navController.navigate(HealthConnectRoute) }) }
+            composable<HealthConnectRoute> { HealthConnectScreen() }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun AppTopBar(isSettingsOpen: Boolean, onOpenSettings: () -> Unit, onBack: () -> Unit) {
+internal fun AppTopBar(@StringRes title: Int?, onOpenSettings: () -> Unit, onBack: () -> Unit) {
     TopAppBar(
-        title = { if (isSettingsOpen) Text(stringResource(R.string.nav_settings)) },
+        title = { if (title != null) Text(stringResource(title)) },
         navigationIcon = {
-            if (isSettingsOpen) {
+            if (title != null) {
                 IconButton(onClick = onBack) {
                     Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                 }
             }
         },
         actions = {
-            if (!isSettingsOpen) {
+            if (title == null) {
                 IconButton(onClick = onOpenSettings) {
                     Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.nav_settings))
                 }

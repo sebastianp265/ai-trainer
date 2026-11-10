@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
 
 @Composable
-internal fun SettingsContent(state: SettingsUiState, actions: SettingsActions) {
+internal fun SettingsContent(state: SettingsUiState, actions: SettingsActions, healthConnectRow: @Composable () -> Unit) {
     if (state.isLoading) {
         Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
         return
@@ -46,6 +46,8 @@ internal fun SettingsContent(state: SettingsUiState, actions: SettingsActions) {
         item { SectionTitle(R.string.settings_ai_trainer) }
         item { ClaudeApiKeyField(state.isClaudeApiKeyStored, actions::saveClaudeApiKey, actions::removeClaudeApiKey) }
         item { ClaudeModelField(state.claudeModel, actions::setClaudeModel) }
+        item { SectionTitle(R.string.settings_data) }
+        item { healthConnectRow() }
     }
 }
 
@@ -124,6 +126,7 @@ private fun SettingsPreview() {
                     override fun removeClaudeApiKey() = Unit
                     override fun setClaudeModel(modelId: String) = Unit
                 },
+                healthConnectRow = {},
             )
         }
     }

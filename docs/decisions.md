@@ -8,3 +8,8 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-10 · English name of the first tab · "Training" (Polish "Trening") · Matches the requirements' "Trening"; the route is still `LogRoute`.
 - 2026-11-10 · Top bar on the tabs · only the gear icon, no title · A title would repeat the tab label in the bottom bar.
 - 2026-11-10 · Instrumented tests between 4.3 and 4.6 · The old Progress end-to-end tests are rewritten in 4.6, so they do not compile in the commits for 4.3 to 4.5 · The old screen and its fake are replaced by the stored-data Progress; keeping both alive would be throwaway work.
+- 2026-11-10 · What counts as "connected" · at least one of the 8 data types granted · All types are optional (requirements 7).
+- 2026-11-10 · Workout details (distance, heart rate) · two extra read permissions are requested together with the other types; they have no row of their own, and kcal comes from the "calories burned" permission when granted · The eight rows in the plan are the data types; details are best-effort.
+- 2026-11-10 · "Zmień uprawnienia w Health Connect" · opens Health Connect's own settings · The system permission dialog does not reappear after repeated denials.
+- 2026-11-10 · History permission after the first sync · a first sync without it reads 30 days and a later grant does not trigger a one-year backfill · Not in the requirements; keeps the sync rule simple.
+- 2026-11-10 · Sleep amount · duration from start to end of the session, sessions ending on the same day are summed · Requirements say only "duration, assigned to the day of waking up".

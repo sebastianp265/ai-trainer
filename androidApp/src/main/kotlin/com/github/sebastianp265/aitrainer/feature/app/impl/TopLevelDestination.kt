@@ -32,3 +32,6 @@ internal object ProgressRoute
 
 @Serializable
 internal object SettingsRoute
+
+@Serializable
+internal object HealthConnectRoute
