@@ -47,8 +47,6 @@
     <string name="health_connect_update_required">Health Connect wymaga aktualizacji.</string>
     <string name="health_connect_update">Aktualizuj</string>
     <string name="value_kcal">%1$s kcal</string>
-    <string name="health_data_title">Dane odczytane z Health Connect</string>
-    <string name="health_data_day">Zjedzone %1$s · Białko %2$s · Węglowodany %3$s · Tłuszcz %4$s</string>
     <string name="value_grams">%1$s g</string>
 
     <string name="hc_connected_summary">Połączono · %1$d z %2$d typów danych</string>
@@ -97,6 +95,38 @@
     <string name="hc_type_hrv">HRV</string>
     <string name="hc_type_daily_average_text">średnia z dnia</string>
     <string name="settings_data">Dane</string>
+
+    <string name="progress_range_4w">4 tyg.</string>
+    <string name="progress_range_3m">3 mies.</string>
+    <string name="progress_range_year">Rok</string>
+    <string name="progress_in_4w">w 4 tyg.</string>
+    <string name="progress_in_3m">w 3 mies.</string>
+    <string name="progress_in_year">w roku</string>
+    <string name="progress_change">%1$s %2$s</string>
+    <string name="progress_weight_title">Waga · średnia 7 dni</string>
+    <string name="progress_balance_title">Bilans kalorii · średnio na dzień</string>
+    <string name="progress_balance_detail">zjedzone %1$s · spalone %2$s</string>
+    <string name="progress_balance_weeks">Tygodnie od najstarszego.</string>
+    <string name="progress_macros_title">Makro · średnio na dzień</string>
+    <string name="macro_protein">Białko</string>
+    <string name="macro_carbs">Węglowodany</string>
+    <string name="macro_fat">Tłuszcz</string>
+    <string name="macro_fiber">Błonnik</string>
+    <string name="progress_steps">Kroki</string>
+    <string name="progress_steps_hint">średnio dziennie</string>
+    <string name="progress_sleep">Sen</string>
+    <string name="progress_sleep_hint">średnio na noc</string>
+    <string name="progress_rhr">Tętno spoczynkowe</string>
+    <string name="progress_hrv">HRV</string>
+    <string name="progress_days">Dni</string>
+    <string name="value_kg">%1$s kg</string>
+    <string name="value_bpm">%1$s bpm</string>
+    <string name="value_ms">%1$s ms</string>
+    <string name="duration_hours_minutes">%1$d h %2$02d min</string>
+    <string name="day_eaten">zjedzone %1$s</string>
+    <string name="day_burned">spalone %1$s</string>
+    <string name="day_sleep">sen %1$s</string>
+    <string name="day_steps">%1$s kroków</string>
 
     <plurals name="exercise_count">
         <item quantity="one">%d ćwiczenie</item>

@@ -28,6 +28,7 @@ class HealthConnectPermissionScreen {
     fun allowAll() {
         tap(allowAllSwitch)
         tap(allowButton)
+        tap(allowButton)
     }
 
     fun assertClosedAndAppInFront() {

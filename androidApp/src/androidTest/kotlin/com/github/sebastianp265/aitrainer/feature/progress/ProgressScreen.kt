@@ -24,13 +24,15 @@ class ProgressScreen(compose: ComposeTestRule) : Screen(compose) {
     fun assertConnectCardHidden() =
         compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText("Health Connect").fetchSemanticsNodes().isEmpty() }
 
-    fun assertImportedDataShown() = waitForText("Data read from Health Connect")
+    fun assertCardShown(title: String) = waitForText(title)
+
+    fun assertCardHidden(title: String) = assertTextNotShown(title)
+
+    fun assertDay(date: LocalDate, expected: String) =
+        waitFor(hasTestTag(ProgressTags.healthDay(date)) and hasText(expected))
 
     fun assertDayGone(date: LocalDate) =
         compose.waitUntil(TEST_TIMEOUT_MS) {
             compose.onAllNodes(hasTestTag(ProgressTags.healthDay(date)), useUnmergedTree = true).fetchSemanticsNodes().isEmpty()
         }
-
-    fun assertDay(date: LocalDate, expected: String) =
-        waitFor(hasTestTag(ProgressTags.healthDay(date)) and hasText(expected))
 }

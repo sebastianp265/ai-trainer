@@ -48,8 +48,6 @@
     <string name="health_connect_update_required">Health Connect needs an update.</string>
     <string name="health_connect_update">Update</string>
     <string name="value_kcal">%1$s kcal</string>
-    <string name="health_data_title">Data read from Health Connect</string>
-    <string name="health_data_day">Eaten %1$s · Protein %2$s · Carbs %3$s · Fat %4$s</string>
     <string name="value_grams">%1$s g</string>
     <string name="value_missing" translatable="false">–</string>
 
@@ -99,6 +97,38 @@
     <string name="hc_type_hrv">HRV</string>
     <string name="hc_type_daily_average_text">average of the day</string>
     <string name="settings_data">Data</string>
+
+    <string name="progress_range_4w">4 weeks</string>
+    <string name="progress_range_3m">3 months</string>
+    <string name="progress_range_year">Year</string>
+    <string name="progress_in_4w">in 4 weeks</string>
+    <string name="progress_in_3m">in 3 months</string>
+    <string name="progress_in_year">in a year</string>
+    <string name="progress_change">%1$s %2$s</string>
+    <string name="progress_weight_title">Weight · 7-day average</string>
+    <string name="progress_balance_title">Calorie balance · average per day</string>
+    <string name="progress_balance_detail">eaten %1$s · burned %2$s</string>
+    <string name="progress_balance_weeks">Weeks from the oldest.</string>
+    <string name="progress_macros_title">Macros · average per day</string>
+    <string name="macro_protein">Protein</string>
+    <string name="macro_carbs">Carbs</string>
+    <string name="macro_fat">Fat</string>
+    <string name="macro_fiber">Fiber</string>
+    <string name="progress_steps">Steps</string>
+    <string name="progress_steps_hint">average per day</string>
+    <string name="progress_sleep">Sleep</string>
+    <string name="progress_sleep_hint">average per night</string>
+    <string name="progress_rhr">Resting heart rate</string>
+    <string name="progress_hrv">HRV</string>
+    <string name="progress_days">Days</string>
+    <string name="value_kg">%1$s kg</string>
+    <string name="value_bpm">%1$s bpm</string>
+    <string name="value_ms">%1$s ms</string>
+    <string name="duration_hours_minutes">%1$d h %2$02d min</string>
+    <string name="day_eaten">eaten %1$s</string>
+    <string name="day_burned">burned %1$s</string>
+    <string name="day_sleep">sleep %1$s</string>
+    <string name="day_steps">%1$s steps</string>
 
     <plurals name="exercise_count">
         <item quantity="one">%d exercise</item>

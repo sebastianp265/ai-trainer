@@ -71,7 +71,7 @@ Requirements 2, 7, 8. Screens: `Progress`, `ProgressNoHealth`, `ProgressMetric`,
 - [x] 4.6 Sync on app foreground and on "Synchronizuj teraz"; last sync time stored.
 - [x] 4.7 Health Connect screens in Settings: state per type, change permissions, history state,
       not connected, unavailable or outdated. The Settings row shows "X z 8".
-- [ ] 4.8 Progress: range switch and the cards for weight, calorie balance, macros, steps, sleep,
+- [x] 4.8 Progress: range switch and the cards for weight, calorie balance, macros, steps, sleep,
       resting HR, HRV, days. Charts drawn with Compose `Canvas`. Hidden when their data is missing.
       Done when: unit tests cover each card's numbers; an end-to-end test shows cards for a fake
       with partial permissions.

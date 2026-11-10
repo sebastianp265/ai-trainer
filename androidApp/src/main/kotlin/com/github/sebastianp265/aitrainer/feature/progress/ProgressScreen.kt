@@ -11,5 +11,5 @@ import org.koin.compose.viewmodel.koinViewModel
 internal fun ProgressScreen() {
     val viewModel: ProgressViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    ProgressContent(state, onHealthConnectChanged = viewModel::syncAfterConnecting)
+    ProgressContent(state, onRangeSelected = viewModel::selectRange, onHealthConnectChanged = viewModel::syncAfterConnecting)
 }

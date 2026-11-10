@@ -13,3 +13,6 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-10 · "Zmień uprawnienia w Health Connect" · opens Health Connect's own settings · The system permission dialog does not reappear after repeated denials.
 - 2026-11-10 · History permission after the first sync · a first sync without it reads 30 days and a later grant does not trigger a one-year backfill · Not in the requirements; keeps the sync rule simple.
 - 2026-11-10 · Sleep amount · duration from start to end of the session, sessions ending on the same day are summed · Requirements say only "duration, assigned to the day of waking up".
+- 2026-11-10 · Today in the progress averages · calorie balance, macros and steps leave out today (the day is not over); weight, sleep, heart rate and HRV include it · Today's partial eating or steps would distort the averages.
+- 2026-11-10 · "7-day average" of weight and resting heart rate · mean of the measurements in the 7 days up to each measurement day; the change over the range is last average minus first · Simple and stable with missing days.
+- 2026-11-10 · Calorie balance weekly bars · average balance per Monday-to-Sunday week that has days with both eaten and burned · Matches "weekly bars" in requirements 8.

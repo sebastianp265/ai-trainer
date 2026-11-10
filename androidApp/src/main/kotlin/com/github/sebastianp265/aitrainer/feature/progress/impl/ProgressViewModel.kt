@@ -2,12 +2,14 @@ package com.github.sebastianp265.aitrainer.feature.progress.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.sebastianp265.aitrainer.integration.health.HealthDay
 import com.github.sebastianp265.aitrainer.integration.health.HealthService
+import com.github.sebastianp265.aitrainer.shared.state.WhileUiSubscribed
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.TimeZone
@@ -16,32 +18,30 @@ import kotlinx.datetime.todayIn
 import kotlin.time.Clock
 
 internal data class ProgressUiState(
-    val isLoading: Boolean = true,
-    val healthDays: List<HealthDay> = emptyList(),
+    val range: ProgressRange = ProgressRange.FOUR_WEEKS,
+    val cards: ProgressCards? = null,
 )
 
 internal class ProgressViewModel(
     private val healthService: HealthService,
-    clock: Clock,
+    private val clock: Clock,
 ) : ViewModel() {
 
-    private val state = MutableStateFlow(ProgressUiState())
-    val uiState: StateFlow<ProgressUiState> = state.asStateFlow()
+    private val range = MutableStateFlow(ProgressRange.FOUR_WEEKS)
 
-    init {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<ProgressUiState> = range.flatMapLatest { selected ->
         val today = clock.todayIn(TimeZone.currentSystemDefault())
-        viewModelScope.launch {
-            healthService.observeDays(today.minus(DatePeriod(days = DAYS - 1)), today).collect { days ->
-                state.update { it.copy(isLoading = false, healthDays = days) }
-            }
+        healthService.observeDays(today.minus(DatePeriod(days = selected.days - 1)), today).map { days ->
+            ProgressUiState(range = selected, cards = ProgressCalculator.calculate(days, selected, today))
         }
+    }.stateIn(viewModelScope, WhileUiSubscribed, ProgressUiState())
+
+    fun selectRange(selected: ProgressRange) {
+        range.value = selected
     }
 
     fun syncAfterConnecting() {
         viewModelScope.launch { healthService.sync() }
-    }
-
-    private companion object {
-        const val DAYS = 30
     }
 }
