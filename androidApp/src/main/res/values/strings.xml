@@ -175,6 +175,23 @@
     <string name="progress_strength_title">Strength · estimated one-rep max (1RM)</string>
     <string name="progress_record">record</string>
 
+    <string name="history_title">All workouts</string>
+    <string name="history_all">All</string>
+    <string name="history_gym">Gym</string>
+    <string name="history_other_apps">From other apps</string>
+    <string name="history_workout">Workout</string>
+    <string name="history_empty">No workouts yet.</string>
+    <string name="history_footnote">Workouts from other apps come from Health Connect and are read-only.</string>
+    <string name="external_from_health_connect">%1$s · %2$s · from Health Connect</string>
+    <string name="stat_duration">time</string>
+    <string name="stat_distance">distance</string>
+    <string name="stat_burned">burned</string>
+    <string name="stat_heart_rate">average heart rate</string>
+    <string name="external_read_only_title">Read only</string>
+    <string name="external_read_only_text">This workout was recorded by another app. You can see it here, but it cannot be changed.</string>
+    <string name="external_note">Only what is in Health Connect is shown. If the distance or heart rate is missing, the field is not shown.</string>
+    <string name="external_missing">This workout is no longer in the app data.</string>
+
     <plurals name="exercise_count">
         <item quantity="one">%d exercise</item>
         <item quantity="other">%d exercises</item>

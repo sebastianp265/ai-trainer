@@ -27,7 +27,8 @@ enum class PackageModule(val path: String) {
     FEATURE_HEALTH("feature.health"),
     FEATURE_SETTINGS("feature.settings"),
     FEATURE_PROGRESS("feature.progress"),
-    FEATURE_PLAN("feature.plan");
+    FEATURE_PLAN("feature.plan"),
+    FEATURE_HISTORY("feature.history");
 
     val group: Group
         get() = Group.entries.single { it.path == path.substringBefore('.') }

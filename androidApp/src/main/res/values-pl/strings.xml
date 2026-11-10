@@ -173,6 +173,23 @@
     <string name="progress_strength_title">Siła · szacowany ciężar maksymalny (1RM)</string>
     <string name="progress_record">rekord</string>
 
+    <string name="history_title">Wszystkie treningi</string>
+    <string name="history_all">Wszystkie</string>
+    <string name="history_gym">Siłownia</string>
+    <string name="history_other_apps">Z innych aplikacji</string>
+    <string name="history_workout">Trening</string>
+    <string name="history_empty">Brak treningów.</string>
+    <string name="history_footnote">Treningi z innych aplikacji przychodzą z Health Connect i są tylko do odczytu.</string>
+    <string name="external_from_health_connect">%1$s · %2$s · z Health Connect</string>
+    <string name="stat_duration">czas</string>
+    <string name="stat_distance">dystans</string>
+    <string name="stat_burned">spalone</string>
+    <string name="stat_heart_rate">średnie tętno</string>
+    <string name="external_read_only_title">Tylko do odczytu</string>
+    <string name="external_read_only_text">Ten trening zapisała inna aplikacja. Widać go tutaj, ale nie da się go zmienić.</string>
+    <string name="external_note">Pokazujemy tylko to, co jest w Health Connect. Jeśli brakuje dystansu albo tętna, pole się nie wyświetla.</string>
+    <string name="external_missing">Tego treningu nie ma już w danych aplikacji.</string>
+
     <plurals name="exercise_count">
         <item quantity="one">%d ćwiczenie</item>
         <item quantity="few">%d ćwiczenia</item>

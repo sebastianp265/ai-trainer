@@ -3,6 +3,7 @@ package com.github.sebastianp265.aitrainer.shared.architecture
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_APP
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_EXERCISE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_HEALTH
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_HISTORY
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_EXERCISE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_HEALTH
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_SETTINGS
@@ -48,7 +49,7 @@ enum class GradleModule(
         packageModules = setOf(
             FEATURE_APP,
             SHARED_LOCALIZATION, SHARED_STATE, SHARED_HEALTH,
-            FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_HEALTH, FEATURE_SETTINGS, FEATURE_PROGRESS, FEATURE_PLAN,
+            FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_HEALTH, FEATURE_SETTINGS, FEATURE_PROGRESS, FEATURE_PLAN, FEATURE_HISTORY,
         ),
         dependencies = { setOf(CORE_COMMON, CORE_ANDROID) },
     );

@@ -30,6 +30,8 @@ import androidx.navigation.toRoute
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.feature.health.HealthConnectScreen
 import com.github.sebastianp265.aitrainer.feature.health.SyncHealthOnForeground
+import com.github.sebastianp265.aitrainer.feature.history.ExternalWorkoutScreen
+import com.github.sebastianp265.aitrainer.feature.history.HistoryScreen
 import com.github.sebastianp265.aitrainer.feature.plan.PlanScreen
 import com.github.sebastianp265.aitrainer.feature.progress.DayDetailScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetricScreen
@@ -59,7 +61,11 @@ internal fun AppNavigation() {
             startDestination = LogRoute,
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
-            composable<LogRoute> { LogWorkoutScreen() }
+            composable<LogRoute> { LogWorkoutScreen(onOpenHistory = { navController.navigate(HistoryRoute) }) }
+            composable<HistoryRoute> {
+                HistoryScreen(onOpenExternalWorkout = { navController.navigate(ExternalWorkoutRoute(it)) })
+            }
+            composable<ExternalWorkoutRoute> { entry -> ExternalWorkoutScreen(entry.toRoute<ExternalWorkoutRoute>().startedAtMillis) }
             composable<PlanRoute> { PlanScreen() }
             composable<ProgressRoute> {
                 ProgressScreen(

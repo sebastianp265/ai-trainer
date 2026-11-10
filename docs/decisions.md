@@ -18,3 +18,6 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-10 · Calorie balance weekly bars · average balance per Monday-to-Sunday week that has days with both eaten and burned · Matches "weekly bars" in requirements 8.
 - 2026-11-10 · Unknown Health Connect workout types · shown as "Other activity" · No English-only fallback text; the common types have their own Polish and English names.
 - 2026-11-10 · Strength rows on Progress · up to four exercises with the most working sets in the range, bodyweight sets and sets above 12 reps left out, a row is not tappable yet · The exercise history screen is built in phase 5 (task 5.7).
+- 2026-11-10 · Where "All workouts" opens from · the "All" link next to "Recent workouts" on the Training tab · The mockups link it from the same place.
+- 2026-11-10 · Identity of a workout from another app · its start time in milliseconds (the route argument) · The stored rows are rewritten on every sync, so their ids are not stable.
+- 2026-11-10 · Gym workouts in the list · titled "Workout" and not tappable · Names and the detail screen come with plans in phase 5 (WorkoutDetail).

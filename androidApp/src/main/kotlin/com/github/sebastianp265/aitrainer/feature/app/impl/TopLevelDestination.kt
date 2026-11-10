@@ -43,9 +43,17 @@ internal data class ProgressMetricRoute(val metric: ProgressMetric)
 @Serializable
 internal data class DayDetailRoute(val date: String)
 
+@Serializable
+internal object HistoryRoute
+
+@Serializable
+internal data class ExternalWorkoutRoute(val startedAtMillis: Long)
+
 internal val nestedRoutes = listOf(
     SettingsRoute::class,
     HealthConnectRoute::class,
     ProgressMetricRoute::class,
     DayDetailRoute::class,
+    HistoryRoute::class,
+    ExternalWorkoutRoute::class,
 )
