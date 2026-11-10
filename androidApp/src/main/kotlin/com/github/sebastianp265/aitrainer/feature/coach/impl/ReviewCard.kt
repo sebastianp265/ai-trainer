@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -13,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.integration.coach.WeeklyReviewSummary
 import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
@@ -21,12 +23,12 @@ import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
 
 @Composable
 internal fun ReviewCard(review: WeeklyReviewSummary) {
-    Card(Modifier.fillMaxWidth().testTag(CoachTags.REVIEW)) {
+    Card(Modifier.fillMaxWidth().padding(end = 24.dp).testTag(CoachTags.REVIEW)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
                 stringResource(R.string.review_kind, formatWeekRange(review.weekStart, review.weekEnd).uppercase()),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 0.3.sp),
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
             ReviewRow(R.string.review_workouts, workoutsText(review))
             if (review.records > 0) ReviewRow(R.string.review_strength, stringResource(R.string.review_records, review.records))
@@ -63,8 +65,8 @@ private fun workoutsText(review: WeeklyReviewSummary): String {
 
 @Composable
 private fun ReviewRow(label: Int, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(stringResource(label), Modifier.padding(end = 4.dp), style = MaterialTheme.typography.labelLarge)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(label), Modifier.width(76.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(value, style = MaterialTheme.typography.bodyMedium)
     }
 }

@@ -127,6 +127,10 @@
     <string name="progress_connect_title">More data from Health Connect</string>
 
     <string name="progress_details">Details</string>
+    <string name="progress_workouts_line">Workouts: %1$s</string>
+    <string name="progress_legend_daily">daily measurements</string>
+    <string name="progress_legend_average">7-day average</string>
+    <string name="metric_per_week_label">per week</string>
     <string name="metric_no_data">No data in this range.</string>
     <string name="metric_average">7-day average</string>
     <string name="metric_lowest">lowest</string>
@@ -415,7 +419,7 @@
     <string name="coach_change_removed">−  %1$s (%2$s)</string>
     <string name="coach_change_sets">~  %1$s: %2$d → %3$d sets</string>
     <string name="coach_change_weight">~  %1$s: %2$s kg</string>
-    <string name="coach_target_change">%1$s: %2$d–%3$d → %4$d–%5$d</string>
+    <string name="coach_target_range">%1$d–%2$d</string>
     <string name="coach_target_note">Applies to the next plans. Existing plans stay as they are.</string>
     <string name="coach_change_hint">Want something changed? Just reply.</string>
     <string name="coach_working">The coach is writing…</string>
@@ -457,6 +461,7 @@
     <string name="preview_replaces">replaces the current plan</string>
     <string name="preview_new">new plan</string>
     <string name="preview_removed">removed</string>
+    <string name="preview_was">was: %1$s</string>
     <string name="preview_added">new</string>
     <string name="preview_sets_changed">%1$d → %2$d sets</string>
     <string name="api_key_paste">Paste your key</string>
@@ -487,6 +492,7 @@
     <string name="model_usage_cost">The exact cost is in the Anthropic console.</string>
     <string name="model_tokens_million">%1$s million</string>
     <string name="settings_change">Change</string>
+    <string name="settings_manage">Manage</string>
     <string name="settings_coach_memory">What the coach knows about me</string>
     <string name="settings_advanced">Advanced</string>
     <plurals name="settings_notes_count">
@@ -535,6 +541,7 @@
     <string name="plan_empty_text_with_coach">A plan is one planned workout: exercises, sets, weights and RPE. The coach can write it, or you.</string>
     <string name="plan_ask_coach">Ask the coach for a plan</string>
     <string name="plan_change_with_coach">Change with the coach</string>
+    <string name="plan_coach_note">Coach\'s note</string>
     <string name="plan_prefer_ready_title">Prefer a ready plan?</string>
     <string name="plan_prefer_ready_text">Tell the coach how much time you have and what you want to train.</string>
     <string name="plan_go_to_coach">Go to the coach</string>

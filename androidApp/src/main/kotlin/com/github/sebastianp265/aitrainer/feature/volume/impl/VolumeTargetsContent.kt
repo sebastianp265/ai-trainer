@@ -15,7 +15,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -43,6 +42,7 @@ import com.github.sebastianp265.aitrainer.integration.volume.TargetSource
 import com.github.sebastianp265.aitrainer.integration.volume.WeeklyTarget
 import com.github.sebastianp265.aitrainer.shared.localization.formatDayMonth
 import kotlinx.datetime.LocalDate
+import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
 
 @Composable
 internal fun VolumeTargetsContent(
@@ -61,8 +61,8 @@ internal fun VolumeTargetsContent(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Column {
-            Text(stringResource(R.string.targets_title), style = MaterialTheme.typography.headlineSmall)
-            Text(stringResource(R.string.targets_subtitle), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.targets_title), style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.targets_subtitle), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         banner()
         ShowTargetsRow(state.showTargets, onShowTargetsChange)
@@ -71,17 +71,17 @@ internal fun VolumeTargetsContent(
                 state.rows.forEach { row -> TargetRowEditor(row, onTargetChange) }
             }
         }
-        OutlinedButton(onClick = onRestoreDefaults, Modifier.fillMaxWidth().testTag(VolumeTags.RESTORE_DEFAULTS)) {
+        DesignOutlinedButton(onClick = onRestoreDefaults, Modifier.fillMaxWidth().testTag(VolumeTags.RESTORE_DEFAULTS)) {
             Text(stringResource(R.string.targets_restore, DEFAULT_MIN_WEEKLY_SETS, DEFAULT_MAX_WEEKLY_SETS))
         }
-        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer)) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(stringResource(R.string.targets_why_title, DEFAULT_MIN_WEEKLY_SETS, DEFAULT_MAX_WEEKLY_SETS), style = MaterialTheme.typography.titleSmall)
                 Text(stringResource(R.string.targets_why_text), style = MaterialTheme.typography.bodyMedium)
                 Text(stringResource(R.string.targets_why_fractions), style = MaterialTheme.typography.bodyMedium)
             }
         }
-        Text(stringResource(R.string.targets_footer), style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.targets_footer), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -92,7 +92,7 @@ private fun ShowTargetsRow(showTargets: Boolean, onChange: (Boolean) -> Unit) {
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.targets_show), style = MaterialTheme.typography.bodyLarge)
-                Text(stringResource(R.string.targets_show_text), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.targets_show_text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Switch(
                 checked = showTargets,
@@ -121,7 +121,7 @@ private fun TargetRowEditor(row: TargetRow, onTargetChange: (String, Int, Int) -
     Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
         Column(Modifier.weight(1f)) {
             Text(name, style = MaterialTheme.typography.bodyLarge)
-            Text(sourceText(row.target), style = MaterialTheme.typography.bodySmall)
+            Text(sourceText(row.target), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         OutlinedTextField(
             value = minText,

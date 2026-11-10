@@ -1,9 +1,20 @@
 package com.github.sebastianp265.aitrainer.shared.workout
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
+import com.github.sebastianp265.aitrainer.shared.design.extendedColors
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
 
 internal sealed interface PlanLine {
@@ -48,11 +59,11 @@ internal fun workingSetCount(sets: List<PlannedSet>): Int = sets.count { !it.isW
 internal fun exerciseCount(sets: List<PlannedSet>): Int = sets.map { it.exerciseKey }.distinct().size
 
 @Composable
-internal fun planNumberText(line: PlanLine.Working): String =
+private fun planNumberText(line: PlanLine.Working): String =
     if (line.firstNumber == line.lastNumber) line.firstNumber.toString() else stringResource(R.string.plan_set_range, line.firstNumber, line.lastNumber)
 
 @Composable
-internal fun planWarmupText(line: PlanLine.Warmup): String =
+private fun planWarmupText(line: PlanLine.Warmup): String =
     if (line.weightKg > 0) stringResource(R.string.plan_line_warmup, line.reps, formatWeight(line.weightKg))
     else stringResource(R.string.plan_line_warmup_bodyweight, line.reps, stringResource(R.string.bodyweight_label))
 
@@ -64,3 +75,27 @@ internal fun planWorkingText(line: PlanLine.Working): String =
 @Composable
 internal fun planWorkingRpeText(line: PlanLine.Working): String =
     line.rpe?.let { stringResource(R.string.plan_rpe, formatWeight(it)) }.orEmpty()
+
+@Composable
+internal fun PlanLineRows(lines: List<PlanLine>) {
+    lines.forEach { line ->
+        when (line) {
+            is PlanLine.Warmup -> PlanLineRow(stringResource(R.string.warmup_short), planWarmupText(line), stringResource(R.string.plan_warmup), isWarmup = true)
+            is PlanLine.Working -> PlanLineRow(planNumberText(line), planWorkingText(line), planWorkingRpeText(line), isWarmup = false)
+        }
+    }
+}
+
+@Composable
+private fun PlanLineRow(number: String, text: String, trailing: String, isWarmup: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        Text(
+            number,
+            Modifier.widthIn(min = 28.dp),
+            style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp),
+            color = if (isWarmup) extendedColors.warning else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(text, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp))
+        Text(trailing, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp), color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}

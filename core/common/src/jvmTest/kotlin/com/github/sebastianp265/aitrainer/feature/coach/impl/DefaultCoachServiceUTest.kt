@@ -111,7 +111,7 @@ class DefaultCoachServiceUTest {
     }
 
     @Test
-    fun `a proposed plan waits until the user accepts, then it is a plan by the coach`() = runBlocking {
+    fun `a proposed plan waits until the user accepts, then it is a plan by the coach with the proposal as its note`() = runBlocking {
         val run = f.toolbox.run("propose_plan", benchPlan)
         val id = assertNotNull(run.proposalId)
 
@@ -123,6 +123,7 @@ class DefaultCoachServiceUTest {
         val plan = f.plans.observeUpcoming().first().single()
         assertEquals("Push A", plan.name)
         assertEquals(PlanAuthor.COACH, plan.author)
+        assertEquals("Heavier bench", plan.coachNote)
         assertEquals(ProposalState.ACCEPTED, f.coach.observeProposal(id).first()!!.state)
         assertTrue(!f.coach.accept(id))
     }
@@ -146,7 +147,8 @@ class DefaultCoachServiceUTest {
         val id = assertNotNull(f.toolbox.run("propose_target_change", """{"groupKey":"LEGS","minSets":8,"maxSets":12,"reason":"recovery","summary":"Legs: 10-20 to 8-12"}""").proposalId)
         val proposal = f.coach.observeProposal(id).first()!!
         assertEquals(ProposalType.TARGET, proposal.type)
-        assertEquals(10 to 20, proposal.target!!.previousMinSets to proposal.target!!.previousMaxSets)
+        val target = assertNotNull(proposal.target)
+        assertEquals(10 to 20, target.previousMinSets to target.previousMaxSets)
         val plansBefore = f.plans.observeUpcoming().first()
 
         f.coach.accept(id)
@@ -219,8 +221,9 @@ class DefaultCoachServiceUTest {
 
         val message = f.coach.observeMessages().first().single()
         assertEquals("A solid week.", message.text)
-        assertEquals(1, message.review!!.workouts)
-        assertEquals(kotlinx.datetime.LocalDate(2026, 11, 2), message.review!!.weekStart)
+        val review = assertNotNull(message.review)
+        assertEquals(1, review.workouts)
+        assertEquals(kotlinx.datetime.LocalDate(2026, 11, 2), review.weekStart)
         assertEquals(ProposalType.MULTI_PLAN, message.proposals.single().type)
         assertEquals(2, message.proposals.single().plans.size)
         assertTrue("WEEKLY REVIEW of 2026-11-02 to 2026-11-08" in (f.claude.requests.first().messages.last().content.single() as ClaudeContent.Text).text)

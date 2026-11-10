@@ -19,6 +19,7 @@ internal fun exerciseHistory(exerciseKey: String, rows: List<HistorySetRow>, tod
         ExerciseSessionEntry(
             sessionId = sets.first().sessionId,
             date = sets.first().date,
+            planName = sets.first().planName,
             groups = lastTimeGroups(sets.map { it.toSetEntry(exerciseKey) }),
             estimatedOneRepMaxKg = estimate,
             averageRpe = sets.mapNotNull { it.rpe }.takeIf { it.isNotEmpty() }?.average(),

@@ -191,7 +191,7 @@ internal class DefaultCoachService(
         val payload = coachJson.decodeFromString(ProposalPayload.serializer(), entity.payload)
         when (entity.type) {
             ProposalType.NEW_PLAN, ProposalType.CHANGE_PLAN, ProposalType.MULTI_PLAN -> payload.plans.map { it.toProposedPlan() }.forEach { plan ->
-                val draft = PlanDraft(plan.name, plan.date, plan.sets)
+                val draft = PlanDraft(plan.name, plan.date, plan.sets, coachNote = entity.summary)
                 if (plan.planId == null) plans.createPlan(draft, PlanAuthor.COACH) else plans.updatePlan(plan.planId, draft)
             }
             ProposalType.TARGET -> volume.setTarget(

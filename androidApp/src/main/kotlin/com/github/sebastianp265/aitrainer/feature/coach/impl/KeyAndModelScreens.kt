@@ -49,6 +49,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlin.time.Instant
+import com.github.sebastianp265.aitrainer.shared.design.CardLabel
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
+import com.github.sebastianp265.aitrainer.shared.design.GroupCard
+import com.github.sebastianp265.aitrainer.shared.design.GroupRow
+import com.github.sebastianp265.aitrainer.shared.design.extendedColors
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 internal enum class KeyCheck { IDLE, CHECKING, REJECTED, OFFLINE, OTHER }
 
@@ -119,6 +130,7 @@ internal fun ApiKeyContent(state: ApiKeyUiState, onSave: (String) -> Unit, onRem
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth().testTag(CoachApiKeyTags.FIELD),
         )
         KeyStatus(state)
@@ -128,21 +140,23 @@ internal fun ApiKeyContent(state: ApiKeyUiState, onSave: (String) -> Unit, onRem
                 apiKey = ""
             },
             enabled = apiKey.isNotBlank() && state.check != KeyCheck.CHECKING,
-            modifier = Modifier.fillMaxWidth().testTag(CoachApiKeyTags.SAVE),
+            modifier = Modifier.fillMaxWidth().height(48.dp).testTag(CoachApiKeyTags.SAVE),
         ) { Text(stringResource(R.string.api_key_save_and_check)) }
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(stringResource(R.string.api_key_where), style = MaterialTheme.typography.labelLarge)
-                Text(stringResource(R.string.api_key_step_1), style = MaterialTheme.typography.bodyMedium)
-                Text(stringResource(R.string.api_key_step_2), style = MaterialTheme.typography.bodyMedium)
-                Text(stringResource(R.string.api_key_step_3), style = MaterialTheme.typography.bodyMedium)
+                CardLabel(stringResource(R.string.api_key_where))
+                Text(stringResource(R.string.api_key_step_1), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.api_key_step_2), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.api_key_step_3), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        Text(stringResource(R.string.api_key_privacy), style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.api_key_privacy), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (state.isStored) {
-            TextButton(onClick = onRemove, Modifier.align(Alignment.CenterHorizontally).testTag(CoachApiKeyTags.REMOVE)) {
-                Text(stringResource(R.string.api_key_remove), color = MaterialTheme.colorScheme.error)
-            }
+            TextButton(
+                onClick = onRemove,
+                modifier = Modifier.align(Alignment.CenterHorizontally).testTag(CoachApiKeyTags.REMOVE),
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            ) { Text(stringResource(R.string.api_key_remove)) }
         }
     }
 }
@@ -150,21 +164,19 @@ internal fun ApiKeyContent(state: ApiKeyUiState, onSave: (String) -> Unit, onRem
 @Composable
 private fun KeyStatus(state: ApiKeyUiState) {
     val checkedAt = state.checkedAt
-    val (text, error) = when {
-        state.check == KeyCheck.CHECKING -> stringResource(R.string.api_key_checking) to false
-        state.check == KeyCheck.REJECTED -> stringResource(R.string.api_key_rejected) to true
-        state.check == KeyCheck.OFFLINE -> stringResource(R.string.api_key_offline) to true
-        state.check == KeyCheck.OTHER -> stringResource(R.string.api_key_other) to true
-        checkedAt != null -> stringResource(R.string.api_key_works, formatTime(checkedAt)) to false
-        state.isStored -> stringResource(R.string.settings_api_key_saved) to false
-        else -> stringResource(R.string.settings_api_key_missing) to false
+    val (text, color) = when {
+        state.check == KeyCheck.CHECKING -> stringResource(R.string.api_key_checking) to MaterialTheme.colorScheme.onSurfaceVariant
+        state.check == KeyCheck.REJECTED -> stringResource(R.string.api_key_rejected) to MaterialTheme.colorScheme.error
+        state.check == KeyCheck.OFFLINE -> stringResource(R.string.api_key_offline) to extendedColors.warning
+        state.check == KeyCheck.OTHER -> stringResource(R.string.api_key_other) to extendedColors.warning
+        checkedAt != null -> stringResource(R.string.api_key_works, formatTime(checkedAt)) to extendedColors.success
+        state.isStored -> stringResource(R.string.settings_api_key_saved) to extendedColors.success
+        else -> stringResource(R.string.settings_api_key_missing) to MaterialTheme.colorScheme.onSurfaceVariant
     }
-    Text(
-        text,
-        style = MaterialTheme.typography.bodyMedium,
-        color = if (error) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-        modifier = Modifier.testTag(CoachApiKeyTags.STATUS),
-    )
+    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+        if (color == extendedColors.success) Icon(DesignIcons.Check, contentDescription = null, Modifier.size(16.dp), tint = color)
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = color, modifier = Modifier.testTag(CoachApiKeyTags.STATUS))
+    }
 }
 
 internal object CoachApiKeyTags {
@@ -195,32 +207,27 @@ internal class ModelPickerViewModel(
 @Composable
 internal fun ModelPickerContent(state: ModelUiState, onSelect: (String) -> Unit) {
     Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Card(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(vertical = 4.dp)) {
-                SettingsService.CLAUDE_MODELS.forEach { model ->
-                    Row(
-                        Modifier.fillMaxWidth()
-                            .selectable(selected = state.model == model, onClick = { onSelect(model) }, role = Role.RadioButton)
-                            .padding(horizontal = 16.dp, vertical = 10.dp)
-                            .testTag(CoachModelTags.option(model)),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        RadioButton(selected = state.model == model, onClick = null)
-                        Column(Modifier.padding(start = 12.dp)) {
-                            Text(modelName(model), style = MaterialTheme.typography.bodyLarge)
-                            Text(modelHint(model), style = MaterialTheme.typography.bodyMedium)
-                        }
+        GroupCard {
+            SettingsService.CLAUDE_MODELS.forEachIndexed { index, model ->
+                GroupRow(
+                    Modifier.selectable(selected = state.model == model, onClick = { onSelect(model) }, role = Role.RadioButton).testTag(CoachModelTags.option(model)),
+                    divider = index < SettingsService.CLAUDE_MODELS.lastIndex,
+                ) {
+                    RadioButton(selected = state.model == model, onClick = null)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(modelName(model), style = MaterialTheme.typography.bodyLarge)
+                        Text(modelHint(model), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
         }
-        Text(stringResource(R.string.model_change_note), style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.model_change_note), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(stringResource(R.string.model_usage_title), style = MaterialTheme.typography.labelLarge)
+                CardLabel(stringResource(R.string.model_usage_title))
                 UsageRow(stringResource(R.string.model_usage_messages), formatNumber(state.usage.messages.toDouble()), CoachModelTags.USAGE_MESSAGES)
                 UsageRow(stringResource(R.string.model_usage_tokens), formatTokens(state.usage.inputTokens + state.usage.outputTokens), CoachModelTags.USAGE_TOKENS)
-                Text(stringResource(R.string.model_usage_cost), style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.model_usage_cost), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -229,8 +236,8 @@ internal fun ModelPickerContent(state: ModelUiState, onSelect: (String) -> Unit)
 @Composable
 private fun UsageRow(label: String, value: String, tag: String) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-        Text(value, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.testTag(tag))
+        Text(label, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp))
+        Text(value, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Medium), modifier = Modifier.testTag(tag))
     }
 }
 

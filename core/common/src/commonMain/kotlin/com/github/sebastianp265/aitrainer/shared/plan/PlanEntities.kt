@@ -16,6 +16,7 @@ internal data class PlanEntity(
     val date: LocalDate?,
     val author: PlanAuthor,
     val createdAt: Instant,
+    val coachNote: String? = null,
 )
 
 @Entity(

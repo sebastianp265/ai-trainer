@@ -7,6 +7,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.text.font.FontWeight
+import com.github.sebastianp265.aitrainer.shared.design.extendedColors
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -42,26 +50,41 @@ internal fun VolumeBars(rows: List<VolumeRow>, showTargets: Boolean, modifier: M
 private fun VolumeBar(row: VolumeRow, showTargets: Boolean) {
     val locale = LocalConfiguration.current.locales[0]
     val trackColor = MaterialTheme.colorScheme.surfaceVariant
-    val bandColor = MaterialTheme.colorScheme.secondaryContainer
-    val fillColor = if (!showTargets || row.status() == TargetStatus.IN_TARGET) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary
+    val bandColor = MaterialTheme.colorScheme.inversePrimary
+    val fillColor = if (!showTargets || row.status() == TargetStatus.IN_TARGET) MaterialTheme.colorScheme.primary else extendedColors.warning
     val scale = maxOf(row.maxSets * SCALE_MARGIN, row.total.toFloat() * 1.05f, 1f)
-    Row(Modifier.fillMaxWidth().testTag("volume_row:${row.group.key}"), verticalAlignment = Alignment.CenterVertically) {
-        Text(row.group.displayName(locale), Modifier.width(76.dp), style = MaterialTheme.typography.bodyMedium)
-        Canvas(Modifier.weight(1f).height(14.dp)) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 28.dp).testTag("volume_row:${row.group.key}"),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(row.group.displayName(locale), Modifier.width(70.dp), style = MaterialTheme.typography.bodyMedium)
+        Canvas(Modifier.weight(1f).height(14.dp).clip(RoundedCornerShape(7.dp))) {
             drawRect(trackColor, size = size)
             if (showTargets) {
                 drawRect(bandColor, Offset(size.width * row.minSets / scale, 0f), Size(size.width * (row.maxSets - row.minSets) / scale, size.height))
             }
+            val barTop = 4.dp.toPx()
+            val barHeight = 6.dp.toPx()
             val doneWidth = size.width * row.done.toFloat() / scale
-            drawRect(fillColor, size = Size(doneWidth, size.height))
-            if (row.planned > 0) {
-                drawRect(fillColor.copy(alpha = 0.45f), Offset(doneWidth, 0f), Size(size.width * row.planned.toFloat() / scale, size.height))
+            drawRoundRect(fillColor, Offset(0f, barTop), Size(doneWidth, barHeight), CornerRadius(barHeight / 2))
+            val plannedWidth = size.width * row.planned.toFloat() / scale
+            val dash = 3.dp.toPx()
+            var x = doneWidth
+            while (x < doneWidth + plannedWidth) {
+                drawRect(fillColor, Offset(x, barTop), Size(minOf(dash, doneWidth + plannedWidth - x), barHeight))
+                x += 2 * dash
             }
         }
-        Column(Modifier.width(88.dp), horizontalAlignment = Alignment.End) {
-            Text(valueText(row), style = MaterialTheme.typography.bodyMedium)
+        Row(Modifier.widthIn(min = 100.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
+            Text(valueText(row), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
             if (showTargets) {
-                Text(stringResource(R.string.volume_target, row.minSets, row.maxSets), style = MaterialTheme.typography.labelSmall)
+                Text(
+                    stringResource(R.string.volume_target, row.minSets, row.maxSets),
+                    Modifier.padding(start = 4.dp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }
@@ -74,9 +97,9 @@ private fun valueText(row: VolumeRow): String =
 @Composable
 internal fun VolumeLegend(showPlanned: Boolean) {
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-        LegendItem(MaterialTheme.colorScheme.secondaryContainer, stringResource(R.string.volume_legend_target))
+        LegendItem(MaterialTheme.colorScheme.inversePrimary, stringResource(R.string.volume_legend_target))
         LegendItem(MaterialTheme.colorScheme.primary, stringResource(if (showPlanned) R.string.volume_legend_done_and_planned else R.string.volume_legend_sets))
-        LegendItem(MaterialTheme.colorScheme.tertiary, stringResource(R.string.volume_legend_off_target))
+        LegendItem(extendedColors.warning, stringResource(R.string.volume_legend_off_target))
     }
 }
 
@@ -84,7 +107,7 @@ internal fun VolumeLegend(showPlanned: Boolean) {
 private fun LegendItem(color: Color, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
         Box(Modifier.size(10.dp).background(color, CircleShape))
-        Text(text, style = MaterialTheme.typography.labelSmall)
+        Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

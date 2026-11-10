@@ -8,11 +8,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,8 +23,14 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.shared.design.CardLabel
+import com.github.sebastianp265.aitrainer.shared.design.CoachButton
+import com.github.sebastianp265.aitrainer.shared.design.StatTile
+import com.github.sebastianp265.aitrainer.shared.design.extendedColors
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
@@ -63,8 +68,8 @@ internal fun ExerciseHistoryContent(state: ExerciseHistoryUiState?, onOpenWorkou
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         item {
-            Column {
-                Text(state.exercise.displayName(locale), style = MaterialTheme.typography.headlineSmall)
+            Column(Modifier.heightIn(min = 56.dp), verticalArrangement = Arrangement.Center) {
+                Text(state.exercise.displayName(locale), style = MaterialTheme.typography.titleLarge)
                 Text(
                     stringResource(
                         R.string.exercise_history_subtitle,
@@ -72,6 +77,7 @@ internal fun ExerciseHistoryContent(state: ExerciseHistoryUiState?, onOpenWorkou
                         pluralStringResource(R.plurals.workout_count, history.sessionCount, history.sessionCount),
                     ),
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -91,7 +97,7 @@ internal fun ExerciseHistoryContent(state: ExerciseHistoryUiState?, onOpenWorkou
             item {
                 HistoryCard(stringResource(R.string.exercise_history_rpe_chart)) {
                     LineChart(rpePoints, rpePoints)
-                    Text(stringResource(R.string.exercise_history_rpe_caption), style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.exercise_history_rpe_caption), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -102,7 +108,7 @@ internal fun ExerciseHistoryContent(state: ExerciseHistoryUiState?, onOpenWorkou
         }
         if (coachEnabled) {
             item {
-                FilledTonalButton(onClick = openCoach, Modifier.fillMaxWidth()) { Text(stringResource(R.string.history_ask_coach)) }
+                CoachButton(stringResource(R.string.history_ask_coach), openCoach)
             }
         }
     }
@@ -115,25 +121,15 @@ private fun Stats(history: ExerciseHistory) {
     val change = history.oneRepMaxChangeKg
     if (estimate == null && bestSet == null && change == null) return
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        estimate?.let { Stat(stringResource(R.string.value_kg, formatNumber(it)), stringResource(R.string.exercise_history_estimate), Modifier.weight(1f)) }
+        estimate?.let { StatTile(stringResource(R.string.value_kg, formatNumber(it)), stringResource(R.string.exercise_history_estimate), Modifier.weight(1f)) }
         bestSet?.let {
-            Stat(
+            StatTile(
                 stringResource(R.string.exercise_history_best_set_value, formatWeight(it.weightKg), it.reps),
                 stringResource(R.string.exercise_history_best_set),
                 Modifier.weight(1f),
             )
         }
-        change?.let { Stat(stringResource(R.string.value_kg, formatNumber(it, 1, signed = true)), stringResource(R.string.exercise_history_change), Modifier.weight(1f)) }
-    }
-}
-
-@Composable
-private fun Stat(value: String, label: String, modifier: Modifier) {
-    Card(modifier, colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(Modifier.padding(12.dp)) {
-            Text(value, style = MaterialTheme.typography.titleMedium)
-            Text(label, style = MaterialTheme.typography.bodySmall)
-        }
+        change?.let { StatTile(stringResource(R.string.value_kg, formatNumber(it, 1, signed = true)), stringResource(R.string.exercise_history_change), Modifier.weight(1f)) }
     }
 }
 
@@ -141,7 +137,7 @@ private fun Stat(value: String, label: String, modifier: Modifier) {
 private fun HistoryCard(title: String, content: @Composable () -> Unit) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(title, style = MaterialTheme.typography.labelLarge)
+            CardLabel(title)
             content()
         }
     }
@@ -150,14 +146,25 @@ private fun HistoryCard(title: String, content: @Composable () -> Unit) {
 @Composable
 private fun SessionRow(entry: ExerciseSessionEntry, onClick: () -> Unit) {
     val labels = rememberLastTimeLabels()
-    Column(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 6.dp).testTag(ExerciseHistoryTags.SESSION)) {
+    Column(
+        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 6.dp).testTag(ExerciseHistoryTags.SESSION),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(formatWeekdayDate(entry.date), style = MaterialTheme.typography.bodySmall)
+            Text(
+                listOfNotNull(formatWeekdayDate(entry.date), entry.planName).joinToString(" · "),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
             if (entry.isRecord) {
-                Text("· " + stringResource(R.string.progress_record), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    "· " + stringResource(R.string.progress_record),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    color = extendedColors.success,
+                )
             }
         }
-        Text(entry.groups.joinToString(" · ") { it.text(labels) }, style = MaterialTheme.typography.titleSmall)
+        Text(entry.groups.joinToString(" · ") { it.text(labels) }, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Medium))
     }
 }
 
@@ -171,8 +178,8 @@ private fun ExerciseHistoryPreview() {
     val chest = MuscleGroup("CHEST", mapOf("en" to "Chest"))
     val exercise = Exercise("BENCH", mapOf("en" to "Bench press"), Equipment("BARBELL", mapOf("en" to "Barbell")), listOf(chest), emptyList())
     val sessions = listOf(
-        ExerciseSessionEntry(2, LocalDate(2026, 11, 3), listOf(LastTimeGroup(3, 8, 80.0, 7.5, 7.5)), 101.3, 7.5, true),
-        ExerciseSessionEntry(1, LocalDate(2026, 10, 27), listOf(LastTimeGroup(2, 8, 77.5, 8.0, 8.0), LastTimeGroup(1, 7, 77.5, 9.0, 9.0)), 97.0, 8.3, false),
+        ExerciseSessionEntry(2, LocalDate(2026, 11, 3), "Push A", listOf(LastTimeGroup(3, 8, 80.0, 7.5, 7.5)), 101.3, 7.5, true),
+        ExerciseSessionEntry(1, LocalDate(2026, 10, 27), null, listOf(LastTimeGroup(2, 8, 77.5, 8.0, 8.0), LastTimeGroup(1, 7, 77.5, 9.0, 9.0)), 97.0, 8.3, false),
     )
     MaterialTheme {
         ExerciseHistoryContent(

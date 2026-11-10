@@ -2,16 +2,10 @@ package com.github.sebastianp265.aitrainer.feature.coach.impl
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,6 +41,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
+import com.github.sebastianp265.aitrainer.shared.design.GroupCard
+import com.github.sebastianp265.aitrainer.shared.design.GroupRow
+import com.github.sebastianp265.aitrainer.shared.design.SectionHeader
+import androidx.compose.foundation.layout.Box
 
 internal data class MemoryUiState(
     val isLoading: Boolean = true,
@@ -88,52 +87,73 @@ internal fun MemoryContent(state: MemoryUiState, actions: MemoryActions) {
     var editingField by rememberSaveable { mutableStateOf<String?>(null) }
     var editingNote by rememberSaveable { mutableStateOf<Long?>(null) }
     var deletingNote by rememberSaveable { mutableStateOf<Long?>(null) }
-    LazyColumn(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        item { Text(stringResource(R.string.memory_intro), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 8.dp)) }
-        item { SectionTitle(R.string.memory_profile) }
+    LazyColumn(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         item {
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
-                    CoachService.PROFILE_FIELDS.forEach { field ->
-                        MemoryRow(
-                            label = profileLabel(field),
-                            value = state.profile[field] ?: stringResource(R.string.memory_unknown),
-                            editDescription = stringResource(R.string.memory_edit, profileLabel(field)),
-                            icon = Icons.Default.Edit,
-                            tag = CoachMemoryTags.profile(field),
-                            onClick = { editingField = field },
-                        )
-                    }
-                }
-            }
+            Text(
+                stringResource(R.string.memory_intro),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp),
+            )
         }
-        item { SectionTitle(R.string.memory_targets) }
+        item { SectionHeader(stringResource(R.string.memory_profile)) }
         item {
-            Card(Modifier.fillMaxWidth()) {
-                Row(Modifier.padding(16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(targetsSummary(state), style = MaterialTheme.typography.bodyLarge)
-                    }
-                    TextButton(onClick = actions::openTargets) { Text(stringResource(R.string.memory_change)) }
-                }
-            }
-        }
-        item { SectionTitle(R.string.memory_notes) }
-        if (state.notes.isEmpty()) item { Text(stringResource(R.string.memory_no_notes), style = MaterialTheme.typography.bodyMedium) }
-        items(state.notes, key = { it.id }) { note ->
-            Card(Modifier.fillMaxWidth().testTag(CoachMemoryTags.NOTE)) {
-                Row(Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f).padding(vertical = 4.dp)) {
-                        Text(formatDayMonth(note.createdAt.toLocalDateTime(TimeZone.currentSystemDefault()).date), style = MaterialTheme.typography.labelSmall)
-                        Text(note.text, style = MaterialTheme.typography.bodyLarge)
-                    }
-                    IconButton(onClick = { editingNote = note.id }) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.memory_edit_note)) }
-                    IconButton(onClick = { deletingNote = note.id }, Modifier.testTag(CoachMemoryTags.DELETE_NOTE)) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.memory_delete_note))
+            GroupCard {
+                CoachService.PROFILE_FIELDS.forEachIndexed { index, field ->
+                    GroupRow(divider = index < CoachService.PROFILE_FIELDS.lastIndex) {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(profileLabel(field), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                state.profile[field] ?: stringResource(R.string.memory_unknown),
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.testTag(CoachMemoryTags.profile(field) + ":value"),
+                            )
+                        }
+                        EditIcon(stringResource(R.string.memory_edit, profileLabel(field)), Modifier.testTag(CoachMemoryTags.profile(field))) { editingField = field }
                     }
                 }
             }
         }
+        item { SectionHeader(stringResource(R.string.memory_targets)) }
+        item {
+            GroupCard {
+                GroupRow(onClick = actions::openTargets, divider = false) {
+                    Text(targetsSummary(state), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        stringResource(R.string.memory_change),
+                        Modifier.padding(end = 12.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
+        item { SectionHeader(stringResource(R.string.memory_notes)) }
+        if (state.notes.isEmpty()) {
+            item { Text(stringResource(R.string.memory_no_notes), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        } else {
+            item {
+                GroupCard {
+                    state.notes.forEachIndexed { index, note ->
+                        GroupRow(Modifier.testTag(CoachMemoryTags.NOTE), divider = index < state.notes.lastIndex) {
+                            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    formatDayMonth(note.createdAt.toLocalDateTime(TimeZone.currentSystemDefault()).date),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                                Text(note.text, style = MaterialTheme.typography.bodyLarge)
+                            }
+                            EditIcon(stringResource(R.string.memory_edit_note)) { editingNote = note.id }
+                            IconButton(onClick = { deletingNote = note.id }, Modifier.testTag(CoachMemoryTags.DELETE_NOTE)) {
+                                Icon(DesignIcons.Delete, contentDescription = stringResource(R.string.memory_delete_note), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        item { Box(Modifier.padding(bottom = 16.dp)) }
     }
     editingField?.let { field ->
         TextEditDialog(
@@ -169,19 +189,8 @@ internal interface MemoryActions {
 }
 
 @Composable
-private fun SectionTitle(title: Int) {
-    Text(stringResource(title), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 8.dp))
-}
-
-@Composable
-private fun MemoryRow(label: String, value: String, editDescription: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tag: String, onClick: () -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(label, style = MaterialTheme.typography.labelMedium)
-            Text(value, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.testTag("$tag:value"))
-        }
-        IconButton(onClick = onClick, Modifier.testTag(tag)) { Icon(icon, contentDescription = editDescription) }
-    }
+private fun EditIcon(description: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    IconButton(onClick = onClick, modifier) { Icon(DesignIcons.Edit, contentDescription = description, tint = MaterialTheme.colorScheme.onSurfaceVariant) }
 }
 
 @Composable

@@ -12,14 +12,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -43,6 +38,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.time.Instant
+import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
 
 internal enum class BackupMessage { EXPORTED, EXPORT_FAILED, INVALID_FILE, IMPORT_FAILED }
 
@@ -124,12 +120,13 @@ internal fun BackupContent(
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.backup_export), style = MaterialTheme.typography.titleMedium)
-                Text(stringResource(R.string.backup_export_text), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.backup_export_text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Button(onClick = { exportLauncher.launch(fileName) }, Modifier.testTag(BackupTags.EXPORT)) { Text(stringResource(R.string.backup_export_button)) }
                 state.lastExport?.let {
                     Text(
                         stringResource(R.string.backup_last_export, formatDate(it.toLocalDateTime(TimeZone.currentSystemDefault()).date)),
                         style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -137,13 +134,13 @@ internal fun BackupContent(
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.backup_import), style = MaterialTheme.typography.titleMedium)
-                Text(stringResource(R.string.backup_import_text), style = MaterialTheme.typography.bodyMedium)
-                OutlinedButton(onClick = { importLauncher.launch(arrayOf("*/*")) }, Modifier.testTag(BackupTags.IMPORT)) {
+                Text(stringResource(R.string.backup_import_text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                DesignOutlinedButton(onClick = { importLauncher.launch(arrayOf("*/*")) }, Modifier.testTag(BackupTags.IMPORT)) {
                     Text(stringResource(R.string.backup_import_button))
                 }
             }
         }
-        Text(stringResource(R.string.backup_footer), style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.backup_footer), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
     state.message?.let { message ->
         AlertDialog(

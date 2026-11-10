@@ -1,23 +1,24 @@
 package com.github.sebastianp265.aitrainer.feature.plan.impl
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DatePicker
@@ -25,12 +26,9 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -43,6 +41,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -51,6 +52,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.github.sebastianp265.aitrainer.shared.design.ChipButton
+import com.github.sebastianp265.aitrainer.shared.design.DashedButton
+import com.github.sebastianp265.aitrainer.shared.design.DesignTextField
+import com.github.sebastianp265.aitrainer.shared.design.InfoNote
+import com.github.sebastianp265.aitrainer.shared.design.extendedColors
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
@@ -67,6 +74,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Instant
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 
 internal interface PlanEditActions {
     fun changeName(name: String)
@@ -93,10 +101,15 @@ internal fun PlanEditContent(state: PlanEditUiState, actions: PlanEditActions) {
             TopAppBar(
                 title = { Text(stringResource(if (state.isNew) R.string.plan_new_title else R.string.plan_edit_title)) },
                 navigationIcon = {
-                    IconButton(onClick = actions::close) { Icon(Icons.Default.Close, contentDescription = stringResource(R.string.close)) }
+                    IconButton(onClick = actions::close) { Icon(DesignIcons.Close, contentDescription = stringResource(R.string.close)) }
                 },
                 actions = {
-                    TextButton(onClick = actions::save, enabled = state.canSave, modifier = Modifier.testTag(PlanTags.SAVE)) {
+                    Button(
+                        onClick = actions::save,
+                        enabled = state.canSave,
+                        modifier = Modifier.padding(end = 8.dp).height(40.dp).testTag(PlanTags.SAVE),
+                        contentPadding = PaddingValues(horizontal = 20.dp),
+                    ) {
                         Text(stringResource(R.string.save))
                     }
                 },
@@ -114,27 +127,29 @@ internal fun PlanEditContent(state: PlanEditUiState, actions: PlanEditActions) {
             NameAndDate(state, actions)
             if (state.sets.isEmpty()) {
                 EmptyExercises(actions::addExercise)
-                Text(stringResource(R.string.plan_save_hint), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.plan_save_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (state.isNew && LocalCoachEnabled.current) {
-                    Card(Modifier.fillMaxWidth()) {
-                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(stringResource(R.string.plan_prefer_ready_title), style = MaterialTheme.typography.titleSmall)
-                            Text(stringResource(R.string.plan_prefer_ready_text), style = MaterialTheme.typography.bodyMedium)
-                            TextButton(onClick = LocalOpenCoach.current) { Text(stringResource(R.string.plan_go_to_coach)) }
-                        }
+                    val openCoach = LocalOpenCoach.current
+                    InfoNote(stringResource(R.string.plan_prefer_ready_title), stringResource(R.string.plan_prefer_ready_text)) {
+                        TextButton(
+                            onClick = openCoach,
+                            contentPadding = PaddingValues(0.dp),
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onTertiaryContainer),
+                        ) { Text(stringResource(R.string.plan_go_to_coach)) }
                     }
                 }
             } else {
                 val setsByExercise = state.sets.groupBy { it.exerciseKey }
                 setsByExercise.forEach { (exerciseKey, sets) -> state.exercises[exerciseKey]?.let { ExerciseEditor(it, sets, actions) } }
-                OutlinedButton(onClick = actions::addExercise, Modifier.fillMaxWidth().testTag(PlanTags.ADD_EXERCISE)) {
-                    Icon(Icons.Default.Add, contentDescription = null)
-                    Text(stringResource(R.string.add_exercise))
-                }
+                DashedButton(stringResource(R.string.add_exercise), DesignIcons.Add, onClick = actions::addExercise, modifier = Modifier.testTag(PlanTags.ADD_EXERCISE))
             }
             if (!state.isNew) {
-                TextButton(onClick = { confirmDelete = true }, Modifier.align(Alignment.CenterHorizontally)) {
-                    Text(stringResource(R.string.plan_delete), color = MaterialTheme.colorScheme.error)
+                TextButton(
+                    onClick = { confirmDelete = true },
+                    modifier = Modifier.align(Alignment.CenterHorizontally).height(44.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) {
+                    Text(stringResource(R.string.plan_delete), style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp))
                 }
             }
         }
@@ -148,32 +163,30 @@ internal fun PlanEditContent(state: PlanEditUiState, actions: PlanEditActions) {
 private fun NameAndDate(state: PlanEditUiState, actions: PlanEditActions) {
     var pickingDate by rememberSaveable { mutableStateOf(false) }
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        OutlinedTextField(
+        DesignTextField(
             value = state.name,
             onValueChange = actions::changeName,
-            label = { Text(stringResource(R.string.plan_name_label)) },
-            placeholder = { Text(stringResource(R.string.plan_name_hint)) },
-            singleLine = true,
-            modifier = Modifier.weight(1f).testTag(PlanTags.NAME_FIELD),
+            label = stringResource(R.string.plan_name_label),
+            placeholder = stringResource(R.string.plan_name_hint),
+            modifier = Modifier.weight(1f),
+            fieldModifier = Modifier.testTag(PlanTags.NAME_FIELD),
         )
         Box(Modifier.weight(1f)) {
-            OutlinedTextField(
+            DesignTextField(
                 value = state.date?.let { formatDate(it) }.orEmpty(),
                 onValueChange = {},
                 readOnly = true,
-                label = { Text(stringResource(R.string.plan_date_label)) },
-                placeholder = { Text(stringResource(R.string.plan_no_date)) },
+                label = stringResource(R.string.plan_date_label),
+                placeholder = stringResource(R.string.plan_no_date),
                 trailingIcon = {
                     if (state.date != null) {
                         IconButton(onClick = { actions.changeDate(null) }) {
-                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.plan_clear_date))
+                            Icon(DesignIcons.Close, contentDescription = stringResource(R.string.plan_clear_date))
                         }
                     }
                 },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
             )
-            Box(Modifier.matchParentSize().padding(end = 48.dp).testTag(PlanTags.DATE_FIELD).clickable { pickingDate = true })
+            Box(Modifier.matchParentSize().padding(top = 20.dp, end = 48.dp).testTag(PlanTags.DATE_FIELD).clickable { pickingDate = true })
         }
     }
     if (pickingDate) {
@@ -196,11 +209,20 @@ private fun NameAndDate(state: PlanEditUiState, actions: PlanEditActions) {
 @Composable
 private fun EmptyExercises(onAddExercise: () -> Unit) {
     Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Text(stringResource(R.string.plan_no_exercises_title), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.plan_no_exercises_text), style = MaterialTheme.typography.bodyMedium)
-            Button(onClick = onAddExercise, Modifier.testTag(PlanTags.ADD_EXERCISE)) {
-                Icon(Icons.Default.Add, contentDescription = null)
+            Text(
+                stringResource(R.string.plan_no_exercises_text),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Button(onClick = onAddExercise, Modifier.height(44.dp).testTag(PlanTags.ADD_EXERCISE)) {
+                Icon(DesignIcons.Add, contentDescription = null, Modifier.padding(end = 8.dp))
                 Text(stringResource(R.string.add_exercise))
             }
         }
@@ -211,19 +233,19 @@ private fun EmptyExercises(onAddExercise: () -> Unit) {
 private fun ExerciseEditor(exercise: Exercise, sets: List<EditableSet>, actions: PlanEditActions) {
     val locale = LocalConfiguration.current.locales[0]
     Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(Modifier.padding(start = 14.dp, top = 10.dp, end = 6.dp, bottom = 10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(exercise.displayName(locale), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                Text(exercise.displayName(locale), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp))
                 IconButton(onClick = { actions.removeExercise(exercise.key) }) {
-                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove_exercise))
+                    Icon(DesignIcons.Close, contentDescription = stringResource(R.string.remove_exercise), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            Row(Modifier.fillMaxWidth()) {
-                Box(Modifier.size(56.dp))
-                Text(stringResource(R.string.unit_kg), Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
-                Text(stringResource(R.string.unit_reps), Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
-                Text(stringResource(R.string.rpe_label), Modifier.weight(1f), style = MaterialTheme.typography.labelMedium)
-                Box(Modifier.size(48.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Box(Modifier.width(28.dp))
+                ColumnHeader(stringResource(R.string.unit_kg), Modifier.weight(1f))
+                ColumnHeader(stringResource(R.string.unit_reps), Modifier.weight(1f))
+                ColumnHeader(stringResource(R.string.rpe_label), Modifier.weight(1f))
+                Box(Modifier.width(44.dp))
             }
             var workingNumber = 0
             var warmupNumber = 0
@@ -231,9 +253,31 @@ private fun ExerciseEditor(exercise: Exercise, sets: List<EditableSet>, actions:
                 val label = if (set.isWarmup) stringResource(R.string.plan_warmup_n, ++warmupNumber) else stringResource(R.string.plan_set_n, ++workingNumber)
                 SetEditor(label, if (set.isWarmup) null else workingNumber, set, actions)
             }
-            AssistChip(onClick = { actions.addSet(exercise.key) }, label = { Text(stringResource(R.string.add_set)) })
+            ChipButton(stringResource(R.string.add_set), onClick = { actions.addSet(exercise.key) }, modifier = Modifier.padding(start = 34.dp))
         }
     }
+}
+
+@Composable
+private fun ColumnHeader(text: String, modifier: Modifier) {
+    Text(text, modifier, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+}
+
+@Composable
+private fun CellField(value: String, onValueChange: (String) -> Unit, keyboardType: KeyboardType, modifier: Modifier) {
+    val colors = MaterialTheme.colorScheme
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Medium, color = colors.onSurface, textAlign = TextAlign.Center),
+        cursorBrush = SolidColor(colors.primary),
+        modifier = modifier,
+        decorationBox = { field ->
+            Box(Modifier.height(44.dp).background(colors.surface, MaterialTheme.shapes.small), contentAlignment = Alignment.Center) { field() }
+        },
+    )
 }
 
 @Composable
@@ -241,29 +285,28 @@ private fun SetEditor(label: String, workingNumber: Int?, set: EditableSet, acti
     var rpeMenuOpen by rememberSaveable(set.id) { mutableStateOf(false) }
     val kgDescription = stringResource(R.string.plan_field_description, label, stringResource(R.string.unit_kg))
     val repsDescription = stringResource(R.string.plan_field_description, label, stringResource(R.string.unit_reps))
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        FilterChip(
-            selected = set.isWarmup,
-            onClick = { actions.toggleWarmup(set.id) },
-            label = { Text(workingNumber?.toString() ?: stringResource(R.string.warmup_short)) },
-            modifier = Modifier.size(width = 56.dp, height = 40.dp),
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+        Text(
+            workingNumber?.toString() ?: stringResource(R.string.warmup_short),
+            Modifier.width(28.dp).clickable { actions.toggleWarmup(set.id) },
+            style = MaterialTheme.typography.labelLarge,
+            color = if (set.isWarmup) extendedColors.warning else MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
         )
-        OutlinedTextField(
-            value = set.weight,
-            onValueChange = { actions.changeWeight(set.id, it) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-            modifier = Modifier.weight(1f).padding(horizontal = 2.dp).semantics { contentDescription = kgDescription }.testTag(PlanTags.SET_WEIGHT),
+        CellField(
+            set.weight,
+            { actions.changeWeight(set.id, it) },
+            KeyboardType.Decimal,
+            Modifier.weight(1f).semantics { contentDescription = kgDescription }.testTag(PlanTags.SET_WEIGHT),
         )
-        OutlinedTextField(
-            value = set.reps,
-            onValueChange = { actions.changeReps(set.id, it) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.weight(1f).padding(horizontal = 2.dp).semantics { contentDescription = repsDescription }.testTag(PlanTags.SET_REPS),
+        CellField(
+            set.reps,
+            { actions.changeReps(set.id, it) },
+            KeyboardType.Number,
+            Modifier.weight(1f).semantics { contentDescription = repsDescription }.testTag(PlanTags.SET_REPS),
         )
-        Box(Modifier.weight(1f)) {
-            TextButton(onClick = { rpeMenuOpen = true }) { Text(set.rpe?.let { formatWeight(it) } ?: "–") }
+        Box(Modifier.weight(1f).height(44.dp).background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.small).clickable { rpeMenuOpen = true }, contentAlignment = Alignment.Center) {
+            Text(set.rpe?.let { formatWeight(it) } ?: "–", style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Medium))
             DropdownMenu(expanded = rpeMenuOpen, onDismissRequest = { rpeMenuOpen = false }) {
                 DropdownMenuItem(text = { Text("–") }, onClick = { actions.changeRpe(set.id, null); rpeMenuOpen = false })
                 rpeChoices.forEach { value ->
@@ -271,8 +314,8 @@ private fun SetEditor(label: String, workingNumber: Int?, set: EditableSet, acti
                 }
             }
         }
-        IconButton(onClick = { actions.removeSet(set.id) }) {
-            Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_set))
+        IconButton(onClick = { actions.removeSet(set.id) }, Modifier.size(44.dp)) {
+            Icon(DesignIcons.Delete, contentDescription = stringResource(R.string.delete_set), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

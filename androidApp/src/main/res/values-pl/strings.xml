@@ -126,6 +126,10 @@
     <string name="progress_connect_title">Więcej danych z Health Connect</string>
 
     <string name="progress_details">Szczegóły</string>
+    <string name="progress_workouts_line">Treningi: %1$s</string>
+    <string name="progress_legend_daily">dzienne pomiary</string>
+    <string name="progress_legend_average">średnia 7 dni</string>
+    <string name="metric_per_week_label">na tydzień</string>
     <string name="metric_no_data">Brak danych w tym zakresie.</string>
     <string name="metric_average">Średnia 7 dni</string>
     <string name="metric_lowest">najniższa</string>
@@ -426,7 +430,7 @@
     <string name="coach_change_removed">−  %1$s (%2$s)</string>
     <string name="coach_change_sets">~  %1$s: %2$d → %3$d serie</string>
     <string name="coach_change_weight">~  %1$s: %2$s kg</string>
-    <string name="coach_target_change">%1$s: %2$d–%3$d → %4$d–%5$d</string>
+    <string name="coach_target_range">%1$d–%2$d</string>
     <string name="coach_target_note">Dotyczy następnych planów. Istniejące plany zostają bez zmian.</string>
     <string name="coach_change_hint">Zmienić coś? Po prostu odpisz.</string>
     <string name="coach_working">Trener pisze…</string>
@@ -468,6 +472,7 @@
     <string name="preview_replaces">zastąpi obecny plan</string>
     <string name="preview_new">nowy plan</string>
     <string name="preview_removed">usunięte</string>
+    <string name="preview_was">było: %1$s</string>
     <string name="preview_added">nowe</string>
     <string name="preview_sets_changed">%1$d → %2$d serie</string>
     <string name="api_key_paste">Wklej klucz</string>
@@ -498,6 +503,7 @@
     <string name="model_usage_cost">Dokładny koszt widać w konsoli Anthropic.</string>
     <string name="model_tokens_million">%1$s mln</string>
     <string name="settings_change">Zmień</string>
+    <string name="settings_manage">Zarządzaj</string>
     <string name="settings_coach_memory">Co trener o mnie wie</string>
     <string name="settings_advanced">Zaawansowane</string>
     <plurals name="settings_notes_count">
@@ -548,6 +554,7 @@
     <string name="plan_empty_text_with_coach">Plan to jeden zaplanowany trening: ćwiczenia, serie, ciężary i RPE. Może go napisać trener albo Ty.</string>
     <string name="plan_ask_coach">Poproś trenera o plan</string>
     <string name="plan_change_with_coach">Zmień z trenerem</string>
+    <string name="plan_coach_note">Notatka trenera</string>
     <string name="plan_prefer_ready_title">Wolisz gotowy plan?</string>
     <string name="plan_prefer_ready_text">Napisz trenerowi, ile masz czasu i co chcesz trenować.</string>
     <string name="plan_go_to_coach">Przejdź do trenera</string>

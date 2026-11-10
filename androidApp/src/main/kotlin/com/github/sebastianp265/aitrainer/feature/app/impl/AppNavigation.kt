@@ -3,10 +3,6 @@ package com.github.sebastianp265.aitrainer.feature.app.impl
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.TopAppBar
@@ -63,6 +59,7 @@ import com.github.sebastianp265.aitrainer.feature.workout.LogWorkoutScreen
 import com.github.sebastianp265.aitrainer.feature.workout.WorkoutDetailScreen
 import com.github.sebastianp265.aitrainer.feature.workout.WorkoutSummaryScreen
 import kotlinx.datetime.LocalDate
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 
 @Composable
 internal fun AppNavigation() {
@@ -88,7 +85,8 @@ internal fun AppNavigation() {
         destination?.hasRoute(ApiKeyRoute::class) == true -> R.string.settings_claude_api_key
         destination?.hasRoute(ModelRoute::class) == true -> R.string.model_title
         destination?.hasRoute(BackupRoute::class) == true -> R.string.settings_backup
-        else -> null
+        destination?.hasRoute(HistoryRoute::class) == true -> R.string.history_title
+        else -> TopLevelDestination.entries.firstOrNull { destination?.hasRoute(it.routeClass) == true }?.label
     }
     Scaffold(
         topBar = {
@@ -172,7 +170,10 @@ internal fun AppNavigation() {
             }
             composable<VolumeTargetsRoute> { VolumeTargetsScreen(onOpenCoach = { navController.navigate(CoachRoute) }) }
             composable<HistoryRoute> {
-                HistoryScreen(onOpenExternalWorkout = { navController.navigate(ExternalWorkoutRoute(it)) })
+                HistoryScreen(
+                    onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) },
+                    onOpenExternalWorkout = { navController.navigate(ExternalWorkoutRoute(it)) },
+                )
             }
             composable<ExternalWorkoutRoute> { entry -> ExternalWorkoutScreen(entry.toRoute<ExternalWorkoutRoute>().startedAtMillis) }
             composable<PlanRoute> {
@@ -250,19 +251,19 @@ internal fun AppTopBar(isNested: Boolean, @StringRes title: Int?, onOpenSettings
         navigationIcon = {
             if (isNested) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                    Icon(DesignIcons.Back, contentDescription = stringResource(R.string.back))
                 }
             }
         },
         actions = {
             if (onOpenMemory != null) {
                 IconButton(onClick = onOpenMemory) {
-                    Icon(Icons.Default.Person, contentDescription = stringResource(R.string.memory_title))
+                    Icon(DesignIcons.Person, contentDescription = stringResource(R.string.memory_title))
                 }
             }
             if (!isNested) {
                 IconButton(onClick = onOpenSettings) {
-                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.nav_settings))
+                    Icon(DesignIcons.Settings, contentDescription = stringResource(R.string.nav_settings))
                 }
             }
         },

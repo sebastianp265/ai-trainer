@@ -1,16 +1,18 @@
 package com.github.sebastianp265.aitrainer.feature.history.impl
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +23,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.shared.design.CoachButton
+import com.github.sebastianp265.aitrainer.shared.design.InfoNote
+import com.github.sebastianp265.aitrainer.shared.design.StatTile
+import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
+import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.integration.health.HealthWorkout
 import com.github.sebastianp265.aitrainer.shared.health.externalWorkoutTitle
 import com.github.sebastianp265.aitrainer.shared.localization.formatDateLong
@@ -42,40 +49,38 @@ internal fun ExternalWorkoutContent(state: ExternalWorkoutUiState) {
         return
     }
     val zone = TimeZone.currentSystemDefault()
+    val stats = listOfNotNull(
+        stringResource(R.string.value_min, workout.durationMinutes.toString()) to stringResource(R.string.stat_duration),
+        workout.distanceM?.let { stringResource(R.string.value_km, formatNumber(it / METERS_PER_KM, 1)) to stringResource(R.string.stat_distance) },
+        workout.kcal?.let { stringResource(R.string.value_kcal, formatNumber(it.toDouble())) to stringResource(R.string.stat_burned) },
+        workout.averageHeartRate?.let { stringResource(R.string.value_bpm, formatNumber(it.toDouble())) to stringResource(R.string.stat_heart_rate) },
+    )
     Column(
-        Modifier.fillMaxSize().padding(16.dp).testTag(HistoryTags.EXTERNAL_WORKOUT),
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            .testTag(HistoryTags.EXTERNAL_WORKOUT),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(externalWorkoutTitle(workout), style = MaterialTheme.typography.headlineSmall)
-        Text(
-            stringResource(
-                R.string.external_from_health_connect,
-                formatDateLong(workout.startedAt.toLocalDateTime(zone).date),
-                formatTime(workout.startedAt),
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Stat(stringResource(R.string.value_min, workout.durationMinutes.toString()), R.string.stat_duration)
-            workout.distanceM?.let { Stat(stringResource(R.string.value_km, formatNumber(it / METERS_PER_KM, 1)), R.string.stat_distance) }
-            workout.kcal?.let { Stat(stringResource(R.string.value_kcal, formatNumber(it.toDouble())), R.string.stat_burned) }
-            workout.averageHeartRate?.let { Stat(stringResource(R.string.value_bpm, formatNumber(it.toDouble())), R.string.stat_heart_rate) }
+        Column(Modifier.heightIn(min = 56.dp), verticalArrangement = Arrangement.Center) {
+            Text(externalWorkoutTitle(workout), style = MaterialTheme.typography.titleLarge)
+            Text(
+                stringResource(
+                    R.string.external_from_health_connect,
+                    formatDateLong(workout.startedAt.toLocalDateTime(zone).date),
+                    formatTime(workout.startedAt),
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
-        OutlinedCard(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(stringResource(R.string.external_read_only_title), style = MaterialTheme.typography.titleSmall)
-                Text(stringResource(R.string.external_read_only_text), style = MaterialTheme.typography.bodyMedium)
+        stats.chunked(2).forEach { pair ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                pair.forEach { (value, label) -> StatTile(value, label, Modifier.weight(1f)) }
+                if (pair.size == 1) Spacer(Modifier.weight(1f))
             }
         }
-        Text(stringResource(R.string.external_note), style = MaterialTheme.typography.bodySmall)
-    }
-}
-
-@Composable
-private fun Stat(value: String, @StringRes label: Int) {
-    Column {
-        Text(value, style = MaterialTheme.typography.titleMedium)
-        Text(stringResource(label), style = MaterialTheme.typography.bodySmall)
+        InfoNote(stringResource(R.string.external_read_only_title), stringResource(R.string.external_read_only_text))
+        Text(stringResource(R.string.external_note), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (LocalCoachEnabled.current) CoachButton(stringResource(R.string.detail_ask_coach), LocalOpenCoach.current)
     }
 }
 

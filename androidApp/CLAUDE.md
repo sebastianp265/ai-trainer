@@ -5,7 +5,7 @@ Android application, frontend only: entry points, navigation, theme, screens, Vi
 ## Platform and libraries
 
 - My phone runs Android 16 and `minSdk` is 34: don't add version checks or compatibility code for APIs below 34.
-- UI is **Jetpack Compose** + **Material 3** (default theme, dynamic color, dark mode). `material-icons-core` is frozen at 1.7.x; that's fine.
+- UI is **Jetpack Compose** + **Material 3** with the colors, shapes and type of the mockups (`AITrainerTheme`, light and dark; no dynamic color). Icons come from `shared.design.DesignIcons` (the line icons of the mockups), not from `material-icons`. Pieces used by several screens (section header, tag, list row, icon circle) live in `shared.design`.
 - Navigation routes are `@Serializable` types.
 
 ## Layout

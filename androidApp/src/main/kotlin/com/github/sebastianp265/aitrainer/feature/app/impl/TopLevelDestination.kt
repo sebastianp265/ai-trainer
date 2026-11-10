@@ -1,16 +1,12 @@
 package com.github.sebastianp265.aitrainer.feature.app.impl
 
 import androidx.annotation.StringRes
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetric
 import kotlin.reflect.KClass
 import kotlinx.serialization.Serializable
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 
 internal enum class TopLevelDestination(
     val route: Any,
@@ -18,10 +14,10 @@ internal enum class TopLevelDestination(
     @StringRes val label: Int,
     val icon: ImageVector,
 ) {
-    LOG(LogRoute, LogRoute::class, R.string.nav_log, Icons.Default.Edit),
-    PLAN(PlanRoute, PlanRoute::class, R.string.nav_plan, Icons.Default.DateRange),
-    COACH(CoachRoute, CoachRoute::class, R.string.nav_coach, Icons.Default.Face),
-    PROGRESS(ProgressRoute, ProgressRoute::class, R.string.nav_progress, Icons.Default.Star),
+    LOG(LogRoute, LogRoute::class, R.string.nav_log, DesignIcons.Training),
+    PLAN(PlanRoute, PlanRoute::class, R.string.nav_plan, DesignIcons.Plan),
+    COACH(CoachRoute, CoachRoute::class, R.string.nav_coach, DesignIcons.Coach),
+    PROGRESS(ProgressRoute, ProgressRoute::class, R.string.nav_progress, DesignIcons.Progress),
 }
 
 @Serializable

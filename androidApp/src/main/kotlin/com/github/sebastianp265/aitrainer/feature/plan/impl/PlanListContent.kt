@@ -10,18 +10,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,6 +29,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.github.sebastianp265.aitrainer.shared.design.CoachButton
+import com.github.sebastianp265.aitrainer.shared.design.SectionHeader
+import androidx.compose.foundation.layout.height
+import com.github.sebastianp265.aitrainer.shared.design.Tag
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
@@ -49,6 +50,8 @@ import com.github.sebastianp265.aitrainer.shared.workout.exerciseCount
 import com.github.sebastianp265.aitrainer.shared.workout.planExercises
 import com.github.sebastianp265.aitrainer.shared.workout.workingSetCount
 import kotlinx.datetime.LocalDate
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
+import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
 
 @Composable
 internal fun PlanListContent(
@@ -65,7 +68,7 @@ internal fun PlanListContent(
             if (state.plans.isNotEmpty()) {
                 ExtendedFloatingActionButton(
                     onClick = onNewPlan,
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                    icon = { Icon(DesignIcons.Add, contentDescription = null) },
                     text = { Text(stringResource(R.string.plan_new_fab)) },
                     modifier = Modifier.testTag(PlanTags.NEW_PLAN),
                 )
@@ -89,18 +92,19 @@ private fun EmptyPlans(onNewPlan: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(stringResource(R.string.plan_empty_title), style = MaterialTheme.typography.titleLarge)
+        Text(stringResource(R.string.plan_empty_title), style = MaterialTheme.typography.titleMedium)
         val coachEnabled = LocalCoachEnabled.current
         Text(
             stringResource(if (coachEnabled) R.string.plan_empty_text_with_coach else R.string.plan_empty_text),
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
         )
         if (coachEnabled) {
-            FilledTonalButton(onClick = LocalOpenCoach.current, Modifier.testTag(PlanTags.ASK_COACH)) { Text(stringResource(R.string.plan_ask_coach)) }
-            OutlinedButton(onClick = onNewPlan, Modifier.testTag(PlanTags.NEW_PLAN)) { Text(stringResource(R.string.plan_write_own)) }
+            CoachButton(stringResource(R.string.plan_ask_coach), LocalOpenCoach.current, Modifier.testTag(PlanTags.ASK_COACH))
+            DesignOutlinedButton(onClick = onNewPlan, Modifier.fillMaxWidth().height(48.dp).testTag(PlanTags.NEW_PLAN)) { Text(stringResource(R.string.plan_write_own)) }
         } else {
-            Button(onClick = onNewPlan, Modifier.testTag(PlanTags.NEW_PLAN)) { Text(stringResource(R.string.plan_write_own)) }
+            Button(onClick = onNewPlan, Modifier.fillMaxWidth().height(48.dp).testTag(PlanTags.NEW_PLAN)) { Text(stringResource(R.string.plan_write_own)) }
         }
     }
 }
@@ -121,36 +125,43 @@ private fun PlanList(state: PlanListUiState, onOpenPlan: (Long) -> Unit, onOpenT
         item { banner() }
         if (state.volumeRows.isNotEmpty()) item { WeekVolumeCard(state.volumeRows, state.showTargets, onOpenTargets) }
         if (dated.isNotEmpty()) {
-            item { SectionTitle(stringResource(R.string.plan_upcoming)) }
-            items(dated, key = { it.id }) { PlanCard(it, state.exercises) { onOpenPlan(it.id) } }
+            item { SectionHeader(stringResource(R.string.plan_upcoming)) }
+            items(dated, key = { it.id }) { PlanCard(it, state.exercises, isNext = it == dated.first()) { onOpenPlan(it.id) } }
         }
         if (undated.isNotEmpty()) {
-            item { SectionTitle(stringResource(R.string.plan_undated)) }
-            items(undated, key = { it.id }) { PlanCard(it, state.exercises) { onOpenPlan(it.id) } }
+            item { SectionHeader(stringResource(R.string.plan_undated)) }
+            items(undated, key = { it.id }) { PlanCard(it, state.exercises, isNext = false) { onOpenPlan(it.id) } }
         }
     }
 }
 
 @Composable
-private fun SectionTitle(text: String) {
-    Text(text, Modifier.padding(top = 8.dp), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+private fun PlanCard(plan: Plan, exercises: Map<String, Exercise>, isNext: Boolean, onClick: () -> Unit) {
+    val locale = LocalConfiguration.current.locales[0]
+    val colors = MaterialTheme.colorScheme
+    val detailColor = if (isNext) colors.onPrimaryContainer else colors.onSurfaceVariant
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().testTag(PlanTags.card(plan.name)),
+        colors = if (isNext) CardDefaults.cardColors(containerColor = colors.primaryContainer, contentColor = colors.onPrimaryContainer) else CardDefaults.cardColors(),
+    ) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                Text(plan.name, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp))
+                AuthorTag(plan.author)
+            }
+            Text(planMeta(plan), style = MaterialTheme.typography.bodyMedium, color = detailColor)
+            val summary = planSummary(plan.sets, exercises, locale)
+            if (summary.isNotEmpty()) Text(summary, style = MaterialTheme.typography.bodyMedium, color = detailColor, maxLines = 2)
+        }
+    }
 }
 
 @Composable
-private fun PlanCard(plan: Plan, exercises: Map<String, Exercise>, onClick: () -> Unit) {
-    val locale = LocalConfiguration.current.locales[0]
-    Card(onClick = onClick, Modifier.fillMaxWidth().testTag(PlanTags.card(plan.name))) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text(plan.name, style = MaterialTheme.typography.titleMedium)
-                Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.secondaryContainer) {
-                    Text(authorLabel(plan.author), Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
-                }
-            }
-            Text(planMeta(plan), style = MaterialTheme.typography.bodyMedium)
-            val summary = planSummary(plan.sets, exercises, locale)
-            if (summary.isNotEmpty()) Text(summary, style = MaterialTheme.typography.bodyMedium, maxLines = 2)
-        }
+internal fun AuthorTag(author: PlanAuthor) {
+    when (author) {
+        PlanAuthor.COACH -> Tag(authorLabel(author))
+        PlanAuthor.USER -> Tag(authorLabel(author), containerColor = MaterialTheme.colorScheme.surfaceDim, contentColor = MaterialTheme.colorScheme.onSurface)
     }
 }
 
@@ -204,7 +215,7 @@ internal object PlanTags {
 
     fun card(name: String) = "plan_card:$name"
 
-    fun weekDay(date: kotlinx.datetime.LocalDate) = "plan_week_day:$date"
+    fun weekDay(date: LocalDate) = "plan_week_day:$date"
 }
 
 @PreviewLightDark

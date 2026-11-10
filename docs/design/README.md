@@ -20,16 +20,20 @@ The files don't render in a plain browser (they need the canvas runtime). Read t
 | Exact Polish copy | literal text in the markup; copy it into `values-pl/strings.xml` and translate for `values/strings.xml` |
 | Where a button or row leads | `href="Other.dc.html"` on the element |
 | State on the same screen (sheet, dialog, expandable box) | `<sc-if value="{{ flag }}">` plus the `onClick` handlers in the script at the bottom |
-| Sizes, spacing, colors | the `<style>` block; treat as a hint only |
+| Sizes, spacing, colors, icons | the `<style>` block and the inline `<svg>` icons |
 
 ## What is binding and what is not
 
 | Binding | Not binding |
 |---|---|
-| Which screens exist and what opens what | Exact sizes, spacing, corner radii |
-| Which data and actions each screen has, and their order | Colors: the app uses Material 3 dynamic color |
-| Copy (Polish) | Heights of the artboards |
-| Rules written on the screens (captions, info boxes) | Sample numbers, names and dates |
+| Which screens exist and what opens what | Heights of the artboards |
+| Which data and actions each screen has, and their order | Sample numbers, names and dates |
+| Copy (Polish) | |
+| Rules written on the screens (captions, info boxes) | |
+| Colors, icons, type sizes, spacing and corner radii (the look of every screen) | |
+
+The colors of the mockups are the app's color scheme (`AITrainerTheme`); the line icons are
+`DesignIcons`; shared pieces (section header, tag, list row, icon circle) are in `shared.design`.
 
 When a mockup and [`../requirements.md`](../requirements.md) disagree, the requirements win. Build
 screens with standard Material 3 components (bottom sheet, alert dialog, segmented button, switch,

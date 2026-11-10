@@ -1,31 +1,34 @@
 package com.github.sebastianp265.aitrainer.feature.coach.impl
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material3.AssistChip
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,13 +40,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeFailureKind
 import com.github.sebastianp265.aitrainer.integration.coach.CoachActivity
@@ -59,6 +67,10 @@ import com.github.sebastianp265.aitrainer.shared.localization.formatWeekdayDate
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
+import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
+import com.github.sebastianp265.aitrainer.shared.design.DesignFilterChip
+import com.github.sebastianp265.aitrainer.shared.design.extendedColors
 
 internal interface CoachActions {
     fun send(text: String)
@@ -85,10 +97,16 @@ private fun CoachNoKey(onOpenApiKey: () -> Unit, modifier: Modifier) {
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(stringResource(R.string.coach_no_key_title), style = MaterialTheme.typography.titleLarge, textAlign = TextAlign.Center)
-        Text(stringResource(R.string.coach_no_key_text), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
-        Text(stringResource(R.string.coach_no_key_without), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
-        Button(onClick = onOpenApiKey, Modifier.testTag(CoachTags.OPEN_API_KEY)) { Text(stringResource(R.string.coach_enter_api_key)) }
+        Box(
+            Modifier.size(72.dp).background(MaterialTheme.colorScheme.tertiaryContainer, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(DesignIcons.Key, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer)
+        }
+        Text(stringResource(R.string.coach_no_key_title), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.coach_no_key_text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.coach_no_key_without), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        Button(onClick = onOpenApiKey, Modifier.height(48.dp).testTag(CoachTags.OPEN_API_KEY)) { Text(stringResource(R.string.coach_enter_api_key)) }
     }
 }
 
@@ -117,18 +135,24 @@ private fun Conversation(state: CoachUiState, actions: CoachActions, modifier: M
                 if (index == 0 || dayOf(state.messages[index - 1].message.createdAt) != dayOf(item.message.createdAt)) {
                     item(key = "day:${item.message.id}") { DayLabel(item.message) }
                 }
-                item(key = "message:${item.message.id}") { MessageBubble(item.message, state.exercises) }
+                item(key = "message:${item.message.id}") {
+                    MessageBubble(item.message, state.exercises, unsent = failed?.kind == ClaudeFailureKind.NO_NETWORK && lastIsUser && index == state.messages.lastIndex)
+                }
                 items(item.proposals.size, key = { "proposal:${item.proposals[it].proposal.id}" }) { p ->
                     ProposalCard(item.proposals[p], state.exercises, actions)
                 }
                 if (item.proposals.any { it.proposal.state == ProposalState.PENDING } && index == state.messages.lastIndex) {
-                    item(key = "hint:${item.message.id}") { Text(stringResource(R.string.coach_change_hint), style = MaterialTheme.typography.bodyMedium) }
+                    item(key = "hint:${item.message.id}") {
+                        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            Text(stringResource(R.string.coach_change_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
                 }
             }
             if (state.messages.any { it.message.review != null }) {
-                item(key = "review-footer") { Text(stringResource(R.string.review_footer), style = MaterialTheme.typography.bodySmall) }
+                item(key = "review-footer") { Text(stringResource(R.string.review_footer), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
-            if (working) item(key = "working") { WorkingRow(state.activity as CoachActivity.Working) }
+            if (working) item(key = "working") { WorkingRow(state.activity) }
             if (failed != null && lastIsUser) item(key = "failed") { FailedRow(failed, actions) }
         }
         InputRow(enabled = !working, onSend = actions::send)
@@ -137,8 +161,15 @@ private fun Conversation(state: CoachUiState, actions: CoachActions, modifier: M
 
 @Composable
 private fun OfflineBanner() {
-    Surface(color = MaterialTheme.colorScheme.errorContainer, modifier = Modifier.fillMaxWidth().testTag(CoachTags.OFFLINE_BANNER)) {
-        Text(stringResource(R.string.coach_offline_banner), Modifier.padding(12.dp), style = MaterialTheme.typography.bodyMedium)
+    Surface(
+        color = extendedColors.warningContainer,
+        contentColor = extendedColors.onWarningContainer,
+        modifier = Modifier.fillMaxWidth().testTag(CoachTags.OFFLINE_BANNER),
+    ) {
+        Row(Modifier.padding(horizontal = 16.dp, vertical = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(DesignIcons.Warning, contentDescription = null)
+            Text(stringResource(R.string.coach_offline_banner), style = MaterialTheme.typography.bodyMedium)
+        }
     }
 }
 
@@ -147,10 +178,12 @@ private fun Greeting(onSend: (String) -> Unit, enabled: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         CoachBubble(stringResource(R.string.coach_greeting_1))
         CoachBubble(stringResource(R.string.coach_greeting_2))
-        Text(stringResource(R.string.coach_start_from), style = MaterialTheme.typography.labelLarge)
-        listOf(R.string.coach_chip_plan, R.string.coach_chip_review, R.string.coach_chip_goal, R.string.coach_chip_time).forEach { id ->
-            val text = stringResource(id)
-            AssistChip(onClick = { if (enabled) onSend(text) }, label = { Text(text) }, modifier = Modifier.testTag(CoachTags.CHIP))
+        Text(stringResource(R.string.coach_start_from), Modifier.padding(top = 16.dp), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(R.string.coach_chip_plan, R.string.coach_chip_review, R.string.coach_chip_goal, R.string.coach_chip_time).forEach { id ->
+                val text = stringResource(id)
+                DesignFilterChip(selected = false, onClick = { if (enabled) onSend(text) }, label = text, modifier = Modifier.testTag(CoachTags.CHIP))
+            }
         }
     }
 }
@@ -158,22 +191,26 @@ private fun Greeting(onSend: (String) -> Unit, enabled: Boolean) {
 @Composable
 private fun DayLabel(message: CoachMessage) {
     val today = dayOf(kotlin.time.Clock.System.now())
-    val day = dayOf(message.createdAt)
-    val text = when (day) {
+    val text = when (val day = dayOf(message.createdAt)) {
         today -> stringResource(R.string.coach_today)
         else -> formatLongWeekdayDate(day)
     }
-    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Text(text, style = MaterialTheme.typography.labelMedium) }
+    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { Text(text, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
 }
 
 private fun dayOf(instant: Instant) = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
 
 @Composable
-private fun MessageBubble(message: CoachMessage, exercises: Map<String, Exercise>) {
+private fun MessageBubble(message: CoachMessage, exercises: Map<String, Exercise>, unsent: Boolean) {
     if (message.role == CoachRole.USER) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            Surface(shape = RoundedCornerShape(18.dp, 18.dp, 4.dp, 18.dp), color = MaterialTheme.colorScheme.primary) {
-                Text(message.text, Modifier.padding(12.dp).widthIn(max = 300.dp).testTag(CoachTags.USER_MESSAGE), color = MaterialTheme.colorScheme.onPrimary)
+        Row(Modifier.fillMaxWidth().alpha(if (unsent) UNSENT_ALPHA else 1f), horizontalArrangement = Arrangement.End) {
+            Surface(shape = RoundedCornerShape(18.dp, 18.dp, 6.dp, 18.dp), color = MaterialTheme.colorScheme.primary) {
+                Text(
+                    message.text,
+                    Modifier.padding(horizontal = 14.dp, vertical = 10.dp).widthIn(max = 300.dp).testTag(CoachTags.USER_MESSAGE),
+                    style = BubbleTextStyle,
+                    color = MaterialTheme.colorScheme.onPrimary,
+                )
             }
         }
     } else {
@@ -184,18 +221,23 @@ private fun MessageBubble(message: CoachMessage, exercises: Map<String, Exercise
                 Text(
                     stringResource(R.string.coach_checked, checkedPhrases(message.checked, exercises)),
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.testTag(CoachTags.CHECKED),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 4.dp).widthIn(max = 300.dp).testTag(CoachTags.CHECKED),
                 )
             }
         }
     }
 }
 
+private const val UNSENT_ALPHA = 0.6f
+
+private val BubbleTextStyle = androidx.compose.ui.text.TextStyle(fontSize = 15.sp, lineHeight = 21.sp)
+
 @Composable
 private fun CoachBubble(text: String) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
-        Surface(shape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 4.dp), color = MaterialTheme.colorScheme.surfaceVariant) {
-            Text(text, Modifier.padding(12.dp).widthIn(max = 300.dp).testTag(CoachTags.COACH_MESSAGE))
+        Surface(shape = RoundedCornerShape(18.dp, 18.dp, 18.dp, 6.dp), color = MaterialTheme.colorScheme.surfaceContainer) {
+            Text(text, Modifier.padding(horizontal = 14.dp, vertical = 10.dp).widthIn(max = 300.dp).testTag(CoachTags.COACH_MESSAGE), style = BubbleTextStyle)
         }
     }
 }
@@ -222,22 +264,33 @@ private fun ProposalCard(item: ProposalUi, exercises: Map<String, Exercise>, act
     val proposal = item.proposal
     val locale = LocalConfiguration.current.locales[0]
     val pending = proposal.state == ProposalState.PENDING
+    val superseded = proposal.state == ProposalState.SUPERSEDED
     Card(
-        Modifier.fillMaxWidth().padding(end = 24.dp).testTag(CoachTags.PROPOSAL),
+        Modifier.fillMaxWidth().padding(end = 24.dp).alpha(if (superseded) UNSENT_ALPHA else 1f).testTag(CoachTags.PROPOSAL),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = androidx.compose.foundation.BorderStroke(1.dp, if (pending) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
+        border = BorderStroke(1.dp, if (superseded) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.inversePrimary),
     ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(kindText(proposal.type, proposal.state), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-            Text(proposalTitle(item), style = MaterialTheme.typography.titleMedium)
-            Text(proposal.summary, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                kindText(proposal.type, proposal.state),
+                style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 0.3.sp),
+                color = if (superseded) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            Text(proposalTitle(item), style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp))
+            Text(proposal.summary, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (proposal.type == ProposalType.MULTI_PLAN) {
                 proposal.plans.forEach { plan ->
+                    val sets = plan.sets.count { !it.isWarmup }
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(plan.name, style = MaterialTheme.typography.bodyLarge)
+                        Text(plan.name, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp))
                         Text(
-                            plan.date?.let { formatWeekdayDate(it) } ?: stringResource(R.string.plan_no_date),
+                            stringResource(
+                                R.string.session_summary,
+                                plan.date?.let { formatWeekdayDate(it) } ?: stringResource(R.string.plan_no_date),
+                                pluralStringResource(R.plurals.set_count, sets, sets),
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -245,11 +298,20 @@ private fun ProposalCard(item: ProposalUi, exercises: Map<String, Exercise>, act
             item.changes.forEach { change -> Text(changeText(change, exercises, locale), style = MaterialTheme.typography.bodyMedium) }
             proposal.target?.let { target ->
                 val group = exercises.values.flatMap { it.primaryMuscles }.firstOrNull { it.key == target.groupKey }
-                Text(
-                    stringResource(R.string.coach_target_change, group?.displayName(locale) ?: target.groupKey, target.previousMinSets, target.previousMaxSets, target.minSets, target.maxSets),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                Text(stringResource(R.string.coach_target_note), style = MaterialTheme.typography.bodySmall)
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text(group?.displayName(locale) ?: target.groupKey, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp))
+                    Text(
+                        stringResource(R.string.coach_target_range, target.previousMinSets, target.previousMaxSets),
+                        style = MaterialTheme.typography.bodyMedium.copy(textDecoration = TextDecoration.LineThrough),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(" → ", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        stringResource(R.string.coach_target_range, target.minSets, target.maxSets),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    )
+                }
+                Text(stringResource(R.string.coach_target_note), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             if (proposal.target == null) {
                 Text(
@@ -258,18 +320,19 @@ private fun ProposalCard(item: ProposalUi, exercises: Map<String, Exercise>, act
                         pluralStringResource(R.plurals.exercise_count, item.exerciseCount, item.exerciseCount),
                         pluralStringResource(R.plurals.set_count, item.setCount, item.setCount),
                     ),
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             if (pending) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = { actions.accept(proposal.id) }, Modifier.testTag(CoachTags.ACCEPT)) {
                         Text(stringResource(if (proposal.type == ProposalType.MULTI_PLAN) R.string.coach_accept_all else R.string.coach_accept))
                     }
                     if (proposal.target == null) {
-                        OutlinedButton(onClick = { actions.preview(proposal.id) }, Modifier.testTag(CoachTags.PREVIEW)) { Text(stringResource(R.string.coach_preview)) }
+                        DesignOutlinedButton(onClick = { actions.preview(proposal.id) }, Modifier.testTag(CoachTags.PREVIEW)) { Text(stringResource(R.string.coach_preview)) }
                     } else {
-                        OutlinedButton(onClick = actions::openTargets) { Text(stringResource(R.string.coach_change_myself)) }
+                        DesignOutlinedButton(onClick = actions::openTargets) { Text(stringResource(R.string.coach_change_myself)) }
                     }
                 }
             }
@@ -340,9 +403,12 @@ private fun toolPhrase(tool: String): String = when (tool) {
 @Composable
 private fun FailedRow(failed: CoachActivity.Failed, actions: CoachActions) {
     when (failed.kind) {
-        ClaudeFailureKind.NO_NETWORK -> Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.testTag(CoachTags.FAILED)) {
-            Text(stringResource(R.string.coach_not_sent), color = MaterialTheme.colorScheme.error)
-            TextButton(onClick = actions::retry, Modifier.testTag(CoachTags.RETRY)) { Text(stringResource(R.string.coach_retry)) }
+        ClaudeFailureKind.NO_NETWORK -> Row(Modifier.fillMaxWidth().testTag(CoachTags.FAILED), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+            Icon(DesignIcons.Warning, contentDescription = null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
+            Text(stringResource(R.string.coach_not_sent), Modifier.padding(start = 6.dp), style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp), color = MaterialTheme.colorScheme.error)
+            TextButton(onClick = actions::retry, Modifier.testTag(CoachTags.RETRY), colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
+                Text(stringResource(R.string.coach_retry), style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp))
+            }
         }
         ClaudeFailureKind.KEY_REJECTED, ClaudeFailureKind.NO_KEY -> ErrorCard(R.string.coach_error_key_title, R.string.coach_error_key_text, R.string.coach_error_key_action, actions::openApiKey)
         else -> ErrorCard(R.string.coach_error_unavailable_title, R.string.coach_error_unavailable_text, R.string.coach_retry, actions::retry)
@@ -351,11 +417,15 @@ private fun FailedRow(failed: CoachActivity.Failed, actions: CoachActions) {
 
 @Composable
 private fun ErrorCard(title: Int, text: Int, action: Int, onAction: () -> Unit) {
-    Card(Modifier.fillMaxWidth().testTag(CoachTags.ERROR_CARD)) {
+    Surface(
+        Modifier.fillMaxWidth().padding(end = 24.dp).testTag(CoachTags.ERROR_CARD),
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+    ) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(stringResource(title), style = MaterialTheme.typography.titleSmall)
-            Text(stringResource(text), style = MaterialTheme.typography.bodyMedium)
-            OutlinedButton(onClick = onAction, Modifier.testTag(CoachTags.ERROR_ACTION)) { Text(stringResource(action)) }
+            Text(stringResource(text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            DesignOutlinedButton(onClick = onAction, Modifier.height(40.dp).testTag(CoachTags.ERROR_ACTION)) { Text(stringResource(action)) }
         }
     }
 }
@@ -363,23 +433,37 @@ private fun ErrorCard(title: Int, text: Int, action: Int, onAction: () -> Unit) 
 @Composable
 private fun InputRow(enabled: Boolean, onSend: (String) -> Unit) {
     var text by rememberSaveable { mutableStateOf("") }
-    Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(
+    val colors = MaterialTheme.colorScheme
+    Row(
+        Modifier.fillMaxWidth().padding(start = 16.dp, top = 8.dp, end = 8.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        BasicTextField(
             value = text,
             onValueChange = { text = it },
-            placeholder = { Text(stringResource(R.string.coach_input_hint)) },
-            modifier = Modifier.weight(1f).testTag(CoachTags.INPUT),
-            shape = RoundedCornerShape(24.dp),
             maxLines = 4,
+            textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp, color = colors.onSurface),
+            cursorBrush = SolidColor(colors.primary),
+            modifier = Modifier.weight(1f).testTag(CoachTags.INPUT),
+            decorationBox = { field ->
+                Box(
+                    Modifier.heightIn(min = 48.dp).background(colors.surfaceContainer, RoundedCornerShape(24.dp)).padding(horizontal = 18.dp, vertical = 12.dp),
+                    contentAlignment = Alignment.CenterStart,
+                ) {
+                    if (text.isEmpty()) Text(stringResource(R.string.coach_input_hint), style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp), color = colors.onSurfaceVariant)
+                    field()
+                }
+            },
         )
-        IconButton(
+        FilledIconButton(
             onClick = {
                 onSend(text.trim())
                 text = ""
             },
             enabled = enabled && text.isNotBlank(),
-            modifier = Modifier.testTag(CoachTags.SEND),
-        ) { Icon(Icons.AutoMirrored.Filled.Send, contentDescription = stringResource(R.string.coach_send)) }
+            modifier = Modifier.size(48.dp).testTag(CoachTags.SEND),
+        ) { Icon(DesignIcons.Send, contentDescription = stringResource(R.string.coach_send)) }
     }
 }
 

@@ -16,10 +16,12 @@ data class Plan(
     val date: LocalDate?,
     val author: PlanAuthor,
     val sets: List<PlannedSet>,
+    val coachNote: String? = null,
 )
 
 data class PlanDraft(
     val name: String,
     val date: LocalDate?,
     val sets: List<PlannedSet>,
+    val coachNote: String? = null,
 )

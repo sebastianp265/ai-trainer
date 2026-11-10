@@ -31,6 +31,7 @@ enum class PackageModule(val path: String) {
     SHARED_LOCALIZATION("shared.localization"),
     SHARED_STATE("shared.state"),
     SHARED_CHARTS("shared.charts"),
+    SHARED_DESIGN("shared.design"),
     FEATURE_EXERCISE("feature.exercise"),
     FEATURE_WORKOUT("feature.workout"),
     FEATURE_HEALTH("feature.health"),

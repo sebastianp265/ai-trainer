@@ -8,15 +8,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -45,9 +42,6 @@ import com.github.sebastianp265.aitrainer.shared.localization.formatLongWeekdayD
 import com.github.sebastianp265.aitrainer.shared.state.WhileUiSubscribed
 import com.github.sebastianp265.aitrainer.shared.workout.PlanLine
 import com.github.sebastianp265.aitrainer.shared.workout.planExercises
-import com.github.sebastianp265.aitrainer.shared.workout.planNumberText
-import com.github.sebastianp265.aitrainer.shared.workout.planWarmupText
-import com.github.sebastianp265.aitrainer.shared.workout.planWorkingRpeText
 import com.github.sebastianp265.aitrainer.shared.workout.planWorkingText
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,6 +51,17 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
+import com.github.sebastianp265.aitrainer.shared.design.InfoNote
+import com.github.sebastianp265.aitrainer.shared.design.Tag
+import com.github.sebastianp265.aitrainer.shared.design.extendedColors
+import com.github.sebastianp265.aitrainer.shared.workout.PlanLineRows
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.sp
 
 internal data class PreviewUiState(
     val isLoading: Boolean = true,
@@ -100,10 +105,13 @@ internal fun ProposalPreviewContent(state: PreviewUiState, onAccept: () -> Unit,
     Scaffold(
         bottomBar = {
             if (proposal?.state == ProposalState.PENDING) {
-                Surface(tonalElevation = 3.dp) {
-                    Row(Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedButton(onClick = onReply, Modifier.weight(1f)) { Text(stringResource(R.string.coach_reply)) }
-                        Button(onClick = onAccept, Modifier.weight(1f).testTag(CoachTags.ACCEPT)) { Text(stringResource(R.string.coach_accept)) }
+                Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
+                    Row(
+                        Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        DesignOutlinedButton(onClick = onReply, Modifier.weight(1f).height(48.dp)) { Text(stringResource(R.string.coach_reply)) }
+                        Button(onClick = onAccept, Modifier.weight(1f).height(48.dp).testTag(CoachTags.ACCEPT)) { Text(stringResource(R.string.coach_accept)) }
                     }
                 }
             }
@@ -113,21 +121,19 @@ internal fun ProposalPreviewContent(state: PreviewUiState, onAccept: () -> Unit,
             Box(Modifier.padding(padding).fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
             return@Scaffold
         }
-        Column(Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Column {
-                Text(stringResource(R.string.preview_title), style = MaterialTheme.typography.headlineSmall)
-                Text(previewSubtitle(proposal), style = MaterialTheme.typography.bodyMedium)
+        Column(
+            Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Column(Modifier.heightIn(min = 64.dp), verticalArrangement = Arrangement.Center) {
+                Text(stringResource(R.string.preview_title), style = MaterialTheme.typography.titleLarge)
+                Text(previewSubtitle(proposal), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
-                Column(Modifier.padding(14.dp)) {
-                    Text(stringResource(R.string.preview_what_changes), style = MaterialTheme.typography.titleSmall)
-                    Text(proposal.summary, style = MaterialTheme.typography.bodyMedium)
-                }
-            }
+            InfoNote(stringResource(R.string.preview_what_changes), proposal.summary)
             proposal.plans.forEach { plan ->
                 PlanPreview(plan, plan.planId?.let { state.currentPlans[it] }, state.exercises, showName = proposal.plans.size > 1)
             }
-            Text(stringResource(R.string.preview_footer), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.preview_footer), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -151,30 +157,41 @@ private fun PlanPreview(plan: ProposedPlan, current: Plan?, exercises: Map<Strin
     if (showName) Text(plan.name, style = MaterialTheme.typography.titleMedium)
     planExercises(plan.sets).forEach { exercise ->
         Card(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(exercises[exercise.exerciseKey]?.displayName(locale) ?: exercise.exerciseKey, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        exercises[exercise.exerciseKey]?.displayName(locale) ?: exercise.exerciseKey,
+                        Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp),
+                    )
                     changes.filter { changeKey(it) == exercise.exerciseKey }.forEach { change ->
-                        Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.tertiaryContainer) {
-                            Text(changeBadge(change), Modifier.padding(horizontal = 8.dp, vertical = 2.dp), style = MaterialTheme.typography.labelMedium)
-                        }
+                        Tag(changeBadge(change), containerColor = extendedColors.warningContainer, contentColor = extendedColors.onWarningContainer)
                     }
                 }
-                exercise.lines.forEach { line ->
-                    when (line) {
-                        is PlanLine.Warmup -> PreviewLine("R", planWarmupText(line), stringResource(R.string.plan_warmup))
-                        is PlanLine.Working -> PreviewLine(planNumberText(line), planWorkingText(line), planWorkingRpeText(line))
-                    }
-                }
+                PlanLineRows(exercise.lines)
             }
         }
     }
     changes.filterIsInstance<PlanChange.Removed>().forEach { removed ->
-        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-            Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(exercises[removed.exerciseKey]?.displayName(locale) ?: removed.exerciseKey, Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
-                Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.errorContainer) {
-                    Text(stringResource(R.string.preview_removed), Modifier.padding(horizontal = 8.dp, vertical = 2.dp), style = MaterialTheme.typography.labelMedium)
+        val removedLines = current?.sets.orEmpty().filter { it.exerciseKey == removed.exerciseKey }
+        Surface(
+            Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            color = Color.Transparent,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
+        ) {
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        exercises[removed.exerciseKey]?.displayName(locale) ?: removed.exerciseKey,
+                        Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp, textDecoration = TextDecoration.LineThrough),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Tag(stringResource(R.string.preview_removed), containerColor = MaterialTheme.colorScheme.errorContainer, contentColor = MaterialTheme.colorScheme.onErrorContainer)
+                }
+                planExercises(removedLines).flatMap { it.lines }.filterIsInstance<PlanLine.Working>().firstOrNull()?.let { line ->
+                    Text(stringResource(R.string.preview_was, planWorkingText(line)), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -194,13 +211,4 @@ private fun changeBadge(change: PlanChange): String = when (change) {
     is PlanChange.Removed -> stringResource(R.string.preview_removed)
     is PlanChange.SetsChanged -> stringResource(R.string.preview_sets_changed, change.from, change.to)
     is PlanChange.WeightChanged -> stringResource(R.string.diff_kg, com.github.sebastianp265.aitrainer.shared.localization.formatNumber(change.deltaKg, 1, signed = true))
-}
-
-@Composable
-private fun PreviewLine(number: String, text: String, trailing: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Text(number, Modifier.widthIn(min = 40.dp), color = MaterialTheme.colorScheme.primary)
-        Text(text, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-        Text(trailing, style = MaterialTheme.typography.bodyMedium)
-    }
 }

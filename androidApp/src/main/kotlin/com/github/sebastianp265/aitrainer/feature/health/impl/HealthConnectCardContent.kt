@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,7 +24,7 @@ internal fun HealthConnectCardContent(
     permissions: Set<String>,
     actions: HealthConnectCardActions,
 ) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.progress_connect_title), style = MaterialTheme.typography.titleMedium)
             val description = when (access) {
@@ -32,7 +33,7 @@ internal fun HealthConnectCardContent(
                 HealthConnectAccess.NOT_CONNECTED -> R.string.health_connect_not_connected
                 HealthConnectAccess.CONNECTED -> null
             }
-            description?.let { Text(stringResource(it)) }
+            description?.let { Text(stringResource(it), style = MaterialTheme.typography.bodyMedium) }
             when (access) {
                 HealthConnectAccess.NOT_CONNECTED ->
                     Button(onClick = { actions.connect(permissions) }) { Text(stringResource(R.string.health_connect_connect)) }

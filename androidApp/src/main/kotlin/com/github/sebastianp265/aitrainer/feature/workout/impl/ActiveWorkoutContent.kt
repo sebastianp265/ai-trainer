@@ -1,6 +1,7 @@
 package com.github.sebastianp265.aitrainer.feature.workout.impl
 
 import android.content.res.Resources
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,17 +9,17 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -59,6 +60,8 @@ import kotlinx.datetime.LocalDate
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
+import com.github.sebastianp265.aitrainer.shared.design.DashedButton
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 
 @Composable
 internal fun ActiveWorkoutContent(
@@ -83,13 +86,18 @@ internal fun ActiveWorkoutContent(
         modifier = modifier,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            Surface(tonalElevation = 3.dp) {
+            Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
                 Row(
-                    Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 12.dp),
+                    Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 16.dp, top = 12.dp, end = 16.dp, bottom = 20.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    OutlinedButton(onClick = { confirmDiscard = true }, Modifier.weight(1f)) { Text(stringResource(R.string.discard)) }
-                    Button(onClick = actions::finishSession, Modifier.weight(1f)) { Text(stringResource(R.string.finish)) }
+                    OutlinedButton(
+                        onClick = { confirmDiscard = true },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                    ) { Text(stringResource(R.string.discard)) }
+                    Button(onClick = actions::finishSession, Modifier.weight(1f).height(48.dp)) { Text(stringResource(R.string.finish)) }
                 }
             }
         },
@@ -101,22 +109,17 @@ internal fun ActiveWorkoutContent(
             } else {
                 LazyColumn(
                     Modifier.statusBarsPadding(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     item { WorkoutHeader(session, state.plan) }
                     if (state.blocks.isEmpty()) {
-                        item { Text(stringResource(R.string.add_first_exercise_hint)) }
+                        item { Text(stringResource(R.string.add_first_exercise_hint), color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     }
                     items(state.blocks, key = { it.block.exercise.key }) { ui ->
                         ExerciseCard(ui, actions, onOpenHistory = { onOpenExerciseHistory(ui.block.exercise.key) })
                     }
-                    item {
-                        TextButton(onClick = onOpenExercisePicker) {
-                            Icon(Icons.Default.Add, contentDescription = null)
-                            Text(stringResource(R.string.add_exercise))
-                        }
-                    }
+                    item { DashedButton(stringResource(R.string.add_exercise), DesignIcons.Add, onClick = onOpenExercisePicker) }
                 }
             }
         }
@@ -143,8 +146,8 @@ private fun WorkoutHeader(session: WorkoutSession, plan: Plan?) {
             delay(1.seconds)
         }
     }
-    Column {
-        Text(plan?.name ?: stringResource(R.string.workout_empty_title), style = MaterialTheme.typography.headlineSmall)
+    Column(Modifier.heightIn(min = 64.dp).padding(vertical = 8.dp), verticalArrangement = Arrangement.Center) {
+        Text(plan?.name ?: stringResource(R.string.workout_empty_title), style = MaterialTheme.typography.titleLarge)
         val origin = when (plan?.author) {
             null -> stringResource(R.string.workout_empty_subtitle)
             PlanAuthor.USER -> stringResource(R.string.workout_from_own_plan)
@@ -153,6 +156,7 @@ private fun WorkoutHeader(session: WorkoutSession, plan: Plan?) {
         Text(
             stringResource(R.string.workout_subtitle, origin, formatElapsed(elapsedSeconds)),
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.testTag(ActiveWorkoutTags.SUBTITLE),
         )
     }
@@ -174,7 +178,11 @@ internal fun DiscardWorkoutDialog(planName: String?, onConfirm: () -> Unit, onDi
                 else stringResource(R.string.discard_workout_text_plan, planName),
             )
         },
-        confirmButton = { TextButton(onClick = onConfirm) { Text(stringResource(R.string.discard)) } },
+        confirmButton = {
+            TextButton(onClick = onConfirm, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
+                Text(stringResource(R.string.discard))
+            }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.back_to_workout)) } },
     )
 }

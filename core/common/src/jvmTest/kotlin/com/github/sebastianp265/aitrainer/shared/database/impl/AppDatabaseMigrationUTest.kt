@@ -120,6 +120,17 @@ class AppDatabaseMigrationUTest {
         }
     }
 
+    @Test
+    fun `migration from 13 to 14 adds an empty coach note to plans`() {
+        helper.createDatabase(13).use { connection ->
+            connection.execSQL("INSERT INTO plan (id, name, date, author, createdAt) VALUES (1, 'Push', '2026-11-12', 'COACH', 1000)")
+        }
+
+        helper.runMigrationsAndValidate(14).use { connection ->
+            assertEquals(1, connection.count("plan WHERE coachNote IS NULL"))
+        }
+    }
+
     private fun migratedSeedOfVersion7(): MuscleSnapshot {
         helper.createDatabase(7).use { runSeed(it, "/seed-v7.sql") }
         return helper.runMigrationsAndValidate(8, listOf(migration7To8)).use { it.snapshotOfMuscles() }

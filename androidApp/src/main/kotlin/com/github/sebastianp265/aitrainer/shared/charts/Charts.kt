@@ -8,7 +8,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -17,12 +20,15 @@ import androidx.compose.ui.unit.dp
 import kotlinx.datetime.LocalDate
 import kotlin.math.abs
 
+private const val GRID_LINES = 3
+
 internal data class DailyPoint(val date: LocalDate, val value: Double)
 
 @Composable
 internal fun LineChart(points: List<DailyPoint>, average: List<DailyPoint>, modifier: Modifier = Modifier) {
-    val pointColor = MaterialTheme.colorScheme.outline
+    val pointColor = MaterialTheme.colorScheme.inversePrimary
     val lineColor = MaterialTheme.colorScheme.primary
+    val gridColor = MaterialTheme.colorScheme.outlineVariant
     Canvas(modifier.fillMaxWidth().height(160.dp)) {
         val all = points + average
         val firstDay = all.minOf { it.date.toEpochDays() }
@@ -38,20 +44,24 @@ internal fun LineChart(points: List<DailyPoint>, average: List<DailyPoint>, modi
             val span = (maxValue - minValue).takeIf { it > 0 } ?: 1.0
             return (size.height - padding - (size.height - 2 * padding) * ((value - minValue) / span)).toFloat()
         }
+        repeat(GRID_LINES) { index ->
+            val gridY = padding + (size.height - 2 * padding) * index / (GRID_LINES - 1)
+            drawLine(gridColor, Offset(0f, gridY), Offset(size.width, gridY), strokeWidth = 1.dp.toPx())
+        }
         points.forEach { drawCircle(pointColor, radius = 3.dp.toPx(), center = Offset(x(it.date), y(it.value))) }
         val path = Path()
         average.forEachIndexed { index, point ->
             val offset = Offset(x(point.date), y(point.value))
             if (index == 0) path.moveTo(offset.x, offset.y) else path.lineTo(offset.x, offset.y)
         }
-        drawPath(path, lineColor, style = Stroke(width = 2.dp.toPx()))
+        drawPath(path, lineColor, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
     }
 }
 
 @Composable
 internal fun BarChart(values: List<Int>, modifier: Modifier = Modifier) {
-    val barColor = MaterialTheme.colorScheme.primary
-    val axisColor = MaterialTheme.colorScheme.outlineVariant
+    val barColor = MaterialTheme.colorScheme.tertiary
+    val axisColor = MaterialTheme.colorScheme.outline
     Canvas(modifier.fillMaxWidth().height(120.dp)) {
         val minimum = minOf(values.min(), 0)
         val maximum = maxOf(values.max(), 0)
@@ -62,7 +72,7 @@ internal fun BarChart(values: List<Int>, modifier: Modifier = Modifier) {
         values.forEachIndexed { index, value ->
             val barHeight = size.height * abs(value) / span
             val top = if (value >= 0) zeroY - barHeight else zeroY
-            drawRect(barColor, Offset(slot * index + (slot - barWidth) / 2, top), Size(barWidth, barHeight.coerceAtLeast(1f)))
+            drawRoundRect(barColor, Offset(slot * index + (slot - barWidth) / 2, top), Size(barWidth, barHeight.coerceAtLeast(1f)), CornerRadius(4.dp.toPx()))
         }
         drawLine(axisColor, Offset(0f, zeroY), Offset(size.width, zeroY), strokeWidth = 1.dp.toPx())
     }

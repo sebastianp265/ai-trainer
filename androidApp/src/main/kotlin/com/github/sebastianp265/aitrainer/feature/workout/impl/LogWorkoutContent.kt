@@ -1,6 +1,5 @@
 package com.github.sebastianp265.aitrainer.feature.workout.impl
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,7 +19,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,6 +29,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
@@ -38,6 +39,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.shared.design.IconCircle
+import com.github.sebastianp265.aitrainer.shared.design.ListRow
+import com.github.sebastianp265.aitrainer.shared.design.SectionHeader
+import com.github.sebastianp265.aitrainer.shared.design.Tag
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
@@ -51,6 +56,8 @@ import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeekdayDate
 import kotlinx.datetime.LocalDate
 import kotlin.time.Instant
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
+import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
 
 @Composable
 internal fun LogWorkoutContent(
@@ -118,12 +125,12 @@ private fun NextPlanCard(plan: Plan, exercises: Map<String, Exercise>, onStartFr
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(label, style = MaterialTheme.typography.labelMedium)
-            Text(plan.name, style = MaterialTheme.typography.titleLarge)
+            Text(plan.name, style = MaterialTheme.typography.titleMedium)
             Text(names, style = MaterialTheme.typography.bodyMedium)
             Text(planCountsWithAuthor(plan), style = MaterialTheme.typography.bodyMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = onStartFromPlan, Modifier.testTag(LogWorkoutTags.START_NEXT_PLAN)) { Text(stringResource(R.string.start_next_plan)) }
-                OutlinedButton(onClick = onOtherWorkout, Modifier.testTag(LogWorkoutTags.OTHER_WORKOUT)) { Text(stringResource(R.string.other_workout)) }
+                DesignOutlinedButton(onClick = onOtherWorkout, Modifier.testTag(LogWorkoutTags.OTHER_WORKOUT)) { Text(stringResource(R.string.other_workout)) }
             }
         }
     }
@@ -181,27 +188,19 @@ private fun NoWorkoutsYet() {
 
 @Composable
 private fun RecentHeader(onOpenHistory: () -> Unit) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.recent_workouts), style = MaterialTheme.typography.titleMedium)
+    SectionHeader(stringResource(R.string.recent_workouts)) {
         TextButton(onClick = onOpenHistory) { Text(stringResource(R.string.history_all)) }
     }
 }
 
 @Composable
 private fun RecentSessionRow(session: SessionSummary, onClick: () -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 6.dp).testTag(LogWorkoutTags.RECENT_SESSION),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
+    ListRow(Modifier.testTag(LogWorkoutTags.RECENT_SESSION), onClick = onClick) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(session.planName ?: stringResource(R.string.workout_empty_title), style = MaterialTheme.typography.bodyLarge)
             Text(sessionLine(session), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        if (session.planId != null) {
-            Surface(shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.secondaryContainer) {
-                Text(stringResource(R.string.from_plan), Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelMedium)
-            }
-        }
+        if (session.planId != null) Tag(stringResource(R.string.from_plan))
     }
 }
 
@@ -221,26 +220,33 @@ private fun sessionLine(session: SessionSummary): String {
 @Composable
 private fun StartSheet(plans: List<Plan>, onStartFromPlan: (Long) -> Unit, onStartEmpty: () -> Unit, onDismiss: () -> Unit) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(Modifier.padding(horizontal = 16.dp).padding(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(stringResource(R.string.start_workout), style = MaterialTheme.typography.titleLarge)
+        Column(Modifier.padding(bottom = 24.dp)) {
+            Text(stringResource(R.string.start_workout), Modifier.padding(horizontal = 24.dp).padding(bottom = 8.dp), style = MaterialTheme.typography.headlineSmall)
             if (plans.isNotEmpty()) {
-                Text(stringResource(R.string.from_a_plan), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    stringResource(R.string.from_a_plan),
+                    Modifier.padding(horizontal = 24.dp).padding(top = 12.dp, bottom = 4.dp),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
                 plans.forEachIndexed { index, plan ->
                     SheetOption(
                         title = plan.name,
                         subtitle = sheetPlanLine(plan),
                         badge = if (plan.author == PlanAuthor.USER) stringResource(R.string.plan_author_you) else stringResource(R.string.plan_author_coach),
                         selected = index == 0,
+                        icon = DesignIcons.Plan,
                         modifier = Modifier.testTag(LogWorkoutTags.sheetPlan(plan.name)),
                     ) { onStartFromPlan(plan.id) }
                 }
-                HorizontalDivider(Modifier.padding(vertical = 4.dp))
+                HorizontalDivider(Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
             }
             SheetOption(
                 title = stringResource(R.string.empty_workout),
                 subtitle = stringResource(R.string.empty_workout_text),
                 badge = null,
                 selected = false,
+                icon = DesignIcons.Add,
                 modifier = Modifier.testTag(LogWorkoutTags.SHEET_EMPTY),
                 onClick = onStartEmpty,
             )
@@ -262,19 +268,25 @@ private fun sheetPlanLine(plan: Plan): String {
 }
 
 @Composable
-private fun SheetOption(title: String, subtitle: String, badge: String?, selected: Boolean, modifier: Modifier, onClick: () -> Unit) {
+private fun SheetOption(title: String, subtitle: String, badge: String?, selected: Boolean, icon: ImageVector, modifier: Modifier, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent,
     ) {
-        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
+        Row(
+            Modifier.heightIn(min = 56.dp).padding(horizontal = 24.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconCircle(icon)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(title, style = MaterialTheme.typography.bodyLarge)
-                Text(subtitle, style = MaterialTheme.typography.bodyMedium)
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            if (badge != null) Text(badge, style = MaterialTheme.typography.labelMedium)
+            if (badge != null) {
+                Tag(badge, containerColor = if (selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.secondaryContainer)
+            }
         }
     }
 }

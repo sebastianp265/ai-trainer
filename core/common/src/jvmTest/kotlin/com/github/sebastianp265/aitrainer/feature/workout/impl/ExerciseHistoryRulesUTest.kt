@@ -11,20 +11,21 @@ class ExerciseHistoryRulesUTest {
 
     private val today = LocalDate(2026, 11, 10)
 
-    private fun row(session: Long, date: LocalDate, weight: Double, reps: Int, rpe: Double? = null, position: Int = 0) =
-        HistorySetRow(session, date, position, reps, weight, rpe)
+    private fun row(session: Long, date: LocalDate, weight: Double, reps: Int, rpe: Double? = null, position: Int = 0, plan: String? = null) =
+        HistorySetRow(session, date, plan, position, reps, weight, rpe)
 
     private fun history(vararg rows: HistorySetRow) = exerciseHistory("bench", rows.toList(), today)
 
     @Test
-    fun `sessions are listed newest first with their grouped sets`() {
+    fun `sessions are listed newest first with their plan and grouped sets`() {
         val result = history(
-            row(1, LocalDate(2026, 10, 6), 75.0, 8, 7.5, 0),
-            row(1, LocalDate(2026, 10, 6), 75.0, 8, 7.5, 1),
+            row(1, LocalDate(2026, 10, 6), 75.0, 8, 7.5, 0, plan = "Push A"),
+            row(1, LocalDate(2026, 10, 6), 75.0, 8, 7.5, 1, plan = "Push A"),
             row(2, LocalDate(2026, 11, 3), 80.0, 8, 8.0, 0),
         )
 
         assertEquals(listOf(2L, 1L), result.sessions.map { it.sessionId })
+        assertEquals(listOf(null, "Push A"), result.sessions.map { it.planName })
         assertEquals(2, result.sessions.last().groups.single().setCount)
         assertEquals(2, result.sessionCount)
     }

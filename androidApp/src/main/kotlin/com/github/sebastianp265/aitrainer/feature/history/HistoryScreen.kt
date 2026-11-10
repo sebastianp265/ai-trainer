@@ -11,10 +11,10 @@ import com.github.sebastianp265.aitrainer.feature.history.impl.HistoryViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-internal fun HistoryScreen(onOpenExternalWorkout: (startedAtMillis: Long) -> Unit) {
+internal fun HistoryScreen(onOpenWorkout: (sessionId: Long) -> Unit, onOpenExternalWorkout: (startedAtMillis: Long) -> Unit) {
     val viewModel: HistoryViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    HistoryContent(state, onOpenExternal = { onOpenExternalWorkout(it.startedAt.toEpochMilliseconds()) })
+    HistoryContent(state, onOpenWorkout = onOpenWorkout, onOpenExternal = { onOpenExternalWorkout(it.startedAt.toEpochMilliseconds()) })
 }
 
 @Composable

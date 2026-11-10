@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +23,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.shared.design.CardLabel
+import com.github.sebastianp265.aitrainer.shared.design.InfoNote
 import com.github.sebastianp265.aitrainer.integration.volume.DEFAULT_MAX_WEEKLY_SETS
 import com.github.sebastianp265.aitrainer.integration.volume.DEFAULT_MIN_WEEKLY_SETS
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
@@ -35,35 +34,36 @@ import com.github.sebastianp265.aitrainer.shared.volume.VolumeBars
 import com.github.sebastianp265.aitrainer.shared.volume.VolumeLegend
 import com.github.sebastianp265.aitrainer.shared.volume.VolumeRow
 import com.github.sebastianp265.aitrainer.shared.volume.status
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 
 @Composable
 internal fun VolumeCard(rows: List<VolumeRow>, showTargets: Boolean, onOpenTargets: () -> Unit) {
     var infoOpen by rememberSaveable { mutableStateOf(false) }
     Card(Modifier.fillMaxWidth().testTag(ProgressTags.VOLUME_CARD)) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.volume_card_title), Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+                CardLabel(stringResource(R.string.volume_card_title), Modifier.weight(1f))
                 TextButton(onClick = onOpenTargets, Modifier.testTag(ProgressTags.VOLUME_TARGETS_LINK)) { Text(stringResource(R.string.volume_targets_link)) }
                 IconButton(onClick = { infoOpen = !infoOpen }) {
-                    Icon(Icons.Default.Info, contentDescription = stringResource(R.string.volume_how_we_count))
+                    Icon(DesignIcons.Info, contentDescription = stringResource(R.string.volume_how_we_count), tint = MaterialTheme.colorScheme.primary)
                 }
             }
             VolumeBars(rows, showTargets)
             if (showTargets) VolumeLegend(showPlanned = false)
             if (infoOpen) VolumeInfoBox()
-            if (showTargets) Text(volumeSummary(rows), style = MaterialTheme.typography.bodyMedium)
+            if (showTargets) Text(volumeSummary(rows), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
 @Composable
 private fun VolumeInfoBox() {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(stringResource(R.string.volume_info_title), style = MaterialTheme.typography.titleSmall)
-            Text(stringResource(R.string.volume_info_counting), style = MaterialTheme.typography.bodyMedium)
-            Text(stringResource(R.string.volume_info_target, DEFAULT_MIN_WEEKLY_SETS, DEFAULT_MAX_WEEKLY_SETS), style = MaterialTheme.typography.bodyMedium)
-        }
+    InfoNote(stringResource(R.string.volume_info_title), stringResource(R.string.volume_info_counting)) {
+        Text(
+            stringResource(R.string.volume_info_target, DEFAULT_MIN_WEEKLY_SETS, DEFAULT_MAX_WEEKLY_SETS),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f),
+        )
     }
 }
 

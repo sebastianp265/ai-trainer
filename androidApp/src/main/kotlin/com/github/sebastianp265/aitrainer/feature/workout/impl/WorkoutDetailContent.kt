@@ -6,15 +6,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
@@ -37,7 +35,10 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.shared.design.Tag
+import com.github.sebastianp265.aitrainer.shared.design.extendedColors
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.workout.ReportExercise
@@ -49,6 +50,7 @@ import com.github.sebastianp265.aitrainer.shared.workout.PlanLine
 import com.github.sebastianp265.aitrainer.shared.workout.planExercises
 import com.github.sebastianp265.aitrainer.shared.workout.planWorkingRpeText
 import com.github.sebastianp265.aitrainer.shared.workout.planWorkingText
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,21 +69,21 @@ internal fun WorkoutDetailContent(
                     if (report != null) {
                         Column {
                             Text(report.plan?.name ?: stringResource(R.string.workout_empty_title), style = MaterialTheme.typography.titleLarge)
-                            Text(reportDetailSubtitle(report), style = MaterialTheme.typography.bodySmall)
+                            Text(reportDetailSubtitle(report), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
+                    IconButton(onClick = onBack) { Icon(DesignIcons.Back, contentDescription = stringResource(R.string.back)) }
                 },
                 actions = {
                     if (state.canEdit) {
                         IconButton(onClick = onEdit, Modifier.testTag(ReportTags.EDIT)) {
-                            Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.workout_edit_description))
+                            Icon(DesignIcons.Edit, contentDescription = stringResource(R.string.workout_edit_description))
                         }
                     }
                     IconButton(onClick = { confirmDelete = true }) {
-                        Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.workout_delete_description))
+                        Icon(DesignIcons.Delete, contentDescription = stringResource(R.string.workout_delete_description))
                     }
                 },
             )
@@ -98,7 +100,10 @@ internal fun WorkoutDetailContent(
             ReportStats(report)
             report.exercises.forEach { ExerciseReport(it, state.exercises) }
             if (LocalCoachEnabled.current) {
-                FilledTonalButton(onClick = LocalOpenCoach.current, Modifier.fillMaxWidth().testTag(ReportTags.ASK_COACH)) { Text(stringResource(R.string.detail_ask_coach)) }
+                FilledTonalButton(onClick = LocalOpenCoach.current, Modifier.fillMaxWidth().height(48.dp).testTag(ReportTags.ASK_COACH)) {
+                    Icon(DesignIcons.Coach, contentDescription = null, Modifier.padding(end = 8.dp))
+                    Text(stringResource(R.string.detail_ask_coach))
+                }
             }
         }
     }
@@ -107,7 +112,12 @@ internal fun WorkoutDetailContent(
             onDismissRequest = { confirmDelete = false },
             title = { Text(stringResource(R.string.workout_delete_title)) },
             text = { Text(stringResource(R.string.workout_delete_text)) },
-            confirmButton = { TextButton(onClick = { confirmDelete = false; onDelete() }) { Text(stringResource(R.string.remove)) } },
+            confirmButton = {
+                TextButton(
+                    onClick = { confirmDelete = false; onDelete() },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                ) { Text(stringResource(R.string.remove)) }
+            },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
@@ -118,9 +128,13 @@ private fun ExerciseReport(exercise: ReportExercise, names: Map<String, Exercise
     val locale = LocalConfiguration.current.locales[0]
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(names.getValue(exercise.exerciseKey).displayName(locale), style = MaterialTheme.typography.titleMedium)
+            Text(names.getValue(exercise.exerciseKey).displayName(locale), style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp))
             if (exercise.plannedSets.isNotEmpty()) {
-                Text(stringResource(R.string.detail_plan_line, plannedLine(exercise)), style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    stringResource(R.string.detail_plan_line, plannedLine(exercise)),
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             var workingNumber = 0
             exercise.sets.forEach { set ->
@@ -128,12 +142,13 @@ private fun ExerciseReport(exercise: ReportExercise, names: Map<String, Exercise
             }
             val difference = exercise.difference
             if (difference != null && !difference.addedToPlan) {
-                Text(
+                val worse = differenceIsWorse(difference)
+                Tag(
                     stringResource(R.string.detail_diff_vs_plan, differenceText(difference)),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = if (differenceIsWorse(difference)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                    containerColor = if (worse) extendedColors.warningContainer else MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = if (worse) extendedColors.onWarningContainer else MaterialTheme.colorScheme.onPrimaryContainer,
                 )
-                missingSetsText(exercise)?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
+                missingSetsText(exercise)?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             }
         }
     }
@@ -158,14 +173,27 @@ private fun plannedLine(exercise: ReportExercise): String =
 
 @Composable
 private fun SetLine(workingNumber: Int?, set: SetEntry) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().testTag(ReportTags.SET_LINE)) {
-        Text(workingNumber?.toString() ?: stringResource(R.string.warmup_short), Modifier.widthIn(min = 32.dp), color = MaterialTheme.colorScheme.primary)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag(ReportTags.SET_LINE),
+    ) {
+        Text(
+            workingNumber?.toString() ?: stringResource(R.string.warmup_short),
+            Modifier.widthIn(min = 28.dp),
+            style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp),
+            color = if (workingNumber == null) extendedColors.warning else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         Text(
             if (set.weightKg > 0) stringResource(R.string.detail_row_load, formatWeight(set.weightKg), set.reps)
             else stringResource(R.string.detail_row_reps, set.reps),
             Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp),
         )
-        Text(set.rpe?.let { stringResource(R.string.plan_rpe, formatWeight(it)) } ?: "–", style = MaterialTheme.typography.bodyMedium)
+        Text(
+            set.rpe?.let { stringResource(R.string.plan_rpe, formatWeight(it)) } ?: "–",
+            style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }

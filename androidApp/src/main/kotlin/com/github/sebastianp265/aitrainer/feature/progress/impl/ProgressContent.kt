@@ -3,7 +3,25 @@ package com.github.sebastianp265.aitrainer.feature.progress.impl
 import com.github.sebastianp265.aitrainer.shared.charts.LineChart
 import com.github.sebastianp265.aitrainer.shared.charts.BarChart
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
+import com.github.sebastianp265.aitrainer.shared.design.CardLabel
+import com.github.sebastianp265.aitrainer.shared.design.Tag
+import com.github.sebastianp265.aitrainer.shared.design.extendedColors
+import com.github.sebastianp265.aitrainer.shared.localization.formatWeekdayDate
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,13 +33,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,9 +51,7 @@ import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.feature.health.HealthConnectCard
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetric
 import com.github.sebastianp265.aitrainer.integration.health.HealthDay
-import com.github.sebastianp265.aitrainer.shared.localization.formatDate
 import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
-import com.github.sebastianp265.aitrainer.shared.volume.VolumeRow
 import kotlinx.datetime.LocalDate
 
 @Composable
@@ -55,6 +69,19 @@ internal fun ProgressContent(
         Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
         return
     }
+    val tiles = listOfNotNull(
+        cards.steps?.let { MiniTile(R.string.progress_steps, formatNumber(it), stringResource(R.string.progress_steps_hint), ProgressMetric.STEPS) },
+        cards.sleepMinutes?.let { MiniTile(R.string.progress_sleep, formatDuration(it.toInt()), stringResource(R.string.progress_sleep_hint), ProgressMetric.SLEEP) },
+        cards.restingHeartRate?.let { card ->
+            MiniTile(
+                R.string.progress_rhr,
+                stringResource(R.string.value_bpm, formatNumber(card.current)),
+                card.change?.let { stringResource(R.string.progress_change, formatNumber(it, signed = true), stringResource(state.range.inRangeRes())) }.orEmpty(),
+                ProgressMetric.RESTING_HEART_RATE,
+            )
+        },
+        cards.hrvMs?.let { MiniTile(R.string.progress_hrv, stringResource(R.string.value_ms, formatNumber(it)), stringResource(R.string.progress_sleep_hint), ProgressMetric.HEART_RATE_VARIABILITY) },
+    )
     LazyColumn(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -65,22 +92,18 @@ internal fun ProgressContent(
         cards.weight?.let { item { WeightCard(it, state.range) { onOpenMetric(ProgressMetric.WEIGHT) } } }
         cards.balance?.let { item { BalanceCard(it) { onOpenMetric(ProgressMetric.CALORIE_BALANCE) } } }
         cards.macros?.let { item { MacrosCard(it) } }
-        cards.steps?.let {
-            item { AverageCard(R.string.progress_steps, R.string.progress_steps_hint, formatNumber(it)) { onOpenMetric(ProgressMetric.STEPS) } }
-        }
-        cards.sleepMinutes?.let {
-            item { AverageCard(R.string.progress_sleep, R.string.progress_sleep_hint, formatDuration(it.toInt())) { onOpenMetric(ProgressMetric.SLEEP) } }
-        }
-        cards.restingHeartRate?.let { item { RestingHeartRateCard(it, state.range) { onOpenMetric(ProgressMetric.RESTING_HEART_RATE) } } }
-        cards.hrvMs?.let {
-            item {
-                AverageCard(R.string.progress_hrv, R.string.progress_sleep_hint, stringResource(R.string.value_ms, formatNumber(it))) {
-                    onOpenMetric(ProgressMetric.HEART_RATE_VARIABILITY)
-                }
+        items(tiles.chunked(2).size) { index ->
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                val pair = tiles.chunked(2)[index]
+                pair.forEach { tile -> MiniTileCard(tile, Modifier.weight(1f)) { onOpenMetric(tile.metric) } }
+                if (pair.size == 1) Box(Modifier.weight(1f))
             }
         }
-        if (state.strength.isNotEmpty()) item { StrengthCard(state.strength, onOpenExercise) }
-        cards.workouts?.let { item { WorkoutsCard(it, state.range) } }
+        if (state.strength.isNotEmpty()) {
+            item { StrengthCard(state.strength, cards.workouts, state.range, onOpenExercise) }
+        } else {
+            cards.workouts?.let { item { WorkoutsCard(it, state.range) } }
+        }
         if (state.volumeRows.isNotEmpty()) item { VolumeCard(state.volumeRows, state.showTargets, onOpenTargets) }
         if (cards.recentDays.isNotEmpty()) item { DaysCard(cards.recentDays, onOpenDay) }
     }
@@ -88,12 +111,14 @@ internal fun ProgressContent(
 
 @Composable
 internal fun RangeSwitch(selected: ProgressRange, onSelected: (ProgressRange) -> Unit) {
-    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().height(40.dp)) {
         ProgressRange.entries.forEachIndexed { index, range ->
             SegmentedButton(
                 selected = range == selected,
                 onClick = { onSelected(range) },
                 shape = SegmentedButtonDefaults.itemShape(index, ProgressRange.entries.size),
+                colors = SegmentedButtonDefaults.colors(inactiveBorderColor = MaterialTheme.colorScheme.outline, activeBorderColor = MaterialTheme.colorScheme.outline),
+                icon = {},
                 modifier = Modifier.testTag(ProgressTags.range(range)),
             ) { Text(stringResource(range.labelRes())) }
         }
@@ -107,11 +132,18 @@ internal fun ProgressCard(
     onDetails: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
-    OutlinedCard(modifier.fillMaxWidth()) {
+    Card(modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(title), style = MaterialTheme.typography.titleSmall)
-                onDetails?.let { TextButton(onClick = it) { Text(stringResource(R.string.progress_details)) } }
+            Row(Modifier.fillMaxWidth().heightIn(min = 20.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                CardLabel(stringResource(title), Modifier.weight(1f))
+                onDetails?.let {
+                    Text(
+                        stringResource(R.string.progress_details),
+                        Modifier.clickable(onClick = it).padding(vertical = 2.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
             content()
         }
@@ -119,89 +151,148 @@ internal fun ProgressCard(
 }
 
 @Composable
+private fun BigValue(value: String, detail: (@Composable () -> Unit)? = null) {
+    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(value, style = MaterialTheme.typography.headlineMedium.copy(fontSize = 28.sp))
+        detail?.let { Box(Modifier.padding(bottom = 4.dp)) { it() } }
+    }
+}
+
+@Composable
+private fun SmallDetail(text: String) {
+    Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+@Composable
+internal fun ChartLegend(vararg items: Pair<Color, String>) {
+    Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+        items.forEach { (color, text) ->
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Box(Modifier.size(10.dp).background(color, CircleShape))
+                Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
 private fun WeightCard(card: TrendCard, range: ProgressRange, onDetails: () -> Unit) {
     ProgressCard(R.string.progress_weight_title, Modifier.testTag(ProgressTags.WEIGHT_CARD), onDetails) {
-        Text(stringResource(R.string.value_kg, formatNumber(card.current, 1)), style = MaterialTheme.typography.headlineMedium)
-        card.change?.let { change ->
-            Text(
-                stringResource(R.string.progress_change, stringResource(R.string.value_kg, formatNumber(change, 1, signed = true)), stringResource(range.inRangeRes())),
-                style = MaterialTheme.typography.bodyMedium,
-            )
+        BigValue(stringResource(R.string.value_kg, formatNumber(card.current, 1))) {
+            card.change?.let { change ->
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(
+                        stringResource(R.string.value_kg, formatNumber(change, 1, signed = true)),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                        color = extendedColors.success,
+                    )
+                    SmallDetail(stringResource(range.inRangeRes()))
+                }
+            }
         }
         LineChart(card.points, card.average)
+        ChartLegend(
+            MaterialTheme.colorScheme.inversePrimary to stringResource(R.string.progress_legend_daily),
+            MaterialTheme.colorScheme.primary to stringResource(R.string.progress_legend_average),
+        )
     }
 }
 
 @Composable
 private fun BalanceCard(card: BalanceCard, onDetails: () -> Unit) {
     ProgressCard(R.string.progress_balance_title, Modifier.testTag(ProgressTags.BALANCE_CARD), onDetails) {
-        Text(
-            stringResource(R.string.value_kcal, formatNumber(card.averageBalanceKcal.toDouble(), signed = true)),
-            style = MaterialTheme.typography.headlineMedium,
-        )
-        Text(
-            stringResource(
-                R.string.progress_balance_detail,
-                formatNumber(card.averageEatenKcal.toDouble()),
-                formatNumber(card.averageBurnedKcal.toDouble()),
-            ),
-            style = MaterialTheme.typography.bodyMedium,
-        )
+        BigValue(stringResource(R.string.value_kcal, formatNumber(card.averageBalanceKcal.toDouble(), signed = true))) {
+            SmallDetail(
+                stringResource(
+                    R.string.progress_balance_detail,
+                    formatNumber(card.averageEatenKcal.toDouble()),
+                    formatNumber(card.averageBurnedKcal.toDouble()),
+                ),
+            )
+        }
         BarChart(card.weeks.map { it.balanceKcal })
-        Text(stringResource(R.string.progress_balance_weeks), style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.progress_balance_weeks), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
 private fun MacrosCard(card: MacrosCard) {
     ProgressCard(R.string.progress_macros_title, Modifier.testTag(ProgressTags.MACROS_CARD)) {
-        listOf(
-            R.string.macro_protein to card.proteinG,
-            R.string.macro_carbs to card.carbsG,
-            R.string.macro_fat to card.fatG,
-            R.string.macro_fiber to card.fiberG,
-        ).forEach { (label, grams) ->
-            grams?.let { LabeledValue(stringResource(label), stringResource(R.string.value_grams, formatNumber(it))) }
+        val macros = listOf(
+            Triple(R.string.macro_protein, card.proteinG, MaterialTheme.colorScheme.primary),
+            Triple(R.string.macro_carbs, card.carbsG, MaterialTheme.colorScheme.tertiary),
+            Triple(R.string.macro_fat, card.fatG, extendedColors.warning),
+            Triple(R.string.macro_fiber, card.fiberG, MaterialTheme.colorScheme.outline),
+        )
+        val scale = (macros.mapNotNull { it.second }.maxOrNull() ?: 1.0) * MACRO_SCALE_MARGIN
+        macros.forEach { (label, grams, color) ->
+            grams?.let { MacroRow(stringResource(label), it, (it / scale).toFloat(), color) }
+        }
+    }
+}
+
+private const val MACRO_SCALE_MARGIN = 1.2
+
+@Composable
+private fun MacroRow(label: String, grams: Double, fraction: Float, color: Color) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, Modifier.width(90.dp), style = MaterialTheme.typography.bodyMedium)
+        Box(Modifier.weight(1f).height(8.dp).clip(RoundedCornerShape(4.dp)).background(MaterialTheme.colorScheme.surfaceVariant)) {
+            Box(Modifier.fillMaxWidth(fraction).height(8.dp).clip(RoundedCornerShape(4.dp)).background(color))
+        }
+        Text(stringResource(R.string.value_grams, formatNumber(grams)), Modifier.width(64.dp), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.End)
+    }
+}
+
+private data class MiniTile(@StringRes val title: Int, val value: String, val hint: String, val metric: ProgressMetric)
+
+@Composable
+private fun MiniTileCard(tile: MiniTile, modifier: Modifier, onClick: () -> Unit) {
+    Card(onClick = onClick, modifier = modifier.testTag(ProgressTags.card(tile.title))) {
+        Column(Modifier.padding(horizontal = 14.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            CardLabel(stringResource(tile.title))
+            Text(tile.value, style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp, fontWeight = FontWeight.Medium))
+            if (tile.hint.isNotEmpty()) Text(tile.hint, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
 
 @Composable
-private fun AverageCard(@StringRes title: Int, @StringRes hint: Int, value: String, onDetails: () -> Unit) {
-    ProgressCard(title, Modifier.testTag(ProgressTags.card(title)), onDetails) {
-        LabeledValue(stringResource(hint), value)
-    }
-}
-
-@Composable
-private fun RestingHeartRateCard(card: TrendCard, range: ProgressRange, onDetails: () -> Unit) {
-    ProgressCard(R.string.progress_rhr, Modifier.testTag(ProgressTags.card(R.string.progress_rhr)), onDetails) {
-        val value = stringResource(R.string.value_bpm, formatNumber(card.current))
-        val change = card.change?.let {
-            stringResource(R.string.progress_change, formatNumber(it, signed = true), stringResource(range.inRangeRes()))
-        }
-        LabeledValue(change.orEmpty(), value)
-    }
-}
-
-@Composable
-private fun StrengthCard(rows: List<StrengthRow>, onOpenExercise: (String) -> Unit) {
+private fun StrengthCard(rows: List<StrengthRow>, workouts: WorkoutsCard?, range: ProgressRange, onOpenExercise: (String) -> Unit) {
     val locale = LocalConfiguration.current.locales[0]
     ProgressCard(R.string.progress_strength_title, Modifier.testTag(ProgressTags.STRENGTH_CARD)) {
-        rows.forEach { row ->
-            Row(
-                Modifier.fillMaxWidth().clickable { onOpenExercise(row.exercise.key) },
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column {
-                    Text(row.exercise.displayName(locale), style = MaterialTheme.typography.bodyMedium)
-                    if (row.isRecord) Text(stringResource(R.string.progress_record), style = MaterialTheme.typography.labelSmall)
+        Column {
+            rows.forEach { row ->
+                Row(
+                    Modifier.fillMaxWidth().clickable { onOpenExercise(row.exercise.key) }.padding(vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(row.exercise.displayName(locale), style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp))
+                        if (row.isRecord) {
+                            Tag(stringResource(R.string.progress_record), containerColor = extendedColors.warningContainer, contentColor = extendedColors.onWarningContainer)
+                        }
+                    }
+                    Text(
+                        stringResource(R.string.value_kg, formatNumber(row.estimatedOneRepMaxKg)),
+                        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                    )
                 }
-                Text(stringResource(R.string.value_kg, formatNumber(row.estimatedOneRepMaxKg)), style = MaterialTheme.typography.titleMedium)
+                HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
             }
         }
+        workouts?.let { WorkoutsLine(it, range) }
     }
+}
+
+@Composable
+private fun WorkoutsLine(card: WorkoutsCard, range: ProgressRange) {
+    Text(
+        stringResource(R.string.progress_workouts_line, stringResource(R.string.progress_workouts_summary, card.count, stringResource(range.inRangeRes()), formatNumber(card.perWeek, 1))),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable
@@ -222,16 +313,19 @@ private fun WorkoutsCard(card: WorkoutsCard, range: ProgressRange) {
 @Composable
 private fun DaysCard(days: List<HealthDay>, onOpenDay: (LocalDate) -> Unit) {
     ProgressCard(R.string.progress_days, Modifier.testTag(ProgressTags.DAYS_CARD)) {
-        days.forEach { day -> DayRow(day) { onOpenDay(day.date) } }
+        Column {
+            days.forEachIndexed { index, day -> DayRow(day, divider = index < days.lastIndex) { onOpenDay(day.date) } }
+        }
     }
 }
 
 @Composable
-private fun DayRow(day: HealthDay, onClick: () -> Unit) {
-    Column(Modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        Text(formatDate(day.date), style = MaterialTheme.typography.labelLarge)
-        Text(day.summary(), Modifier.testTag(ProgressTags.healthDay(day.date)), style = MaterialTheme.typography.bodyMedium)
+private fun DayRow(day: HealthDay, divider: Boolean, onClick: () -> Unit) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(formatWeekdayDate(day.date), Modifier.width(72.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(day.summary(), Modifier.weight(1f).testTag(ProgressTags.healthDay(day.date)), style = MaterialTheme.typography.bodyMedium)
     }
+    if (divider) HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
 }
 
 @Composable
@@ -244,14 +338,6 @@ private fun HealthDay.summary(): String {
         steps?.let { stringResource(R.string.day_steps, formatNumber(it.toDouble())) },
     )
     return parts.joinToString(" · ")
-}
-
-@Composable
-private fun LabeledValue(label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-        Text(value, style = MaterialTheme.typography.titleMedium)
-    }
 }
 
 @Composable

@@ -63,6 +63,7 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
         AutoMigration(from = 10, to = 11),
         AutoMigration(from = 11, to = 12),
         AutoMigration(from = 12, to = 13, spec = Migration12To13::class),
+        AutoMigration(from = 13, to = 14),
     ],
     exportSchema = true,
 )

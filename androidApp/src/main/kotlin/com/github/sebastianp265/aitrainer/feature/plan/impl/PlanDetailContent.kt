@@ -6,24 +6,20 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -41,6 +37,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
@@ -52,13 +49,11 @@ import com.github.sebastianp265.aitrainer.shared.localization.formatLongWeekdayD
 import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
 import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.workout.PlanExercise
-import com.github.sebastianp265.aitrainer.shared.workout.PlanLine
+import com.github.sebastianp265.aitrainer.shared.workout.PlanLineRows
 import com.github.sebastianp265.aitrainer.shared.workout.planExercises
-import com.github.sebastianp265.aitrainer.shared.workout.planNumberText
-import com.github.sebastianp265.aitrainer.shared.workout.planWarmupText
-import com.github.sebastianp265.aitrainer.shared.workout.planWorkingRpeText
-import com.github.sebastianp265.aitrainer.shared.workout.planWorkingText
 import kotlinx.datetime.LocalDate
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
+import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,16 +74,16 @@ internal fun PlanDetailContent(
                     if (plan != null) {
                         Column {
                             Text(plan.name, style = MaterialTheme.typography.titleLarge)
-                            Text(planSubtitle(plan), style = MaterialTheme.typography.bodySmall)
+                            Text(planSubtitle(plan), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back)) }
+                    IconButton(onClick = onBack) { Icon(DesignIcons.Back, contentDescription = stringResource(R.string.back)) }
                 },
                 actions = {
-                    IconButton(onClick = onEdit) { Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.plan_edit)) }
-                    IconButton(onClick = { confirmDelete = true }) { Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.plan_delete)) }
+                    IconButton(onClick = onEdit) { Icon(DesignIcons.Edit, contentDescription = stringResource(R.string.plan_edit)) }
+                    IconButton(onClick = { confirmDelete = true }) { Icon(DesignIcons.Delete, contentDescription = stringResource(R.string.plan_delete)) }
                 },
             )
         },
@@ -101,12 +96,23 @@ internal fun PlanDetailContent(
             Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            val coachEnabled = LocalCoachEnabled.current
+            plan.coachNote?.takeIf { coachEnabled }?.let { CoachNote(it) }
             planExercises(plan.sets).forEach { ExerciseLines(it, state.exercises) }
-            Button(onClick = onStart, Modifier.fillMaxWidth().testTag(PlanTags.START)) { Text(stringResource(R.string.plan_start)) }
-            if (LocalCoachEnabled.current) {
-                FilledTonalButton(onClick = LocalOpenCoach.current, Modifier.fillMaxWidth().testTag(PlanTags.ASK_COACH)) { Text(stringResource(R.string.plan_change_with_coach)) }
+            Button(onClick = onStart, Modifier.fillMaxWidth().height(48.dp).testTag(PlanTags.START)) { Text(stringResource(R.string.plan_start)) }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (coachEnabled) {
+                    Button(
+                        onClick = LocalOpenCoach.current,
+                        modifier = Modifier.weight(1f).height(48.dp).testTag(PlanTags.ASK_COACH),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                        ),
+                    ) { Text(stringResource(R.string.plan_change_with_coach)) }
+                }
+                DesignOutlinedButton(onClick = onEdit, Modifier.weight(1f).height(48.dp)) { Text(stringResource(R.string.plan_edit_myself)) }
             }
-            OutlinedButton(onClick = onEdit, Modifier.fillMaxWidth()) { Text(stringResource(R.string.plan_edit_myself)) }
         }
         if (confirmDelete) {
             DeletePlanDialog(plan.name, onConfirm = { confirmDelete = false; onDelete() }, onDismiss = { confirmDelete = false })
@@ -125,27 +131,31 @@ private fun planSubtitle(plan: Plan): String {
 }
 
 @Composable
-private fun ExerciseLines(exercise: PlanExercise, exercises: Map<String, Exercise>) {
-    val locale = LocalConfiguration.current.locales[0]
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(exercises.getValue(exercise.exerciseKey).displayName(locale), style = MaterialTheme.typography.titleMedium)
-            exercise.lines.forEach { line ->
-                when (line) {
-                    is PlanLine.Warmup -> LineRow("R", planWarmupText(line), stringResource(R.string.plan_warmup))
-                    is PlanLine.Working -> LineRow(planNumberText(line), planWorkingText(line), planWorkingRpeText(line))
-                }
+private fun CoachNote(note: String) {
+    Surface(
+        Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = MaterialTheme.colorScheme.tertiaryContainer,
+        contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+    ) {
+        Row(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Icon(DesignIcons.Coach, contentDescription = null)
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(stringResource(R.string.plan_coach_note), style = MaterialTheme.typography.titleSmall)
+                Text(note, style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
 }
 
 @Composable
-private fun LineRow(number: String, text: String, trailing: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Text(number, Modifier.widthIn(min = 40.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.primary)
-        Text(text, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-        Text(trailing, style = MaterialTheme.typography.bodyMedium)
+private fun ExerciseLines(exercise: PlanExercise, exercises: Map<String, Exercise>) {
+    val locale = LocalConfiguration.current.locales[0]
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(exercises.getValue(exercise.exerciseKey).displayName(locale), style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp))
+            PlanLineRows(exercise.lines)
+        }
     }
 }
 

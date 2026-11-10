@@ -15,6 +15,10 @@ The emulator needs API 34+ with a *Google Play* image.
 
 ## What to expect, screen by screen
 
+**Look.** Every screen follows the mockups in `docs/design/screens`: the green design palette (light and dark, no wallpaper colors),
+the mockups' line icons, filled cards with small gray labels, grouped settings rows, colored tags (record, from plan, Health Connect)
+and green/orange text for good and off-target values. Plans written by the coach show the coach's note on the plan details.
+
 The app opens on **Training**. The bottom bar has four tabs: Training · Plan · Coach · Progress; with the coach switched off
 in Settings the Coach tab and every coach element disappear. Every tab has a gear icon in the top
 bar that opens **Settings**. While a workout runs, the workout screen covers everything (no bottom bar, no top bar); if you close
@@ -55,6 +59,7 @@ the app during a workout, it opens on the workout again.
 - With your own key: talk to the coach, accept a plan and a target change, and check the plan on the Plan tab and the targets.
 - Open the app after a full week of data and read the weekly review.
 - Export a backup, import it (best on a second device), and check that the data is back. The API key is not in the file.
+- Look through every screen in light and dark mode and compare it with the mockups in `docs/design/screens`.
 - Switch the coach off and check that the Coach tab and the coach shortcuts are gone.
 - Connect Health Connect from Progress: the system permission screen opens, and after allowing, the "Connect" card is gone (no automated test taps that system screen).
 
@@ -62,7 +67,7 @@ the app during a workout, it opens on the workout again.
 
 Installing a new build keeps your data: schema 7 → 8 (six muscle groups, "Other" equipment), 8 → 9 (plans, workout ↔ plan link),
 9 → 10 (weekly targets), 10 → 11 (coach conversation, proposals, notes, profile, usage, request log), 11 → 12 (weekly review
-stored with a coach message), 12 → 13 (the request log of the removed debug screen is dropped). If the app on your phone has a schema older than 6, uninstall it once.
+stored with a coach message), 12 → 13 (the request log of the removed debug screen is dropped), 13 → 14 (the coach's note on a plan). If the app on your phone has a schema older than 6, uninstall it once.
 
 ## What's not there yet
 
@@ -75,7 +80,8 @@ Nothing planned is missing. See the known gaps below.
 - A first sync made without the "past data" permission is not extended to a year when the permission is granted later.
 - Sync errors show one line on the Health Connect screen only.
 - Not checked on a phone with a real key: the real Claude calls, the weekly review text, and backup import with a file from another device (the app restarts after an import).
-- The final design audit of every screen against the mockups was done only for the empty and error states listed in `decisions.md`; small visual differences may remain.
+- Differences from the mockups: the launcher icon and splash screen are still the Android defaults; the proposal card has no
+  duration estimate ("about 45 min"); the Progress tiles (steps, sleep, heart rate, HRV) and strength rows have no small trend lines.
 - The IDE shows unresolved references in `jvmTest` files; Gradle compiles them (see `decisions.md`).
 - The end-to-end tests depend on the emulator. With 2 GB of RAM the emulator showed "System UI isn't responding" and tests failed because of that window; give it 4 GB.
 

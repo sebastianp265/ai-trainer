@@ -16,6 +16,7 @@ data class BestSet(val weightKg: Double, val reps: Int)
 data class ExerciseSessionEntry(
     val sessionId: Long,
     val date: LocalDate,
+    val planName: String?,
     val groups: List<LastTimeGroup>,
     val estimatedOneRepMaxKg: Double?,
     val averageRpe: Double?,

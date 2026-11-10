@@ -50,6 +50,9 @@ internal interface PlanDao {
     @Query("UPDATE plan SET name = :name, date = :date WHERE id = :id")
     suspend fun updatePlan(id: Long, name: String, date: kotlinx.datetime.LocalDate?)
 
+    @Query("UPDATE plan SET coachNote = :note WHERE id = :id")
+    suspend fun setCoachNote(id: Long, note: String)
+
     @Query("DELETE FROM planned_set WHERE planId = :planId")
     suspend fun deletePlannedSets(planId: Long)
 

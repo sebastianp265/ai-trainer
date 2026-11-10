@@ -76,4 +76,7 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 ## After phase 7
 
 - 2026-11-10 · Debug mode · removed on the owner's request: the debug screen and its Settings row, the fake coach and fake Health Connect switches, the log of requests to Claude (table `coach_log`, dropped by migration 12→13) and the debug end-to-end test · The app holds only production code; fakes live in the tests. This replaces the phase 6 decision "Debug fakes".
+- 2026-11-10 · Look of the app · the colors, icons, type and shapes of the mockups replace Material 3 dynamic color, on the owner's request; the dark scheme is derived from the same green · The owner wants the app to look like the design.
+- 2026-11-10 · Coach note on a plan (PlanDetail mockup) · the summary of the accepted proposal is stored as `plan.coachNote` (schema 14); a manual edit keeps it, a later coach change replaces it; shown only with the coach on · The proposal summary is the coach's reason for the plan.
+- 2026-11-10 · Top bar on the tabs · the tab name as the title, as in the mockups (replaces the phase 4 choice "no title") · The design shows it.
 - 2026-11-10 · Debug in the mockups · the mockup `Debug.dc.html` and the Debug row in `Settings.dc.html` and `SettingsNoCoach.dc.html` are deleted · The mockups follow the requirements.

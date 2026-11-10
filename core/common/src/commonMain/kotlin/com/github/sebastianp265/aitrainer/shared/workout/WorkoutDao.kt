@@ -90,10 +90,11 @@ internal interface WorkoutDao {
 
     @Query(
         """
-        SELECT s.id AS sessionId, s.date AS date, e.positionInSession AS positionInSession,
+        SELECT s.id AS sessionId, s.date AS date, p.name AS planName, e.positionInSession AS positionInSession,
                e.reps AS reps, e.weightKg AS weightKg, e.rpe AS rpe
         FROM set_entry e
         JOIN workout_session s ON s.id = e.sessionId
+        LEFT JOIN plan p ON p.id = s.planId
         WHERE e.exerciseKey = :exerciseKey AND s.finishedAt IS NOT NULL AND e.isWarmup = 0
         ORDER BY s.startedAt, e.positionInSession
         """

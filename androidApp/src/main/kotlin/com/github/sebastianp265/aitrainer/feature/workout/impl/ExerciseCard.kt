@@ -1,26 +1,30 @@
 package com.github.sebastianp265.aitrainer.feature.workout.impl
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AssistChip
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -30,13 +34,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_MAX
@@ -48,28 +59,37 @@ import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
 import com.github.sebastianp265.aitrainer.shared.workout.hiddenSetCount
 import com.github.sebastianp265.aitrainer.shared.workout.rememberLastTimeLabels
 import com.github.sebastianp265.aitrainer.shared.workout.text
+import com.github.sebastianp265.aitrainer.shared.design.ChipButton
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
+import com.github.sebastianp265.aitrainer.shared.design.extendedColors
 
 @Composable
 internal fun ExerciseCard(ui: ExerciseBlockUi, actions: ActiveWorkoutActions, onOpenHistory: () -> Unit) {
     val block = ui.block
     var expanded by rememberSaveable(block.exercise.key) { mutableStateOf(true) }
     Card(Modifier.fillMaxWidth().testTag(ActiveWorkoutTags.exerciseCard(block.exercise.key))) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(Modifier.padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(
                 Modifier.fillMaxWidth().clickable { expanded = !expanded },
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(Modifier.weight(1f)) {
-                    Text(block.exercise.displayName(LocalConfiguration.current.locales[0]), style = MaterialTheme.typography.titleMedium)
-                    if (!expanded) {
-                        Text(
-                            pluralStringResource(R.plurals.set_count, block.sets.size, block.sets.size),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
+                Text(
+                    block.exercise.displayName(LocalConfiguration.current.locales[0]),
+                    Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp),
+                )
+                if (expanded) {
+                    IconButton(onClick = { actions.removeExercise(block.exercise) }, Modifier.size(44.dp)) {
+                        Icon(DesignIcons.Close, contentDescription = stringResource(R.string.remove_exercise), tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                }
-                IconButton(onClick = { actions.removeExercise(block.exercise) }) {
-                    Icon(Icons.Default.Close, contentDescription = stringResource(R.string.remove_exercise))
+                } else {
+                    Text(
+                        pluralStringResource(R.plurals.set_count, block.sets.size, block.sets.size),
+                        Modifier.padding(end = 12.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
                 }
             }
             LastTimeLabel(ui, onOpenHistory)
@@ -79,9 +99,9 @@ internal fun ExerciseCard(ui: ExerciseBlockUi, actions: ActiveWorkoutActions, on
                     if (!set.isWarmup) workingNumber++
                     SetRow(if (set.isWarmup) null else workingNumber, set, actions)
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AssistChip(onClick = { actions.addSet(block) }, label = { Text(stringResource(R.string.add_set)) })
-                    AssistChip(onClick = { actions.copySetsFromLastTime(block) }, label = { Text(stringResource(R.string.same_as_last_time)) })
+                Row(Modifier.padding(start = 30.dp, top = 4.dp, bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ChipButton(stringResource(R.string.add_set), onClick = { actions.addSet(block) })
+                    ChipButton(stringResource(R.string.same_as_last_time), onClick = { actions.copySetsFromLastTime(block) })
                 }
             }
         }
@@ -100,17 +120,24 @@ private fun LastTimeLabel(ui: ExerciseBlockUi, onOpenHistory: () -> Unit) {
     val label = (listOf(prefix + NO_BREAK_SPACE + groupTexts.first()) + groupTexts.drop(1).take(shownCount - 1) + listOfNotNull(moreText))
         .let { items -> if (shownCount == 1) listOf(prefix + NO_BREAK_SPACE + groupTexts.first()) + listOfNotNull(moreText) else items }
         .joinToString(" · ")
-    Text(
-        label,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.primary,
-        maxLines = 2,
-        onTextLayout = { if (it.hasVisualOverflow && shownCount > 1) shownCount-- },
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenHistory).testTag(ActiveWorkoutTags.LAST_TIME),
-    )
+    Surface(
+        onClick = onOpenHistory,
+        modifier = Modifier.padding(end = 8.dp),
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.primaryContainer,
+        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp, lineHeight = 18.sp),
+            maxLines = 2,
+            onTextLayout = { if (it.hasVisualOverflow && shownCount > 1) shownCount-- },
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp).testTag(ActiveWorkoutTags.LAST_TIME),
+        )
+    }
 }
 
-private const val NO_BREAK_SPACE = ' '
+private const val NO_BREAK_SPACE = ' '
 
 @Composable
 internal fun SetRow(workingNumber: Int?, set: SetEntry, actions: ActiveWorkoutActions) {
@@ -120,56 +147,56 @@ internal fun SetRow(workingNumber: Int?, set: SetEntry, actions: ActiveWorkoutAc
     val increaseDescription = stringResource(R.string.increase_reps)
     val weightDescription = stringResource(R.string.set_weight_description)
     Column {
-        Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
-            FilterChip(
-                selected = set.isWarmup,
-                onClick = { actions.changeSet(set, SetChange.ToggleWarmup) },
-                label = { Text(workingNumber?.toString() ?: stringResource(R.string.warmup_short)) },
-                modifier = Modifier.testTag(ActiveWorkoutTags.WARMUP_TOGGLE),
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 52.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                workingNumber?.toString() ?: stringResource(R.string.warmup_short),
+                modifier = Modifier.width(24.dp).clickable { actions.changeSet(set, SetChange.ToggleWarmup) }.testTag(ActiveWorkoutTags.WARMUP_TOGGLE),
+                style = MaterialTheme.typography.labelLarge,
+                color = if (set.isWarmup) extendedColors.warning else MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
             )
-            TextButton(
-                onClick = { typing = TypedField.WEIGHT },
-                contentPadding = PaddingValues(horizontal = 8.dp),
-                modifier = Modifier.semantics { contentDescription = weightDescription },
+            ValueBox(
+                Modifier.width(72.dp).clickable { typing = TypedField.WEIGHT }.semantics { contentDescription = weightDescription },
             ) {
-                Text(if (set.weightKg > 0) formatWeight(set.weightKg) else "–", Modifier.testTag(ActiveWorkoutTags.WEIGHT))
-                Text(" " + stringResource(R.string.unit_kg), style = MaterialTheme.typography.labelSmall)
+                Text(if (set.weightKg > 0) formatWeight(set.weightKg) else "–", Modifier.testTag(ActiveWorkoutTags.WEIGHT), style = valueStyle())
+                UnitText(stringResource(R.string.unit_kg))
             }
-            Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                IconButton(
-                    onClick = { actions.changeSet(set, SetChange.Reps(-1)) },
-                    modifier = Modifier.size(36.dp).semantics { contentDescription = decreaseDescription },
-                ) { Text("−") }
-                TextButton(onClick = { typing = TypedField.REPS }, contentPadding = PaddingValues(horizontal = 4.dp)) {
-                    Text(set.reps.toString(), Modifier.testTag(ActiveWorkoutTags.REPS))
+            Row(
+                Modifier.weight(1f).height(44.dp).background(MaterialTheme.colorScheme.surface, FieldShape).padding(horizontal = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                StepButton("−", decreaseDescription) { actions.changeSet(set, SetChange.Reps(-1)) }
+                Column(
+                    Modifier.weight(1f).fillMaxHeight().clickable { typing = TypedField.REPS },
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(set.reps.toString(), Modifier.testTag(ActiveWorkoutTags.REPS), style = valueStyle())
+                    UnitText(stringResource(R.string.unit_reps))
                 }
-                IconButton(
-                    onClick = { actions.changeSet(set, SetChange.Reps(1)) },
-                    modifier = Modifier.size(36.dp).semantics { contentDescription = increaseDescription },
-                ) { Text("+") }
+                StepButton("+", increaseDescription) { actions.changeSet(set, SetChange.Reps(1)) }
             }
-            TextButton(onClick = { pickingRpe = !pickingRpe }, contentPadding = PaddingValues(horizontal = 8.dp)) {
-                Text(set.rpe?.let { formatWeight(it) } ?: stringResource(R.string.rpe_label), Modifier.testTag(ActiveWorkoutTags.RPE))
-            }
-            IconButton(onClick = { actions.deleteSet(set) }) {
-                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.delete_set))
+            RpeButton(set.rpe, picking = pickingRpe) { pickingRpe = !pickingRpe }
+            IconButton(onClick = { actions.deleteSet(set) }, Modifier.size(32.dp, 44.dp)) {
+                Icon(DesignIcons.Delete, contentDescription = stringResource(R.string.delete_set), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (pickingRpe) {
             val description = stringResource(R.string.set_rpe_description, workingNumber ?: 0)
             FlowRow(
-                Modifier.fillMaxWidth().semantics { contentDescription = description },
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                Modifier.fillMaxWidth().padding(start = 30.dp, top = 4.dp, bottom = 8.dp).semantics { contentDescription = description },
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 rpeValues.forEach { value ->
-                    FilterChip(
-                        selected = set.rpe == value,
-                        onClick = {
-                            actions.changeSet(set, SetChange.RpeTo(if (set.rpe == value) null else value))
-                            pickingRpe = false
-                        },
-                        label = { Text(formatWeight(value)) },
-                    )
+                    RpeChip(formatWeight(value), selected = set.rpe == value) {
+                        actions.changeSet(set, SetChange.RpeTo(if (set.rpe == value) null else value))
+                        pickingRpe = false
+                    }
                 }
             }
         }
@@ -196,6 +223,89 @@ internal fun SetRow(workingNumber: Int?, set: SetEntry, actions: ActiveWorkoutAc
             onDismiss = { typing = null },
         )
         null -> Unit
+    }
+}
+
+private val FieldShape = RoundedCornerShape(10.dp)
+
+@Composable
+private fun valueStyle() = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium, lineHeight = 20.sp)
+
+@Composable
+private fun UnitText(text: String) {
+    Text(text, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal), color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+@Composable
+private fun ValueBox(modifier: Modifier, content: @Composable ColumnScope.() -> Unit) {
+    Column(
+        modifier.height(44.dp).background(MaterialTheme.colorScheme.surface, FieldShape),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        content = content,
+    )
+}
+
+@Composable
+private fun StepButton(text: String, description: String, onClick: () -> Unit) {
+    Box(
+        Modifier.size(32.dp, 44.dp).clickable(onClick = onClick).semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text, style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp), color = MaterialTheme.colorScheme.primary)
+    }
+}
+
+@Composable
+private fun RpeButton(rpe: Double?, picking: Boolean, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    val filled = rpe != null && picking
+    val outline = colors.outline
+    Box(
+        Modifier.width(64.dp).height(44.dp)
+            .then(
+                when {
+                    filled -> Modifier.background(colors.primary, FieldShape)
+                    rpe != null -> Modifier.border(1.dp, outline, FieldShape)
+                    else -> Modifier.drawBehind {
+                        drawRoundRect(
+                            color = outline,
+                            style = Stroke(width = 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()))),
+                            cornerRadius = CornerRadius(10.dp.toPx()),
+                        )
+                    }
+                },
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            rpe?.let { formatWeight(it) } ?: stringResource(R.string.rpe_label),
+            Modifier.testTag(ActiveWorkoutTags.RPE),
+            style = MaterialTheme.typography.labelLarge,
+            color = when {
+                filled -> colors.onPrimary
+                rpe != null -> colors.onSurface
+                else -> colors.onSurfaceVariant
+            },
+        )
+    }
+}
+
+@Composable
+private fun RpeChip(text: String, selected: Boolean, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        onClick = onClick,
+        modifier = Modifier.height(36.dp).widthIn(min = 40.dp),
+        shape = MaterialTheme.shapes.small,
+        color = if (selected) colors.primary else colors.surface,
+        contentColor = if (selected) colors.onPrimary else colors.onSurface,
+        border = if (selected) null else BorderStroke(1.dp, colors.outlineVariant),
+    ) {
+        Box(Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
+            Text(text, style = MaterialTheme.typography.labelLarge)
+        }
     }
 }
 
