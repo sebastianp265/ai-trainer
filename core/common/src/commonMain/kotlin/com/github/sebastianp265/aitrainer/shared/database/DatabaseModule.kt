@@ -9,7 +9,6 @@ import org.koin.dsl.onClose
 internal val databaseModule = module {
     single {
         get<DatabaseBuilders>().builder(AppDatabase::class, AppDatabase.NAME)
-            .fallbackToDestructiveMigration(dropAllTables = true)
             .apply { getAll<RoomDatabase.Callback>().forEach { addCallback(it) } }
             .build()
     } onClose { it?.close() }

@@ -41,7 +41,7 @@
     <string name="settings_api_key_missing">No API key saved</string>
     <string name="settings_claude_model">Claude model</string>
     <string name="health_connect">Health Connect</string>
-    <string name="health_connect_not_connected">Connect to import calories eaten and macronutrients (e.g. from Fitatu).</string>
+    <string name="health_connect_not_connected">Connect to import calories eaten and macronutrients.</string>
     <string name="health_connect_connect">Connect</string>
     <string name="health_connect_unavailable">Health Connect is not available on this device.</string>
     <string name="health_connect_update_required">Health Connect needs an update.</string>

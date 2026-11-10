@@ -40,7 +40,7 @@
     <string name="settings_api_key_missing">Brak zapisanego klucza API</string>
     <string name="settings_claude_model">Model Claude</string>
     <string name="health_connect">Health Connect</string>
-    <string name="health_connect_not_connected">Połącz, aby importować zjedzone kalorie i makroskładniki (np. z Fitatu).</string>
+    <string name="health_connect_not_connected">Połącz, aby importować zjedzone kalorie i makroskładniki.</string>
     <string name="health_connect_connect">Połącz</string>
     <string name="health_connect_unavailable">Health Connect nie jest dostępny na tym urządzeniu.</string>
     <string name="health_connect_update_required">Health Connect wymaga aktualizacji.</string>

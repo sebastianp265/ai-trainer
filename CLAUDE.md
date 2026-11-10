@@ -1,21 +1,22 @@
 # AI Trainer — Android app
 
-Personal, single-user Android app that acts as an AI personal trainer. It collects my gym workouts, daily calorie burn and body weight (Polar), calorie intake (Fitatu via Health Connect), plus my preferences, and uses the Claude API to generate and adjust a flexible training + nutrition plan.
+Personal, single-user Android app that acts as an AI personal trainer. The only required data is the gym workouts logged in the app. Everything else comes from Health Connect (calories eaten and burned, nutrition, body weight, steps, sleep, resting heart rate, HRV, workouts from other apps), whichever apps write it there, and is optional: the app and the coach work with whatever is available. The AI coach (Claude API) talks to me in a chat and has tools to read my data and change the app: it writes planned workouts (exercises, sets, target weights and reps) and adjusts them when I reply. Nothing changes automatically; I decide in the chat. I start a workout from a plan in the Log, add or remove sets while training, and the sets saved at the end are what I did.
 
 ## Current phase
 
-**Phase 3: Health Connect integration.** Finish each phase in a working, runnable state (builds, tests pass, app launches), then summarize what was done and what I should check manually.
+**Phase 4: Health Connect data and Progress.** The tasks, their order and how to work through them without asking are in `docs/plan.md`. What the app must do is in `docs/requirements.md`; the mockups of every screen are in `docs/design/`. Finish each phase in a working, runnable state (builds, tests pass, app launches), then summarize what was done and what I should check manually.
 
 `docs/status.md` tells me how to run the app, what works and what doesn't. Update it at the end of each phase and whenever a change affects what I'd see when running the app (new or removed screens/features, known bugs, things to verify manually).
 
 ## Hard constraints
 
 - **No remote storage of my data.** All data lives on the device (Room).
-- Single user, no accounts, no login of our own. I may share the app with a few similar users later, so don't hardcode anything specific to me: each user enters their own API key and Polar credentials in Settings.
+- All data not entered in the app comes from Health Connect. The app never depends on a specific source app: no app names in code, docs or UI.
+- Single user, no accounts, no login of our own. I may share the app with a few similar users later, so don't hardcode anything specific to me: each user enters their own Claude API key in Settings.
 
 ## Secrets handling (important)
 
-- **No secrets anywhere in the project directory.** The Claude API key, Polar client ID/secret and Polar tokens are entered at runtime in Settings and stored on the device only, via `SecretStore`.
+- **No secrets anywhere in the project directory.** The Claude API key is entered at runtime in Settings and stored on the device only, via `SecretStore`.
 - Do **not** use the `local.properties` → `BuildConfig` pattern for keys, do not create `.env` files, and do not hardcode keys, even temporarily or in tests. Tests use fake values like `"test-key"`.
 - Never ask me to paste a key into the chat. Use placeholders like `<CLAUDE_API_KEY>`.
 - Don't print, dump or read the app's private storage (e.g. `adb shell run-as`, `adb backup`) unless I explicitly ask.

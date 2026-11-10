@@ -6,20 +6,7 @@ import com.github.sebastianp265.aitrainer.integration.shared.BundledFiles
 
 internal class ExerciseSeedCallback(private val bundledFiles: BundledFiles) : RoomDatabase.Callback() {
 
-    private var tablesWereRecreated = false
-
     override fun onCreate(connection: SQLiteConnection) = runSeed(connection)
-
-    override fun onDestructiveMigration(connection: SQLiteConnection) {
-        tablesWereRecreated = true
-    }
-
-    override fun onOpen(connection: SQLiteConnection) {
-        if (tablesWereRecreated) {
-            tablesWereRecreated = false
-            runSeed(connection)
-        }
-    }
 
     private fun runSeed(connection: SQLiteConnection) {
         bundledFiles.read(SEED_FILE).lines().filter { it.isNotBlank() }.forEach { statement ->
