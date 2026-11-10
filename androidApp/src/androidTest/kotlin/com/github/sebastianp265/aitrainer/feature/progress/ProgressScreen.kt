@@ -17,7 +17,7 @@ class ProgressScreen(compose: ComposeTestRule) : Screen(compose) {
     }
 
     fun assertConnectPromptShown() =
-        waitForText("Connect to import calories eaten and macronutrients (e.g. from Fitatu).")
+        waitForText("Connect to import calories eaten and macronutrients.")
 
     fun clickConnect() = clickText("Connect")
 

@@ -117,7 +117,7 @@ private fun HealthDayItemPreview() {
                     proteinG = 160.0,
                     carbsG = 260.5,
                     fatG = 70.0,
-                    sourcePackages = listOf("com.fitatu.tracker"),
+                    sourcePackages = listOf("com.example.nutrition"),
                 ),
             )
         }

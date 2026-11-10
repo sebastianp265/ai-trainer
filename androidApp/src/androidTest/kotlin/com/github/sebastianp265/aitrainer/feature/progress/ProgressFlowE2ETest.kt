@@ -40,7 +40,7 @@ class ProgressFlowE2ETest : AbstractE2ETest() {
         launchApp(
             healthService = FakeHealthService(
                 listOf(
-                    HealthDay(daysAgo(1), 2000, 140.0, 230.0, 70.0, listOf("com.fitatu.tracker")),
+                    HealthDay(daysAgo(1), 2000, 140.0, 230.0, 70.0, listOf("com.example.nutrition")),
                     HealthDay(daysAgo(3), 1800, null, null, null, emptyList()),
                 ),
             ),
@@ -50,13 +50,13 @@ class ProgressFlowE2ETest : AbstractE2ETest() {
 
         progress.assertDay(daysAgo(1), "Eaten 2,000 kcal · Protein 140 g · Carbs 230 g · Fat 70 g")
         progress.assertDay(daysAgo(3), "Eaten 1,800 kcal · Protein – · Carbs – · Fat –")
-        progress.assertDaySources(daysAgo(1), "From: com.fitatu.tracker")
+        progress.assertDaySources(daysAgo(1), "From: com.example.nutrition")
         progress.assertDaySources(daysAgo(3), "From: –")
     }
 
     @Test
     fun `data removed from Health Connect disappears after the app is reopened`() {
-        val healthConnect = FakeHealthService(listOf(HealthDay(daysAgo(1), 2000, null, null, null, listOf("com.fitatu.tracker"))))
+        val healthConnect = FakeHealthService(listOf(HealthDay(daysAgo(1), 2000, null, null, null, listOf("com.example.nutrition"))))
         launchApp(healthService = healthConnect)
         progress.open()
         progress.assertDay(daysAgo(1), "Eaten 2,000 kcal · Protein – · Carbs – · Fat –")
