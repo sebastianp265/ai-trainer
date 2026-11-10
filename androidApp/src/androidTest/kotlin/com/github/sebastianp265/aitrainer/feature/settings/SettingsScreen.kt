@@ -6,6 +6,8 @@ import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
@@ -16,9 +18,14 @@ import com.github.sebastianp265.aitrainer.shared.e2e.TEST_TIMEOUT_MS
 class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun open() {
-        waitForText("Settings")
-        clickText("Settings")
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithContentDescription("Settings").fetchSemanticsNodes().isNotEmpty() }
+        compose.onNodeWithContentDescription("Settings").performClick()
         waitForText("AI trainer")
+    }
+
+    fun goBack() {
+        compose.onNodeWithContentDescription("Back").performClick()
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithContentDescription("Settings").fetchSemanticsNodes().isNotEmpty() }
     }
 
     fun typeClaudeApiKey(key: String) = scrollTo(hasTestTag(SettingsTags.CLAUDE_API_KEY)).performTextInput(key)

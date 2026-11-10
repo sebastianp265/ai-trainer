@@ -57,7 +57,7 @@ the phase, one commit per ticked task, never push.
 Requirements 2, 7, 8. Screens: `Progress`, `ProgressNoHealth`, `ProgressMetric`, `DayDetail`,
 `History`, `ExternalWorkout`, `Settings`, `HealthConnect`, `HealthConnectOff`.
 
-- [ ] 4.1 Navigation: tabs Trening · Plan · Postęp, Settings behind the gear icon. Done when: an
+- [x] 4.1 Navigation: tabs Trening · Plan · Postęp, Settings behind the gear icon. Done when: an
       end-to-end test opens Settings from the gear on each tab and returns.
 - [ ] 4.2 Tables `health_day` (one row per date, every column nullable) and `health_workout`,
       in `shared.health`, with an auto-migration from schema 6. Done when: the migration test passes.

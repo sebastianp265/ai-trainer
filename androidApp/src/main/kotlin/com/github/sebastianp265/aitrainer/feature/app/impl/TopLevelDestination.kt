@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.github.sebastianp265.aitrainer.R
@@ -20,7 +19,6 @@ internal enum class TopLevelDestination(
     LOG(LogRoute, LogRoute::class, R.string.nav_log, Icons.Default.Edit),
     PLAN(PlanRoute, PlanRoute::class, R.string.nav_plan, Icons.Default.DateRange),
     PROGRESS(ProgressRoute, ProgressRoute::class, R.string.nav_progress, Icons.Default.Star),
-    SETTINGS(SettingsRoute, SettingsRoute::class, R.string.nav_settings, Icons.Default.Settings),
 }
 
 @Serializable
