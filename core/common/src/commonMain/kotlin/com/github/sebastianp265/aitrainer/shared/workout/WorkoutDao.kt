@@ -13,6 +13,13 @@ internal interface WorkoutDao {
     @Insert
     suspend fun insertSession(session: WorkoutSessionEntity): Long
 
+    @Transaction
+    suspend fun insertSessionWithSets(session: WorkoutSessionEntity, sets: List<SetEntryEntity>): Long {
+        val sessionId = insertSession(session)
+        sets.forEach { insertSet(it.copy(sessionId = sessionId)) }
+        return sessionId
+    }
+
     @Update
     suspend fun updateSession(session: WorkoutSessionEntity)
 

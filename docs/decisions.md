@@ -44,3 +44,8 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-10 · "Zapytaj trenera o to ćwiczenie" on the exercise history · added with the coach in phase 6 · Requirements 2: no coach elements until then.
 - 2026-11-10 · Session rows of the exercise history · open the finished workout once its detail exists (5.13) · The detail screen does not exist yet.
 - 2026-11-10 · A plan is done when · a finished workout has its id (`workout_session.planId`, replacing the unused `planSessionRef`); deleting that workout makes the plan upcoming again · One source of truth, no copy of the state in the plan; schema 8→9 is an auto-migration.
+- 2026-11-10 · Sets in plan summaries · working sets only (warm-up sets are not counted in "N serii") · Requirements 4: statistics use working sets.
+- 2026-11-10 · Plan editing · the same screen for new and existing plans; "Zapisz" for a new plan opens its detail, for an existing one returns to it · Matches the mockup links.
+- 2026-11-10 · Coach elements on Plan screens (coach note, "Zmień z trenerem", "Poproś trenera o plan", "Wolisz gotowy plan?") · added with the coach in phase 6 · Requirements 2.
+- 2026-11-10 · Task 5.11 start of a workout from a plan · `WorkoutService.startSession(planId)` is built in 5.9 so "Zacznij trening" on the plan detail works; its end-to-end test comes with 5.11 · The button needs it.
+- 2026-11-10 · Instrumented test names · must not contain commas (dex rejects them) · Found when compiling the plan tests.

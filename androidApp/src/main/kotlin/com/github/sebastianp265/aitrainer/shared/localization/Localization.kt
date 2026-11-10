@@ -77,3 +77,10 @@ internal fun formatWeight(kg: Double): String {
     val format = remember(locale) { NumberFormat.getNumberInstance(locale).apply { maximumFractionDigits = 2 } }
     return format.format(kg)
 }
+
+@Composable
+internal fun formatLongWeekdayDate(date: LocalDate): String {
+    val locale = LocalConfiguration.current.locales[0]
+    val format = remember(locale) { DateTimeFormatter.ofPattern("EEEE d MMM", locale) }
+    return format.format(date.toJavaLocalDate())
+}

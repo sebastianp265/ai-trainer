@@ -25,7 +25,7 @@ interface WorkoutService {
 
     suspend fun recentExercises(limit: Int): List<RecentExercise>
 
-    suspend fun startSession()
+    suspend fun startSession(planId: Long? = null)
 
     suspend fun finishSession(sessionId: Long)
 

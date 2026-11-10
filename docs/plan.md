@@ -98,7 +98,7 @@ Requirements 3, 4, 5, 6. Screens: `Main`, `StartSheet`, `ActiveWorkout`, `Workou
 - [x] 5.7 Exercise history: stats, 1RM chart, RPE chart, past sessions.
 - [x] 5.8 Plan tables (plan, planned exercise, planned set; author; optional date; done link to
       a workout) with a migration.
-- [ ] 5.9 Plan list, empty state, details, new, edit, delete with confirmation.
+- [x] 5.9 Plan list, empty state, details, new, edit, delete with confirmation.
 - [ ] 5.10 Start screen with the next plan, the plan picker sheet, starting empty, first launch.
 - [ ] 5.11 Starting a workout from a plan fills it; saving links the workout and marks the plan done.
       Done when: an end-to-end test starts from a plan, removes a set, changes a weight, finishes,

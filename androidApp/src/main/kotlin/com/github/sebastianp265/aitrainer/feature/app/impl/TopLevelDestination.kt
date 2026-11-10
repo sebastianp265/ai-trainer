@@ -53,12 +53,18 @@ internal object ExercisePickerRoute
 internal data class ExerciseHistoryRoute(val exerciseKey: String)
 
 @Serializable
+internal data class PlanDetailRoute(val planId: Long)
+
+@Serializable
+internal data class PlanEditRoute(val planId: Long)
+
+@Serializable
 internal object HistoryRoute
 
 @Serializable
 internal data class ExternalWorkoutRoute(val startedAtMillis: Long)
 
-internal val fullScreenRoutes = listOf(ActiveWorkoutRoute::class, ExercisePickerRoute::class)
+internal val fullScreenRoutes = listOf(ActiveWorkoutRoute::class, ExercisePickerRoute::class, PlanDetailRoute::class, PlanEditRoute::class)
 
 internal val nestedRoutes = listOf(
     SettingsRoute::class,

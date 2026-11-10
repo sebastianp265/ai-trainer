@@ -36,6 +36,9 @@ import com.github.sebastianp265.aitrainer.feature.health.HealthConnectScreen
 import com.github.sebastianp265.aitrainer.feature.health.SyncHealthOnForeground
 import com.github.sebastianp265.aitrainer.feature.history.ExternalWorkoutScreen
 import com.github.sebastianp265.aitrainer.feature.history.HistoryScreen
+import com.github.sebastianp265.aitrainer.feature.plan.NEW_PLAN
+import com.github.sebastianp265.aitrainer.feature.plan.PlanDetailScreen
+import com.github.sebastianp265.aitrainer.feature.plan.PlanEditScreen
 import com.github.sebastianp265.aitrainer.feature.plan.PlanScreen
 import com.github.sebastianp265.aitrainer.feature.progress.DayDetailScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetricScreen
@@ -103,7 +106,40 @@ internal fun AppNavigation() {
                 HistoryScreen(onOpenExternalWorkout = { navController.navigate(ExternalWorkoutRoute(it)) })
             }
             composable<ExternalWorkoutRoute> { entry -> ExternalWorkoutScreen(entry.toRoute<ExternalWorkoutRoute>().startedAtMillis) }
-            composable<PlanRoute> { PlanScreen() }
+            composable<PlanRoute> {
+                PlanScreen(
+                    onOpenPlan = { navController.navigate(PlanDetailRoute(it)) },
+                    onNewPlan = { navController.navigate(PlanEditRoute(NEW_PLAN)) },
+                )
+            }
+            composable<PlanDetailRoute> { entry ->
+                PlanDetailScreen(
+                    planId = entry.toRoute<PlanDetailRoute>().planId,
+                    onBack = navController::popBackStack,
+                    onEdit = { navController.navigate(PlanEditRoute(entry.toRoute<PlanDetailRoute>().planId)) },
+                    onStarted = navController::popBackStack,
+                    onDeleted = navController::popBackStack,
+                )
+            }
+            composable<PlanEditRoute> { entry ->
+                val route = entry.toRoute<PlanEditRoute>()
+                val picked by entry.savedStateHandle.getStateFlow<String?>(PICKED_EXERCISE_KEY, null).collectAsStateWithLifecycle()
+                PlanEditScreen(
+                    planId = route.planId,
+                    onOpenExercisePicker = { navController.navigate(ExercisePickerRoute) },
+                    pickedExerciseKey = picked,
+                    onPickedExerciseHandled = { entry.savedStateHandle[PICKED_EXERCISE_KEY] = null },
+                    onClose = navController::popBackStack,
+                    onSaved = { id ->
+                        if (route.planId == NEW_PLAN) {
+                            navController.navigate(PlanDetailRoute(id)) { popUpTo<PlanEditRoute> { inclusive = true } }
+                        } else {
+                            navController.popBackStack()
+                        }
+                    },
+                    onDeleted = { navController.popBackStack<PlanRoute>(inclusive = false) },
+                )
+            }
             composable<ProgressRoute> {
                 ProgressScreen(
                     onOpenMetric = { navController.navigate(ProgressMetricRoute(it)) },

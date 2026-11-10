@@ -21,7 +21,7 @@ class DefaultWorkoutServiceUTest {
         override fun now() = now
     }
     private val database = inMemoryDatabase().also { it.seedExercises("bench", "squat") }
-    private val service = DefaultWorkoutService(database.workoutDao(), clock)
+    private val service = DefaultWorkoutService(database.workoutDao(), database.planDao(), clock)
 
     @AfterTest
     fun close() = database.close()

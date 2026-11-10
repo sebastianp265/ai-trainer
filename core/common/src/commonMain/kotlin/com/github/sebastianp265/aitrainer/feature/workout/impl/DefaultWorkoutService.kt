@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.feature.workout.impl
 
+import com.github.sebastianp265.aitrainer.shared.plan.PlanDao
 import com.github.sebastianp265.aitrainer.shared.workout.SessionSummaryRow
 import com.github.sebastianp265.aitrainer.shared.workout.SetEntryEntity
 import com.github.sebastianp265.aitrainer.shared.workout.WorkoutDao
@@ -25,6 +26,7 @@ import kotlin.time.Clock
 
 internal class DefaultWorkoutService(
     private val dao: WorkoutDao,
+    private val planDao: PlanDao,
     private val clock: Clock,
 ) : WorkoutService {
 
@@ -64,15 +66,27 @@ internal class DefaultWorkoutService(
             RecentExercise(key, lastTimeGroups(lastWorkingSets(key, excludingSessionId = NO_SESSION)))
         }
 
-    override suspend fun startSession() {
-        dao.insertSession(
+    override suspend fun startSession(planId: Long?) {
+        val plannedSets = planId?.let { planDao.getPlannedSets(it) }.orEmpty()
+        dao.insertSessionWithSets(
             WorkoutSessionEntity(
                 date = clock.todayIn(TimeZone.currentSystemDefault()),
                 startedAt = clock.now(),
                 finishedAt = null,
-                planId = null,
+                planId = planId,
                 notes = null,
-            )
+            ),
+            plannedSets.map {
+                SetEntryEntity(
+                    sessionId = 0,
+                    exerciseKey = it.exerciseKey,
+                    positionInSession = it.positionInPlan,
+                    reps = it.reps,
+                    weightKg = it.weightKg,
+                    rpe = it.rpe,
+                    isWarmup = it.isWarmup,
+                )
+            },
         )
     }
 
