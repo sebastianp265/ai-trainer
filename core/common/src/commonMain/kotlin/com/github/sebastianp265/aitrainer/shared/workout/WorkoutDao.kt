@@ -91,13 +91,16 @@ internal interface WorkoutDao {
     @Query("DELETE FROM set_entry WHERE id = :id")
     suspend fun deleteSet(id: Long)
 
+    @Query("DELETE FROM set_entry WHERE sessionId = :sessionId AND exerciseKey = :exerciseKey")
+    suspend fun deleteExerciseSets(sessionId: Long, exerciseKey: String)
+
     @Query(
         """
         SELECT * FROM set_entry
         WHERE exerciseKey = :exerciseKey AND sessionId = (
             SELECT s.id FROM workout_session s
             JOIN set_entry e ON e.sessionId = s.id
-            WHERE e.exerciseKey = :exerciseKey AND s.id != :excludingSessionId
+            WHERE e.exerciseKey = :exerciseKey AND s.id != :excludingSessionId AND s.finishedAt IS NOT NULL
             ORDER BY s.startedAt DESC
             LIMIT 1
         )

@@ -12,7 +12,7 @@ class ExerciseSearchLocalizationE2ETest : AbstractE2ETest() {
 
     override val appLanguage = "pl"
 
-    private val workout = LogWorkoutScreen(compose, startWorkoutText = "Rozpocznij trening", addExerciseDescription = "Dodaj ćwiczenie")
+    private val workout = LogWorkoutScreen(compose, startWorkoutText = "Rozpocznij trening", addExerciseText = "Dodaj ćwiczenie")
     private val picker = ExercisePickerScreen(compose)
 
     @Test

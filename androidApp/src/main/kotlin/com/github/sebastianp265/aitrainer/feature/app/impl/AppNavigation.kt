@@ -37,6 +37,8 @@ import com.github.sebastianp265.aitrainer.feature.progress.DayDetailScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetricScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressScreen
 import com.github.sebastianp265.aitrainer.feature.settings.SettingsScreen
+import com.github.sebastianp265.aitrainer.feature.workout.ActiveWorkoutRedirect
+import com.github.sebastianp265.aitrainer.feature.workout.ActiveWorkoutScreen
 import com.github.sebastianp265.aitrainer.feature.workout.LogWorkoutScreen
 import kotlinx.datetime.LocalDate
 
@@ -44,16 +46,26 @@ import kotlinx.datetime.LocalDate
 internal fun AppNavigation() {
     val navController = rememberNavController()
     SyncHealthOnForeground()
+    ActiveWorkoutRedirect(
+        isActiveWorkoutOpen = { runCatching { navController.getBackStackEntry<ActiveWorkoutRoute>() }.isSuccess },
+        onSessionStarted = { navController.navigate(ActiveWorkoutRoute) },
+        onSessionEnded = { navController.popBackStack<ActiveWorkoutRoute>(inclusive = true) },
+    )
     val backStackEntry by navController.currentBackStackEntryAsState()
     val destination = backStackEntry?.destination
-    val isNested = destination != null && nestedRoutes.any { destination.hasRoute(it) }
+    val isFullScreen = destination != null && fullScreenRoutes.any { destination.hasRoute(it) }
+    val isNested = isFullScreen || destination != null && nestedRoutes.any { destination.hasRoute(it) }
     val title = when {
         destination?.hasRoute(SettingsRoute::class) == true -> R.string.nav_settings
         destination?.hasRoute(HealthConnectRoute::class) == true -> R.string.health_connect
         else -> null
     }
     Scaffold(
-        topBar = { AppTopBar(isNested, title, onOpenSettings = { navController.navigate(SettingsRoute) }, onBack = navController::popBackStack) },
+        topBar = {
+            if (!isFullScreen) {
+                AppTopBar(isNested, title, onOpenSettings = { navController.navigate(SettingsRoute) }, onBack = navController::popBackStack)
+            }
+        },
         bottomBar = { if (!isNested) AppBottomBar(navController) },
     ) { padding ->
         NavHost(
@@ -62,6 +74,7 @@ internal fun AppNavigation() {
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
             composable<LogRoute> { LogWorkoutScreen(onOpenHistory = { navController.navigate(HistoryRoute) }) }
+            composable<ActiveWorkoutRoute> { ActiveWorkoutScreen(onOpenExerciseHistory = {}) }
             composable<HistoryRoute> {
                 HistoryScreen(onOpenExternalWorkout = { navController.navigate(ExternalWorkoutRoute(it)) })
             }

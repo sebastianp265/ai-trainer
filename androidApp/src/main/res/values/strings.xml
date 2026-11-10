@@ -18,7 +18,7 @@
     <string name="cancel">Cancel</string>
     <string name="add_first_exercise_hint">Add your first exercise with the button below.</string>
     <string name="discard_workout_title">Discard workout?</string>
-    <string name="discard_workout_text">All sets logged in this session will be deleted.</string>
+    <string name="discard_workout_text">Logged sets will not be saved.</string>
     <string name="add_set">+ Set</string>
     <string name="same_as_last_time">Same as last time</string>
     <string name="warmup_short">W</string>
@@ -201,4 +201,20 @@
     </plurals>
 
 
+
+    <string name="last_time_prefix">Last time:</string>
+    <string name="last_time_more">+%1$d</string>
+    <string name="bodyweight_label">bodyweight</string>
+    <string name="rpe_label">RPE</string>
+    <string name="set_weight_description">Weight in kg, tap to type</string>
+    <string name="set_weight_dialog_title">Weight (kg)</string>
+    <string name="set_reps_dialog_title">Repetitions</string>
+    <string name="set_rpe_description">RPE of set %1$d</string>
+    <string name="remove_exercise">Remove exercise</string>
+    <string name="workout_empty_title">Workout</string>
+    <string name="workout_empty_subtitle">empty workout</string>
+    <string name="discard_workout_text_plan">Logged sets will not be saved. The plan “%1$s” stays on the Plan tab.</string>
+    <string name="back_to_workout">Back to workout</string>
+    <string name="ok">OK</string>
+    <string name="workout_subtitle">%1$s · %2$s</string>
 </resources>

@@ -17,6 +17,10 @@ interface WorkoutService {
 
     fun groupSetsByExercise(sets: List<SetEntry>, exercises: Map<String, Exercise>): List<ExerciseBlock>
 
+    fun groupLastTimeSets(sets: List<SetEntry>): List<LastTimeGroup>
+
+    suspend fun lastWorkingSets(exerciseKey: String, excludingSessionId: Long): List<SetEntry>
+
     suspend fun startSession()
 
     suspend fun finishSession(sessionId: Long)
@@ -32,4 +36,6 @@ interface WorkoutService {
     suspend fun changeSet(setId: Long, change: SetChange)
 
     suspend fun deleteSet(setId: Long)
+
+    suspend fun removeExercise(sessionId: Long, exerciseKey: String)
 }

@@ -89,11 +89,11 @@ Requirements 3, 4, 5, 6. Screens: `Main`, `StartSheet`, `ActiveWorkout`, `Workou
 
 - [x] 5.1 Exercises get a primary and secondary muscle groups; the migration fills them for the
       seeded exercises. Done when: a test asserts every seeded exercise has a primary group.
-- [ ] 5.2 RPE per set (migration), picker under the set row.
-- [ ] 5.3 Set row as designed: typed weight, reps stepper, RPE, delete; several warm-up sets.
-- [ ] 5.4 "Last time" label with the format rules. Done when: unit tests cover equal sets,
+- [x] 5.2 RPE per set (migration), picker under the set row.
+- [x] 5.3 Set row as designed: typed weight, reps stepper, RPE, delete; several warm-up sets.
+- [x] 5.4 "Last time" label with the format rules. Done when: unit tests cover equal sets,
       different sets, mixed RPE, no RPE, bodyweight, overflow to `+N`, and no previous workout.
-- [ ] 5.5 Discard confirmation.
+- [x] 5.5 Discard confirmation.
 - [ ] 5.6 Exercise picker: search, muscle filter, recently used, create an exercise.
 - [ ] 5.7 Exercise history: stats, 1RM chart, RPE chart, past sessions.
 - [ ] 5.8 Plan tables (plan, planned exercise, planned set; author; optional date; done link to

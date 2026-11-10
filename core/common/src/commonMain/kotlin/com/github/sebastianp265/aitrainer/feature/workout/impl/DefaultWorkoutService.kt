@@ -8,6 +8,7 @@ import com.github.sebastianp265.aitrainer.integration.workout.CopyResult
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseStrength
+import com.github.sebastianp265.aitrainer.integration.workout.LastTimeGroup
 import com.github.sebastianp265.aitrainer.integration.workout.SessionSummary
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
@@ -46,6 +47,11 @@ internal class DefaultWorkoutService(
 
     override fun groupSetsByExercise(sets: List<SetEntry>, exercises: Map<String, Exercise>): List<ExerciseBlock> =
         groupSetsByExerciseInLoggingOrder(sets, exercises)
+
+    override fun groupLastTimeSets(sets: List<SetEntry>): List<LastTimeGroup> = lastTimeGroups(sets)
+
+    override suspend fun lastWorkingSets(exerciseKey: String, excludingSessionId: Long): List<SetEntry> =
+        lastSetsFor(exerciseKey, excludingSessionId).filter { !it.isWarmup }
 
     override suspend fun startSession() {
         dao.insertSession(
@@ -99,6 +105,9 @@ internal class DefaultWorkoutService(
 
     override suspend fun deleteSet(setId: Long) = dao.deleteSet(setId)
 
+    override suspend fun removeExercise(sessionId: Long, exerciseKey: String) =
+        dao.deleteExerciseSets(sessionId, exerciseKey)
+
     private suspend fun lastSetsFor(exerciseKey: String, excludingSessionId: Long): List<SetEntry> =
         dao.lastSetsForExercise(exerciseKey, excludingSessionId).map { it.toModel() }
 
@@ -122,7 +131,9 @@ internal class DefaultWorkoutService(
 
     private fun SetEntry.apply(change: SetChange): SetEntry = when (change) {
         is SetChange.Reps -> copy(reps = adjustReps(reps, change.delta))
-        is SetChange.Weight -> copy(weightKg = adjustWeight(weightKg, change.deltaKg))
+        is SetChange.RepsTo -> copy(reps = change.reps.coerceAtLeast(0))
+        is SetChange.WeightTo -> copy(weightKg = change.kg.coerceAtLeast(0.0))
+        is SetChange.RpeTo -> copy(rpe = change.rpe)
         SetChange.ToggleWarmup -> copy(isWarmup = !isWarmup)
     }
 }

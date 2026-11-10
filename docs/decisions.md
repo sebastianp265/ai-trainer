@@ -28,3 +28,10 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-10 · Equipment of a custom exercise · migration 7→8 also adds the equipment "Other" (Inne) · An exercise needs an equipment row and the create form asks only for name and groups.
 - 2026-11-10 · Task 5.2 schema · no migration; `set_entry.rpe` already exists · Only the picker is missing.
 - 2026-11-10 · Lint of JVM test files · The IDE reports unresolved references in `jvmTest` files (also in untouched lines), so Gradle compilation is the check there · IDE module sync of the multiplatform test source set is stale.
+- 2026-11-10 · Plan tables · `plan` and `planned_set` only (a planned exercise is the group of its sets, like in `set_entry`) · Same shape as a workout makes starting from a plan a plain copy.
+- 2026-11-10 · Workout screen and navigation · A running workout is its own full-screen route (no bottom bar, no app top bar); the app opens it whenever a session is running and closes it when the session ends · One source of truth, survives closing the app. Back moves the app to the background.
+- 2026-11-10 · Exercise cards in a running workout · all expanded by default; tapping the header collapses one to "N sets" · The mockup shows collapsed cards but not what expands them.
+- 2026-11-10 · "More" button in the workout top bar · left out · The mockup defines nothing behind it ("Odrzuć" is at the bottom already).
+- 2026-11-10 · RPE picker values · all nine steps 6 to 10 by 0.5 (the mockup omits 6.5) · Requirements 4.
+- 2026-11-10 · Bodyweight sets · weight 0 is shown as "–" and counts as bodyweight in the last-time label · No separate flag in the data.
+- 2026-11-10 · "+N" in the last-time label · The text is measured; a group is dropped until two lines fit and its sets are counted in "+N"; spaces inside a group do not break · Compose's flow-row overflow API is deprecated.

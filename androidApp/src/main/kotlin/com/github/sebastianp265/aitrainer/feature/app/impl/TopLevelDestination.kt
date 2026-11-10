@@ -44,10 +44,15 @@ internal data class ProgressMetricRoute(val metric: ProgressMetric)
 internal data class DayDetailRoute(val date: String)
 
 @Serializable
+internal object ActiveWorkoutRoute
+
+@Serializable
 internal object HistoryRoute
 
 @Serializable
 internal data class ExternalWorkoutRoute(val startedAtMillis: Long)
+
+internal val fullScreenRoutes = listOf(ActiveWorkoutRoute::class)
 
 internal val nestedRoutes = listOf(
     SettingsRoute::class,

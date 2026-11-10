@@ -17,7 +17,7 @@
     <string name="cancel">Anuluj</string>
     <string name="add_first_exercise_hint">Dodaj pierwsze ćwiczenie przyciskiem poniżej.</string>
     <string name="discard_workout_title">Odrzucić trening?</string>
-    <string name="discard_workout_text">Wszystkie serie zapisane w tym treningu zostaną usunięte.</string>
+    <string name="discard_workout_text">Wpisane serie nie zostaną zapisane.</string>
     <string name="add_set">+ Seria</string>
     <string name="same_as_last_time">Jak ostatnio</string>
     <string name="warmup_short">R</string>
@@ -204,4 +204,20 @@
     </plurals>
 
 
+
+    <string name="last_time_prefix">Ostatnio:</string>
+    <string name="last_time_more">+%1$d</string>
+    <string name="bodyweight_label">masa ciała</string>
+    <string name="rpe_label">RPE</string>
+    <string name="set_weight_description">Ciężar w kg, stuknij, żeby wpisać</string>
+    <string name="set_weight_dialog_title">Ciężar (kg)</string>
+    <string name="set_reps_dialog_title">Powtórzenia</string>
+    <string name="set_rpe_description">RPE serii %1$d</string>
+    <string name="remove_exercise">Usuń ćwiczenie</string>
+    <string name="workout_empty_title">Trening</string>
+    <string name="workout_empty_subtitle">pusty trening</string>
+    <string name="discard_workout_text_plan">Wpisane serie nie zostaną zapisane. Plan „%1$s” zostanie w zakładce Plan.</string>
+    <string name="back_to_workout">Wróć do treningu</string>
+    <string name="ok">OK</string>
+    <string name="workout_subtitle">%1$s · %2$s</string>
 </resources>
