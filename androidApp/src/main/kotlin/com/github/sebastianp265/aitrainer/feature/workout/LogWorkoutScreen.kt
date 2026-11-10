@@ -13,7 +13,7 @@ import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-internal fun LogWorkoutScreen() {
+internal fun LogWorkoutScreen(onOpenHistory: () -> Unit) {
     val viewModel: LogWorkoutViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val actions = remember(viewModel) {
@@ -30,5 +30,5 @@ internal fun LogWorkoutScreen() {
             override fun deleteSet(set: SetEntry) = viewModel.deleteSet(set)
         }
     }
-    LogWorkoutContent(state = state, actions = actions, onMessageShown = viewModel::messageShown)
+    LogWorkoutContent(state = state, actions = actions, onMessageShown = viewModel::messageShown, onOpenHistory = onOpenHistory)
 }

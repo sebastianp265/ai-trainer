@@ -60,6 +60,7 @@ internal fun LogWorkoutContent(
     state: LogUiState,
     actions: LogWorkoutActions,
     onMessageShown: () -> Unit,
+    onOpenHistory: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -89,7 +90,7 @@ internal fun LogWorkoutContent(
             when {
                 state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 state.activeSession != null -> ActiveSession(state.activeSession, actions)
-                else -> NoActiveSession(state.recentSessions, actions::startSession)
+                else -> NoActiveSession(state.recentSessions, actions::startSession, onOpenHistory)
             }
         }
     }
@@ -145,12 +146,15 @@ internal fun ActiveSession(active: ActiveSessionUi, actions: LogWorkoutActions) 
 }
 
 @Composable
-internal fun NoActiveSession(recent: List<SessionSummary>, onStart: () -> Unit) {
+internal fun NoActiveSession(recent: List<SessionSummary>, onStart: () -> Unit, onOpenHistory: () -> Unit) {
     LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         item {
             Button(onClick = onStart, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.start_workout)) }
             Spacer(Modifier.height(16.dp))
-            Text(stringResource(R.string.recent_workouts), style = MaterialTheme.typography.titleMedium)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.recent_workouts), style = MaterialTheme.typography.titleMedium)
+                TextButton(onClick = onOpenHistory) { Text(stringResource(R.string.history_all)) }
+            }
         }
         if (recent.isEmpty()) {
             item { Text(stringResource(R.string.no_workouts_yet), style = MaterialTheme.typography.bodyMedium) }
@@ -230,6 +234,7 @@ private fun LogWorkoutWithoutActiveSessionPreview() {
                     override fun deleteSet(set: SetEntry) = Unit
                 },
                 onMessageShown = {},
+                onOpenHistory = {},
             )
         }
     }
@@ -277,6 +282,7 @@ private fun LogWorkoutWithActiveSessionPreview() {
                     override fun deleteSet(set: SetEntry) = Unit
                 },
                 onMessageShown = {},
+                onOpenHistory = {},
             )
         }
     }

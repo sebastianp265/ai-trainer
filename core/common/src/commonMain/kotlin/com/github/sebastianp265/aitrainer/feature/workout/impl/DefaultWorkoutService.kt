@@ -7,6 +7,7 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
 import com.github.sebastianp265.aitrainer.integration.workout.CopyResult
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
+import com.github.sebastianp265.aitrainer.integration.workout.ExerciseStrength
 import com.github.sebastianp265.aitrainer.integration.workout.SessionSummary
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
@@ -14,6 +15,7 @@ import com.github.sebastianp265.aitrainer.integration.workout.WorkoutService
 import com.github.sebastianp265.aitrainer.integration.workout.WorkoutSession
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import kotlin.time.Clock
@@ -35,6 +37,12 @@ internal class DefaultWorkoutService(
 
     override fun observeRecentSessions(): Flow<List<SessionSummary>> =
         dao.observeRecentSessions(RECENT_SESSIONS_LIMIT).map { list -> list.map { it.toModel() } }
+
+    override fun observeFinishedSessions(from: LocalDate, toInclusive: LocalDate): Flow<List<SessionSummary>> =
+        dao.observeFinishedSessions(from, toInclusive).map { list -> list.map { it.toModel() } }
+
+    override fun observeStrength(from: LocalDate, toInclusive: LocalDate): Flow<List<ExerciseStrength>> =
+        dao.observeWorkingSets().map { sets -> strengthInRange(sets, from, toInclusive) }
 
     override fun groupSetsByExercise(sets: List<SetEntry>, exercises: Map<String, Exercise>): List<ExerciseBlock> =
         groupSetsByExerciseInLoggingOrder(sets, exercises)

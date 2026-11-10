@@ -1,7 +1,14 @@
 package com.github.sebastianp265.aitrainer.feature.app.impl
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -19,26 +26,86 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.feature.health.HealthConnectScreen
+import com.github.sebastianp265.aitrainer.feature.health.SyncHealthOnForeground
+import com.github.sebastianp265.aitrainer.feature.history.ExternalWorkoutScreen
+import com.github.sebastianp265.aitrainer.feature.history.HistoryScreen
 import com.github.sebastianp265.aitrainer.feature.plan.PlanScreen
+import com.github.sebastianp265.aitrainer.feature.progress.DayDetailScreen
+import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetricScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressScreen
 import com.github.sebastianp265.aitrainer.feature.settings.SettingsScreen
 import com.github.sebastianp265.aitrainer.feature.workout.LogWorkoutScreen
+import kotlinx.datetime.LocalDate
 
 @Composable
 internal fun AppNavigation() {
     val navController = rememberNavController()
-    Scaffold(bottomBar = { AppBottomBar(navController) }) { padding ->
+    SyncHealthOnForeground()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val destination = backStackEntry?.destination
+    val isNested = destination != null && nestedRoutes.any { destination.hasRoute(it) }
+    val title = when {
+        destination?.hasRoute(SettingsRoute::class) == true -> R.string.nav_settings
+        destination?.hasRoute(HealthConnectRoute::class) == true -> R.string.health_connect
+        else -> null
+    }
+    Scaffold(
+        topBar = { AppTopBar(isNested, title, onOpenSettings = { navController.navigate(SettingsRoute) }, onBack = navController::popBackStack) },
+        bottomBar = { if (!isNested) AppBottomBar(navController) },
+    ) { padding ->
         NavHost(
             navController = navController,
             startDestination = LogRoute,
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
         ) {
-            composable<LogRoute> { LogWorkoutScreen() }
+            composable<LogRoute> { LogWorkoutScreen(onOpenHistory = { navController.navigate(HistoryRoute) }) }
+            composable<HistoryRoute> {
+                HistoryScreen(onOpenExternalWorkout = { navController.navigate(ExternalWorkoutRoute(it)) })
+            }
+            composable<ExternalWorkoutRoute> { entry -> ExternalWorkoutScreen(entry.toRoute<ExternalWorkoutRoute>().startedAtMillis) }
             composable<PlanRoute> { PlanScreen() }
-            composable<ProgressRoute> { ProgressScreen() }
-            composable<SettingsRoute> { SettingsScreen() }
+            composable<ProgressRoute> {
+                ProgressScreen(
+                    onOpenMetric = { navController.navigate(ProgressMetricRoute(it)) },
+                    onOpenDay = { navController.navigate(DayDetailRoute(it.toString())) },
+                )
+            }
+            composable<ProgressMetricRoute> { entry ->
+                ProgressMetricScreen(
+                    metric = entry.toRoute<ProgressMetricRoute>().metric,
+                    onOpenDay = { navController.navigate(DayDetailRoute(it.toString())) },
+                )
+            }
+            composable<DayDetailRoute> { entry -> DayDetailScreen(LocalDate.parse(entry.toRoute<DayDetailRoute>().date)) }
+            composable<SettingsRoute> { SettingsScreen(onOpenHealthConnect = { navController.navigate(HealthConnectRoute) }) }
+            composable<HealthConnectRoute> { HealthConnectScreen() }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun AppTopBar(isNested: Boolean, @StringRes title: Int?, onOpenSettings: () -> Unit, onBack: () -> Unit) {
+    TopAppBar(
+        title = { if (title != null) Text(stringResource(title)) },
+        navigationIcon = {
+            if (isNested) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                }
+            }
+        },
+        actions = {
+            if (!isNested) {
+                IconButton(onClick = onOpenSettings) {
+                    Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.nav_settings))
+                }
+            }
+        },
+    )
 }
 
 @Composable

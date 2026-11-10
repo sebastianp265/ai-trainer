@@ -57,29 +57,29 @@ the phase, one commit per ticked task, never push.
 Requirements 2, 7, 8. Screens: `Progress`, `ProgressNoHealth`, `ProgressMetric`, `DayDetail`,
 `History`, `ExternalWorkout`, `Settings`, `HealthConnect`, `HealthConnectOff`.
 
-- [ ] 4.1 Navigation: tabs Trening · Plan · Postęp, Settings behind the gear icon. Done when: an
+- [x] 4.1 Navigation: tabs Trening · Plan · Postęp, Settings behind the gear icon. Done when: an
       end-to-end test opens Settings from the gear on each tab and returns.
-- [ ] 4.2 Tables `health_day` (one row per date, every column nullable) and `health_workout`,
+- [x] 4.2 Tables `health_day` (one row per date, every column nullable) and `health_workout`,
       in `shared.health`, with an auto-migration from schema 6. Done when: the migration test passes.
-- [ ] 4.3 `HealthDataSource` reads each data type separately and reports which permissions are
+- [x] 4.3 `HealthDataSource` reads each data type separately and reports which permissions are
       granted, including the history permission. Done when: `FakeHealthService` can grant any subset.
-- [ ] 4.4 Sync service: first sync one year or 30 days, later syncs the last 14 days, overwrite
+- [x] 4.4 Sync service: first sync one year or 30 days, later syncs the last 14 days, overwrite
       by date, skip types without permission, ignore this app's own workouts. Done when: unit tests
       cover first sync, re-sync overwriting an edited day, a deleted day, and a missing permission.
-- [ ] 4.5 Day rules: weight = last of the day, sleep on the waking day, resting HR and HRV as
+- [x] 4.5 Day rules: weight = last of the day, sleep on the waking day, resting HR and HRV as
       daily averages. Done when: unit tests cover each rule.
-- [ ] 4.6 Sync on app foreground and on "Synchronizuj teraz"; last sync time stored.
-- [ ] 4.7 Health Connect screens in Settings: state per type, change permissions, history state,
+- [x] 4.6 Sync on app foreground and on "Synchronizuj teraz"; last sync time stored.
+- [x] 4.7 Health Connect screens in Settings: state per type, change permissions, history state,
       not connected, unavailable or outdated. The Settings row shows "X z 8".
-- [ ] 4.8 Progress: range switch and the cards for weight, calorie balance, macros, steps, sleep,
+- [x] 4.8 Progress: range switch and the cards for weight, calorie balance, macros, steps, sleep,
       resting HR, HRV, days. Charts drawn with Compose `Canvas`. Hidden when their data is missing.
       Done when: unit tests cover each card's numbers; an end-to-end test shows cards for a fake
       with partial permissions.
-- [ ] 4.9 Progress without any Health Connect data.
-- [ ] 4.10 Metric detail and day detail.
-- [ ] 4.11 Strength card (estimated 1RM per exercise, requirement 4 "Records and estimates").
-- [ ] 4.12 All workouts list with workouts from other apps, its filter, and the read-only detail.
-- [ ] 4.13 Remove the old Progress list and the source-app line. `status.md` updated.
+- [x] 4.9 Progress without any Health Connect data.
+- [x] 4.10 Metric detail and day detail.
+- [x] 4.11 Strength card (estimated 1RM per exercise, requirement 4 "Records and estimates").
+- [x] 4.12 All workouts list with workouts from other apps, its filter, and the read-only detail.
+- [x] 4.13 Remove the old Progress list and the source-app line. `status.md` updated.
 
 ## Phase 5: training, plans and weekly sets, without the coach
 

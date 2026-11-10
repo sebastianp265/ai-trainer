@@ -11,7 +11,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.sebastianp265.aitrainer.feature.app.impl.MainActivity
-import com.github.sebastianp265.aitrainer.integration.health.HealthService
+import com.github.sebastianp265.aitrainer.integration.health.HealthDataSource
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
 import org.koin.core.context.GlobalContext
@@ -30,7 +30,7 @@ abstract class AbstractE2ETest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val localeManager = context.getSystemService(LocaleManager::class.java)
     private var scenario: ActivityScenario<MainActivity>? = null
-    private var realHealthService: HealthService? = null
+    private var realHealthDataSource: HealthDataSource? = null
 
     @BeforeTest
     fun startWithFreshData() {
@@ -47,14 +47,14 @@ abstract class AbstractE2ETest {
     fun closeApp() {
         scenario?.close()
         localeManager.applicationLocales = LocaleList.getEmptyLocaleList()
-        realHealthService?.let { real -> loadKoinModules(module { single<HealthService> { real } }) }
-        realHealthService = null
+        realHealthDataSource?.let { real -> loadKoinModules(module { single<HealthDataSource> { real } }) }
+        realHealthDataSource = null
     }
 
-    protected fun launchApp(healthService: HealthService? = null) {
-        if (healthService != null) {
-            realHealthService = GlobalContext.get().get<HealthService>()
-            loadKoinModules(module { single<HealthService> { healthService } })
+    protected fun launchApp(healthDataSource: HealthDataSource? = null) {
+        if (healthDataSource != null) {
+            realHealthDataSource = GlobalContext.get().get<HealthDataSource>()
+            loadKoinModules(module { single<HealthDataSource> { healthDataSource } })
         }
         scenario = ActivityScenario.launch(MainActivity::class.java)
     }
@@ -78,6 +78,8 @@ abstract class AbstractE2ETest {
         context.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null).use { database ->
             database.execSQL("DELETE FROM set_entry")
             database.execSQL("DELETE FROM workout_session")
+            database.execSQL("DELETE FROM health_day")
+            database.execSQL("DELETE FROM health_workout")
         }
     }
 
