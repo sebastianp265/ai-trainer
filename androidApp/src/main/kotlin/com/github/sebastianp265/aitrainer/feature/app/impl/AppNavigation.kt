@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -15,6 +16,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,9 +28,19 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import org.koin.compose.viewmodel.koinViewModel
 import androidx.navigation.toRoute
 import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
+import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.github.sebastianp265.aitrainer.feature.coach.ApiKeyScreen
+import com.github.sebastianp265.aitrainer.feature.coach.CoachMemoryScreen
+import com.github.sebastianp265.aitrainer.feature.coach.CoachProposalScreen
+import com.github.sebastianp265.aitrainer.feature.coach.CoachScreen
+import com.github.sebastianp265.aitrainer.feature.coach.DebugScreen
+import com.github.sebastianp265.aitrainer.feature.coach.ModelPickerScreen
+import com.github.sebastianp265.aitrainer.feature.coach.WeeklyReviewOnForeground
 import com.github.sebastianp265.aitrainer.feature.exercise.ExerciseHistoryScreen
 import com.github.sebastianp265.aitrainer.feature.exercise.ExercisePickerScreen
 import com.github.sebastianp265.aitrainer.feature.exercise.PICKED_EXERCISE_KEY
@@ -43,6 +55,7 @@ import com.github.sebastianp265.aitrainer.feature.plan.PlanScreen
 import com.github.sebastianp265.aitrainer.feature.progress.DayDetailScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetricScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressScreen
+import com.github.sebastianp265.aitrainer.feature.settings.BackupScreen
 import com.github.sebastianp265.aitrainer.feature.settings.SettingsScreen
 import com.github.sebastianp265.aitrainer.feature.volume.VolumeTargetsScreen
 import com.github.sebastianp265.aitrainer.feature.workout.ActiveWorkoutRedirect
@@ -56,6 +69,7 @@ import kotlinx.datetime.LocalDate
 internal fun AppNavigation() {
     val navController = rememberNavController()
     SyncHealthOnForeground()
+    WeeklyReviewOnForeground()
     ActiveWorkoutRedirect(
         isActiveWorkoutOpen = { runCatching { navController.getBackStackEntry<ActiveWorkoutRoute>() }.isSuccess },
         onSessionStarted = { navController.navigate(ActiveWorkoutRoute) },
@@ -65,19 +79,31 @@ internal fun AppNavigation() {
     val destination = backStackEntry?.destination
     val isFullScreen = destination != null && fullScreenRoutes.any { destination.hasRoute(it) }
     val isNested = isFullScreen || destination != null && nestedRoutes.any { destination.hasRoute(it) }
+    val coachEnabledViewModel: CoachEnabledViewModel = koinViewModel()
+    val coachEnabled by coachEnabledViewModel.enabled.collectAsStateWithLifecycle()
+    val isCoachTab = destination?.hasRoute(CoachRoute::class) == true
     val title = when {
         destination?.hasRoute(SettingsRoute::class) == true -> R.string.nav_settings
         destination?.hasRoute(HealthConnectRoute::class) == true -> R.string.health_connect
+        destination?.hasRoute(CoachMemoryRoute::class) == true -> R.string.memory_title
+        destination?.hasRoute(ApiKeyRoute::class) == true -> R.string.settings_claude_api_key
+        destination?.hasRoute(ModelRoute::class) == true -> R.string.model_title
+        destination?.hasRoute(DebugRoute::class) == true -> R.string.settings_debug
+        destination?.hasRoute(BackupRoute::class) == true -> R.string.settings_backup
         else -> null
     }
     Scaffold(
         topBar = {
             if (!isFullScreen) {
-                AppTopBar(isNested, title, onOpenSettings = { navController.navigate(SettingsRoute) }, onBack = navController::popBackStack)
+                AppTopBar(isNested, title, onOpenSettings = { navController.navigate(SettingsRoute) }, onBack = navController::popBackStack, onOpenMemory = if (isCoachTab) ({ navController.navigate(CoachMemoryRoute) }) else null)
             }
         },
-        bottomBar = { if (!isNested) AppBottomBar(navController) },
+        bottomBar = { if (!isNested) AppBottomBar(navController, coachEnabled) },
     ) { padding ->
+        CompositionLocalProvider(
+            LocalCoachEnabled provides coachEnabled,
+            LocalOpenCoach provides { navController.navigate(CoachRoute) },
+        ) {
         NavHost(
             navController = navController,
             startDestination = LogRoute,
@@ -86,7 +112,28 @@ internal fun AppNavigation() {
             composable<LogRoute> { LogWorkoutScreen(
                     onOpenHistory = { navController.navigate(HistoryRoute) },
                     onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) },
+                    onOpenProposal = { navController.navigate(CoachProposalRoute(it)) },
+                    onOpenCoach = { navController.navigate(CoachRoute) },
                 ) }
+            composable<CoachRoute> {
+                CoachScreen(
+                    onOpenPreview = { navController.navigate(CoachProposalRoute(it)) },
+                    onOpenTargets = { navController.navigate(VolumeTargetsRoute) },
+                    onOpenApiKey = { navController.navigate(ApiKeyRoute) },
+                )
+            }
+            composable<CoachMemoryRoute> { CoachMemoryScreen(onOpenTargets = { navController.navigate(VolumeTargetsRoute) }) }
+            composable<CoachProposalRoute> { entry ->
+                CoachProposalScreen(
+                    proposalId = entry.toRoute<CoachProposalRoute>().proposalId,
+                    onAccepted = navController::popBackStack,
+                    onReply = navController::popBackStack,
+                )
+            }
+            composable<ApiKeyRoute> { ApiKeyScreen() }
+            composable<ModelRoute> { ModelPickerScreen() }
+            composable<DebugRoute> { DebugScreen() }
+            composable<BackupRoute> { BackupScreen() }
             composable<ActiveWorkoutRoute> { entry ->
                 val picked by entry.savedStateHandle.getStateFlow<String?>(PICKED_EXERCISE_KEY, null).collectAsStateWithLifecycle()
                 ActiveWorkoutScreen(
@@ -126,7 +173,7 @@ internal fun AppNavigation() {
                     },
                 )
             }
-            composable<VolumeTargetsRoute> { VolumeTargetsScreen() }
+            composable<VolumeTargetsRoute> { VolumeTargetsScreen(onOpenCoach = { navController.navigate(CoachRoute) }) }
             composable<HistoryRoute> {
                 HistoryScreen(onOpenExternalWorkout = { navController.navigate(ExternalWorkoutRoute(it)) })
             }
@@ -136,6 +183,8 @@ internal fun AppNavigation() {
                     onOpenPlan = { navController.navigate(PlanDetailRoute(it)) },
                     onNewPlan = { navController.navigate(PlanEditRoute(NEW_PLAN)) },
                     onOpenTargets = { navController.navigate(VolumeTargetsRoute) },
+                    onOpenProposal = { navController.navigate(CoachProposalRoute(it)) },
+                    onOpenCoach = { navController.navigate(CoachRoute) },
                 )
             }
             composable<PlanDetailRoute> { entry ->
@@ -181,15 +230,25 @@ internal fun AppNavigation() {
                 )
             }
             composable<DayDetailRoute> { entry -> DayDetailScreen(LocalDate.parse(entry.toRoute<DayDetailRoute>().date)) }
-            composable<SettingsRoute> { SettingsScreen(onOpenHealthConnect = { navController.navigate(HealthConnectRoute) }) }
+            composable<SettingsRoute> {
+                SettingsScreen(
+                    onOpenHealthConnect = { navController.navigate(HealthConnectRoute) },
+                    onOpenApiKey = { navController.navigate(ApiKeyRoute) },
+                    onOpenModel = { navController.navigate(ModelRoute) },
+                    onOpenMemory = { navController.navigate(CoachMemoryRoute) },
+                    onOpenDebug = { navController.navigate(DebugRoute) },
+                    onOpenBackup = { navController.navigate(BackupRoute) },
+                )
+            }
             composable<HealthConnectRoute> { HealthConnectScreen() }
+        }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun AppTopBar(isNested: Boolean, @StringRes title: Int?, onOpenSettings: () -> Unit, onBack: () -> Unit) {
+internal fun AppTopBar(isNested: Boolean, @StringRes title: Int?, onOpenSettings: () -> Unit, onBack: () -> Unit, onOpenMemory: (() -> Unit)? = null) {
     TopAppBar(
         title = { if (title != null) Text(stringResource(title)) },
         navigationIcon = {
@@ -200,6 +259,11 @@ internal fun AppTopBar(isNested: Boolean, @StringRes title: Int?, onOpenSettings
             }
         },
         actions = {
+            if (onOpenMemory != null) {
+                IconButton(onClick = onOpenMemory) {
+                    Icon(Icons.Default.Person, contentDescription = stringResource(R.string.memory_title))
+                }
+            }
             if (!isNested) {
                 IconButton(onClick = onOpenSettings) {
                     Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.nav_settings))
@@ -210,11 +274,11 @@ internal fun AppTopBar(isNested: Boolean, @StringRes title: Int?, onOpenSettings
 }
 
 @Composable
-internal fun AppBottomBar(navController: NavHostController) {
+internal fun AppBottomBar(navController: NavHostController, coachEnabled: Boolean) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
     NavigationBar {
-        TopLevelDestination.entries.forEach { destination ->
+        TopLevelDestination.entries.filter { coachEnabled || it != TopLevelDestination.COACH }.forEach { destination ->
             val selected = currentDestination?.hierarchy?.any { it.hasRoute(destination.routeClass) } == true
             NavigationBarItem(
                 selected = selected,

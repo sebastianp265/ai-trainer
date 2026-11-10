@@ -15,6 +15,7 @@ internal data class CoachMessageEntity(
     val text: String,
     val createdAt: Instant,
     val checked: String?,
+    val review: String?,
 )
 
 @Entity(tableName = "coach_proposal")

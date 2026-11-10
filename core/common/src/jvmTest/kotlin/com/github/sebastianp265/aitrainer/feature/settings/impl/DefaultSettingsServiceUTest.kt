@@ -25,9 +25,9 @@ class DefaultSettingsServiceUTest {
     private val service = DefaultSettingsService(preferences, secretStore)
 
     @Test
-    fun `targets are shown and the coach is off until the owner changes it`() = runBlocking {
+    fun `targets are shown and the coach is on until the owner switches it off`() = runBlocking {
         assertEquals(true, service.observeShowTargets().first())
-        assertEquals(false, service.observeCoachEnabled().first())
+        assertEquals(true, service.observeCoachEnabled().first())
     }
 
     @Test
@@ -39,9 +39,20 @@ class DefaultSettingsServiceUTest {
 
     @Test
     fun `the coach switch is remembered`() = runBlocking {
-        service.setCoachEnabled(true)
+        service.setCoachEnabled(false)
 
-        assertEquals(true, service.observeCoachEnabled().first())
+        assertEquals(false, service.observeCoachEnabled().first())
+    }
+
+    @Test
+    fun `the time the key was last checked is remembered and can be cleared`() = runBlocking {
+        val checkedAt = kotlin.time.Instant.parse("2026-11-10T08:10:00Z")
+        service.setApiKeyCheckedAt(checkedAt)
+        assertEquals(checkedAt, service.observeApiKeyCheckedAt().first())
+
+        service.setApiKeyCheckedAt(null)
+
+        assertEquals(null, service.observeApiKeyCheckedAt().first())
     }
 
     @Test

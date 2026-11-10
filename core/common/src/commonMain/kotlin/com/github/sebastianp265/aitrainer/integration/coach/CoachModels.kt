@@ -38,6 +38,21 @@ data class CoachProposal(
     val createdAt: Instant,
 )
 
+data class WeeklyReviewSummary(
+    val weekStart: LocalDate,
+    val weekEnd: LocalDate,
+    val workouts: Int,
+    val plannedWorkouts: Int?,
+    val externalWorkouts: Int,
+    val records: Int,
+    val weightFromKg: Double?,
+    val weightToKg: Double?,
+    val averageBalanceKcal: Int?,
+    val averageProteinG: Int?,
+    val averageSleepMinutes: Int?,
+    val sleepChangeMinutes: Int?,
+)
+
 data class CoachMessage(
     val id: Long,
     val role: CoachRole,
@@ -45,6 +60,7 @@ data class CoachMessage(
     val createdAt: Instant,
     val checked: List<String>,
     val proposals: List<CoachProposal>,
+    val review: WeeklyReviewSummary?,
 )
 
 data class CoachNote(val id: Long, val text: String, val createdAt: Instant)

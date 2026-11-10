@@ -81,7 +81,7 @@ internal class CoachFixture {
         },
     )
     val toolbox = CoachToolbox(workouts, health, plans, volume, exercises, database.coachDao(), clock)
-    val coach = DefaultCoachService(claude, settings, database.coachDao(), toolbox, workouts, health, plans, volume, clock)
+    val coach = DefaultCoachService({ claude }, settings, database.coachDao(), toolbox, workouts, health, plans, volume, clock)
 
     suspend fun finishBenchWorkout(weight: Double = 80.0) {
         workouts.startSession()

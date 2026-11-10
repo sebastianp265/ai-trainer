@@ -126,21 +126,21 @@ Requirement 9, 10. Screens: `Coach`, `CoachEmpty`, `CoachNoKey`, `CoachError`, `
 - [x] 6.4 Read tools. Done when: each tool has a unit test against an in-memory database.
 - [x] 6.5 Proposal tools and lifecycle: pending, accepted, superseded; accepting applies the change.
       Done when: unit tests cover accept, supersede, and a target change leaving plans untouched.
-- [ ] 6.6 Memory tools and the memory screen.
-- [ ] 6.7 Chat screen: messages, proposal cards, "Sprawdzono" line, tool-in-progress indicator.
+- [x] 6.6 Memory tools and the memory screen.
+- [x] 6.7 Chat screen: messages, proposal cards, "Sprawdzono" line, tool-in-progress indicator.
       Done when: an end-to-end test with the fake client asks for a plan, accepts it, and finds it
       on the Plan tab.
-- [ ] 6.8 Proposal preview with changes marked; pending proposal card on Trening, Plan, targets.
-- [ ] 6.9 Fourth tab; first conversation; no key; API key screen with a check call; model screen
+- [x] 6.8 Proposal preview with changes marked; pending proposal card on Trening, Plan, targets.
+- [x] 6.9 Fourth tab; first conversation; no key; API key screen with a check call; model screen
       with the local usage counter.
-- [ ] 6.10 Errors: no network, rejected key, no answer.
-- [ ] 6.11 Debug screen.
+- [x] 6.10 Errors: no network, rejected key, no answer.
+- [x] 6.11 Debug screen.
 
 ## Phase 7: weekly review, backup, polish
 
 Requirements 9 (weekly review), 10 (backup). Screens: `CoachWeekly`, `DataBackup`.
 
-- [ ] 7.1 Weekly review, with several plans in one proposal and "Akceptuj wszystkie".
-- [ ] 7.2 Export and import.
-- [ ] 7.3 Loading states for sync, charts and chat.
-- [ ] 7.4 Full pass over empty and error states on every screen.
+- [x] 7.1 Weekly review, with several plans in one proposal and "Akceptuj wszystkie".
+- [x] 7.2 Export and import.
+- [x] 7.3 Loading states for sync, charts and chat.
+- [x] 7.4 Full pass over empty and error states on every screen.

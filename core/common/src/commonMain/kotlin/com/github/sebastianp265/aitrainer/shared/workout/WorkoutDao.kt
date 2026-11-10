@@ -100,6 +100,9 @@ internal interface WorkoutDao {
     )
     fun observeHistorySets(exerciseKey: String): Flow<List<HistorySetRow>>
 
+    @Query("SELECT COUNT(*) FROM workout_session WHERE finishedAt IS NOT NULL")
+    fun observeFinishedCount(): Flow<Int>
+
     @Query("SELECT * FROM set_entry WHERE sessionId = :sessionId ORDER BY positionInSession")
     fun observeSets(sessionId: Long): Flow<List<SetEntryEntity>>
 

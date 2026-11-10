@@ -11,6 +11,8 @@ interface CoachService {
 
     suspend fun retry()
 
+    suspend fun reviewLastWeekIfDue()
+
     fun observePendingProposals(): Flow<List<CoachProposal>>
 
     fun observeProposal(id: Long): Flow<CoachProposal?>

@@ -13,16 +13,18 @@ import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanEditContent
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanEditViewModel
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanListContent
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanListViewModel
+import com.github.sebastianp265.aitrainer.shared.coach.PendingProposalBanner
+import com.github.sebastianp265.aitrainer.shared.coach.ProposalScope
 import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
 
 internal const val NEW_PLAN = NEW_PLAN_ID
 
 @Composable
-internal fun PlanScreen(onOpenPlan: (planId: Long) -> Unit, onNewPlan: () -> Unit, onOpenTargets: () -> Unit) {
+internal fun PlanScreen(onOpenPlan: (planId: Long) -> Unit, onNewPlan: () -> Unit, onOpenTargets: () -> Unit, onOpenProposal: (Long) -> Unit, onOpenCoach: () -> Unit) {
     val viewModel: PlanListViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    PlanListContent(state, onOpenPlan, onNewPlan, onOpenTargets)
+    PlanListContent(state, onOpenPlan, onNewPlan, onOpenTargets, banner = { PendingProposalBanner(ProposalScope.PLANS, onOpenProposal, onOpenCoach) })
 }
 
 @Composable

@@ -27,23 +27,23 @@ internal class CoachContext(
 
 internal const val COACH_MAX_TOKENS = 4096
 
-internal fun buildCoachRequest(context: CoachContext): ClaudeRequest =
+internal fun buildCoachRequest(context: CoachContext, transientUserText: String? = null): ClaudeRequest =
     ClaudeRequest(
         model = context.model,
         system = systemPrompt(context),
-        messages = conversation(context.history),
+        messages = conversation(context.history, transientUserText),
         tools = context.tools,
         maxTokens = COACH_MAX_TOKENS,
     )
 
-private fun conversation(history: List<CoachMessageEntity>): List<ClaudeMessage> =
-    history.sortedBy { it.id }
-        .fold(mutableListOf<Pair<ClaudeRole, String>>()) { messages, message ->
-            val role = if (message.role == CoachRole.USER) ClaudeRole.USER else ClaudeRole.ASSISTANT
+private fun conversation(history: List<CoachMessageEntity>, transientUserText: String?): List<ClaudeMessage> =
+    (history.sortedBy { it.id }.map { it.role to it.text } + listOfNotNull(transientUserText?.let { CoachRole.USER to it }))
+        .fold(mutableListOf<Pair<ClaudeRole, String>>()) { messages, (messageRole, messageText) ->
+            val role = if (messageRole == CoachRole.USER) ClaudeRole.USER else ClaudeRole.ASSISTANT
             if (messages.isNotEmpty() && messages.last().first == role) {
-                messages[messages.lastIndex] = role to (messages.last().second + "\n" + message.text)
+                messages[messages.lastIndex] = role to (messages.last().second + "\n" + messageText)
             } else {
-                messages += role to message.text
+                messages += role to messageText
             }
             messages
         }

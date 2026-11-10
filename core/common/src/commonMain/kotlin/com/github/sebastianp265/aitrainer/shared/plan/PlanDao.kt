@@ -29,6 +29,9 @@ internal interface PlanDao {
     )
     fun observeUpcomingPlannedSets(): Flow<List<PlannedSetEntity>>
 
+    @Query("SELECT COUNT(*) FROM plan")
+    fun observePlanCount(): Flow<Int>
+
     @Query("SELECT * FROM plan WHERE id = :id")
     fun observePlan(id: Long): Flow<PlanEntity?>
 

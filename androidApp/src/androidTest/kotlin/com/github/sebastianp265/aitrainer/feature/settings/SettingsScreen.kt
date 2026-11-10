@@ -4,13 +4,15 @@ import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
+import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachApiKeyTags
+import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachModelTags
+import com.github.sebastianp265.aitrainer.feature.coach.impl.DebugTags
 import com.github.sebastianp265.aitrainer.feature.settings.impl.SettingsTags
 import com.github.sebastianp265.aitrainer.shared.e2e.Screen
 import com.github.sebastianp265.aitrainer.shared.e2e.TEST_TIMEOUT_MS
@@ -25,6 +27,10 @@ class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun goBack() {
         compose.onNodeWithContentDescription("Back").performClick()
+    }
+
+    fun goBackToTab() {
+        goBack()
         compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithContentDescription("Settings").fetchSemanticsNodes().isNotEmpty() }
     }
 
@@ -40,22 +46,72 @@ class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun assertCoachOn() = waitForText("Chat, plan proposals and weekly review")
 
-    fun typeClaudeApiKey(key: String) = scrollTo(hasTestTag(SettingsTags.CLAUDE_API_KEY)).performTextInput(key)
+    fun assertCoachRowsHidden() = assertTextNotShown("Claude API key")
 
-    fun save() = clickText("Save")
+    fun openApiKey() {
+        waitFor(hasTestTag(SettingsTags.API_KEY_ROW))
+        compose.onNode(hasTestTag(SettingsTags.API_KEY_ROW)).performClick()
+        waitFor(hasTestTag(CoachApiKeyTags.FIELD))
+    }
 
-    fun removeClaudeApiKey() = scrollTo(hasText("Remove")).performClick()
+    fun openModel() {
+        waitFor(hasTestTag(SettingsTags.MODEL_ROW))
+        compose.onNode(hasTestTag(SettingsTags.MODEL_ROW)).performClick()
+    }
 
-    fun assertClaudeApiKeySaved() = assertStatusShown("API key saved")
+    fun openMemory() {
+        waitFor(hasTestTag(SettingsTags.MEMORY_ROW))
+        compose.onNode(hasTestTag(SettingsTags.MEMORY_ROW)).performClick()
+    }
 
-    fun assertNoClaudeApiKeySaved() = assertStatusShown("No API key saved")
+    fun openBackup() {
+        scrollTo(hasTestTag(SettingsTags.BACKUP_ROW)).performClick()
+    }
+
+    fun assertBackupShown() {
+        waitForText("Export to a file")
+        waitForText("Import from a file")
+    }
+
+    fun openDebug() {
+        scrollTo(hasTestTag(SettingsTags.DEBUG_ROW)).performClick()
+    }
+
+    fun typeClaudeApiKey(key: String) {
+        waitFor(hasTestTag(CoachApiKeyTags.FIELD))
+        compose.onNode(hasTestTag(CoachApiKeyTags.FIELD)).performTextInput(key)
+    }
+
+    fun saveAndCheck() = compose.onNode(hasTestTag(CoachApiKeyTags.SAVE)).performClick()
+
+    fun removeClaudeApiKey() = scrollTo(hasTestTag(CoachApiKeyTags.REMOVE)).performClick()
+
+    fun assertKeyWorks() = waitForText("The key works", substring = true)
+
+    fun assertKeyRejected() = waitForText("The key was rejected", substring = true)
+
+    fun assertNoClaudeApiKeySaved() = waitForText("No API key saved")
+
+    fun assertClaudeApiKeySaved() = waitForText("Saved, encrypted on this phone")
 
     fun assertNotShownAnywhere(text: String) = assertTextNotShown(text)
 
-    private fun assertStatusShown(status: String) =
-        compose.waitUntil(TEST_TIMEOUT_MS) { runCatching { scrollTo(hasText(status)) }.isSuccess }
+    fun chooseModel(model: String) {
+        waitFor(hasTestTag(CoachModelTags.option(model)))
+        compose.onNode(hasTestTag(CoachModelTags.option(model))).performClick()
+    }
+
+    fun assertModelShown(name: String) = waitForText(name)
+
+    fun assertDebugLogShown() = waitFor(hasTestTag(DebugTags.LOG_ENTRY))
+
+    fun switchFakeClaude() {
+        waitFor(hasTestTag(DebugTags.FAKE_CLAUDE))
+        compose.onNode(hasTestTag(DebugTags.FAKE_CLAUDE)).performClick()
+    }
 
     private fun scrollTo(matcher: SemanticsMatcher): SemanticsNodeInteraction {
+        waitFor(hasScrollAction())
         compose.onNode(hasScrollAction()).performScrollToNode(matcher)
         return compose.onNode(matcher)
     }

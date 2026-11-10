@@ -19,6 +19,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -47,6 +49,8 @@ import com.github.sebastianp265.aitrainer.integration.plan.Plan
 import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import com.github.sebastianp265.aitrainer.shared.localization.formatLongWeekdayDate
+import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
+import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.workout.PlanExercise
 import com.github.sebastianp265.aitrainer.shared.workout.PlanLine
 import com.github.sebastianp265.aitrainer.shared.workout.planExercises
@@ -67,6 +71,7 @@ internal fun PlanDetailContent(
 ) {
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     val plan = state.plan
+    LaunchedEffect(state.isLoading, plan) { if (!state.isLoading && plan == null) onBack() }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -98,6 +103,9 @@ internal fun PlanDetailContent(
         ) {
             planExercises(plan.sets).forEach { ExerciseLines(it, state.exercises) }
             Button(onClick = onStart, Modifier.fillMaxWidth().testTag(PlanTags.START)) { Text(stringResource(R.string.plan_start)) }
+            if (LocalCoachEnabled.current) {
+                FilledTonalButton(onClick = LocalOpenCoach.current, Modifier.fillMaxWidth().testTag(PlanTags.ASK_COACH)) { Text(stringResource(R.string.plan_change_with_coach)) }
+            }
             OutlinedButton(onClick = onEdit, Modifier.fillMaxWidth()) { Text(stringResource(R.string.plan_edit_myself)) }
         }
         if (confirmDelete) {

@@ -17,6 +17,7 @@ import com.github.sebastianp265.aitrainer.integration.coach.CoachUsage
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalState
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalType
 import com.github.sebastianp265.aitrainer.integration.coach.ProposedTarget
+import com.github.sebastianp265.aitrainer.integration.coach.WeeklyReviewSummary
 import com.github.sebastianp265.aitrainer.integration.health.HealthService
 import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.plan.PlanDraft
@@ -39,12 +40,13 @@ import kotlinx.coroutines.flow.map
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
+import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
 internal class DefaultCoachService(
-    private val claude: ClaudeClient,
+    private val claudeClient: () -> ClaudeClient,
     private val settings: SettingsService,
     private val dao: CoachDao,
     private val toolbox: CoachToolbox,
@@ -74,33 +76,61 @@ internal class DefaultCoachService(
         }
 
     override suspend fun send(text: String) {
-        dao.insertMessage(CoachMessageEntity(role = CoachRole.USER, text = text.trim(), createdAt = clock.now(), checked = null))
+        dao.insertMessage(CoachMessageEntity(role = CoachRole.USER, text = text.trim(), createdAt = clock.now(), checked = null, review = null))
         converse()
     }
 
-    override suspend fun retry() = converse()
+    override suspend fun retry() {
+        converse()
+    }
 
-    private suspend fun converse() {
+    override suspend fun reviewLastWeekIfDue() {
+        val today = clock.todayIn(TimeZone.currentSystemDefault())
+        val weekStart = weekBeforeToday(today)
+        val lastReviewed = settings.observeLastReviewedWeek().first()
+        if (lastReviewed != null && lastReviewed >= weekStart) return
+        val weekEnd = weekStart.plus(DatePeriod(days = 6))
+        val sessions = workouts.observeFinishedSessions(weekStart, weekEnd).first()
+        val plannedUndone = plans.observeUpcoming().first().count { it.date != null && it.date!! in weekStart..weekEnd }
+        val fromPlans = sessions.count { it.planId != null }
+        val reports = sessions.mapNotNull { workouts.observeWorkoutReport(it.id).first() }
+        val summary = reviewSummary(
+            weekStart = weekStart,
+            workouts = sessions.size,
+            plannedWorkouts = (fromPlans + plannedUndone).takeIf { it > 0 },
+            externalWorkouts = health.observeWorkouts().first().count { it.startedAt.toLocalDateTime(TimeZone.currentSystemDefault()).date in weekStart..weekEnd },
+            records = reports.sumOf { it.records.size },
+            thisWeek = health.observeDays(weekStart, weekEnd).first(),
+            weekBefore = health.observeDays(weekStart.minus(DatePeriod(days = 7)), weekStart.minus(DatePeriod(days = 1))).first(),
+        )
+        if (!summary.hasAnything()) {
+            settings.setLastReviewedWeek(weekStart)
+            return
+        }
+        if (converse(transient = summary.asPrompt(), review = summary)) settings.setLastReviewedWeek(weekStart)
+    }
+
+    private suspend fun converse(transient: String? = null, review: WeeklyReviewSummary? = null): Boolean {
         activity.value = CoachActivity.Working(tool = null)
         val context = coachContext()
-        val request = buildCoachRequest(context)
+        val request = buildCoachRequest(context, transient)
         val checked = mutableListOf<String>()
         val proposalIds = mutableListOf<Long>()
         val conversation = request.messages.toMutableList()
         repeat(MAX_TOOL_ROUNDS) {
             log(CoachLogKind.REQUEST, "request ${conversation.size} messages", request.system.take(LOG_DETAIL_LIMIT))
-            when (val result = claude.send(request.copy(messages = conversation))) {
+            when (val result = claudeClient().send(request.copy(messages = conversation.toList()))) {
                 is ClaudeResult.Failure -> {
                     log(CoachLogKind.ERROR, result.kind.name, result.message)
                     activity.value = CoachActivity.Failed(result.kind, result.message)
-                    return
+                    return false
                 }
                 is ClaudeResult.Success -> {
                     addUsage(result.response.inputTokens, result.response.outputTokens)
                     val toolUses = result.response.content.filterIsInstance<ClaudeContent.ToolUse>()
                     if (toolUses.isEmpty()) {
-                        finish(result.response.content.filterIsInstance<ClaudeContent.Text>().joinToString("\n") { it.text }, checked, proposalIds)
-                        return
+                        finish(result.response.content.filterIsInstance<ClaudeContent.Text>().joinToString("\n") { it.text }, checked, proposalIds, review)
+                        return true
                     }
                     conversation += ClaudeMessage(ClaudeRole.ASSISTANT, result.response.content)
                     val results = toolUses.map { use ->
@@ -115,12 +145,16 @@ internal class DefaultCoachService(
                 }
             }
         }
-        finish("", checked, proposalIds)
+        finish("", checked, proposalIds, review)
+        return true
     }
 
-    private suspend fun finish(text: String, checked: List<String>, proposalIds: List<Long>) {
+    private suspend fun finish(text: String, checked: List<String>, proposalIds: List<Long>, review: WeeklyReviewSummary?) {
         val messageId = dao.insertMessage(
-            CoachMessageEntity(role = CoachRole.COACH, text = text, createdAt = clock.now(), checked = checked.takeIf { it.isNotEmpty() }?.joinToString(",")),
+            CoachMessageEntity(
+                role = CoachRole.COACH, text = text, createdAt = clock.now(), checked = checked.takeIf { it.isNotEmpty() }?.joinToString(","),
+                review = review?.let { coachJson.encodeToString(ReviewPayload.serializer(), it.toPayload()) },
+            ),
         )
         if (proposalIds.isNotEmpty()) dao.attachProposals(messageId, proposalIds)
         activity.value = CoachActivity.Idle
@@ -217,7 +251,7 @@ internal class DefaultCoachService(
 private const val LOG_DETAIL_LIMIT = 4000
 
 private fun CoachMessageEntity.toModel(proposals: List<CoachProposal>) =
-    CoachMessage(id, role, text, createdAt, checked?.split(',').orEmpty(), proposals)
+    CoachMessage(id, role, text, createdAt, checked?.split(',').orEmpty(), proposals, review?.let { coachJson.decodeFromString(ReviewPayload.serializer(), it).toSummary() })
 
 private fun CoachProposalEntity.toModel(): CoachProposal {
     val payload = coachJson.decodeFromString(ProposalPayload.serializer(), payload)

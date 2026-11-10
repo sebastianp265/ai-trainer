@@ -1,13 +1,12 @@
 # Project status
 
-Last updated: 2026-11-10 · Branch `phase-5-7` · Phase 5 of 7 (training, plans and weekly sets, without the coach) is done.
+Last updated: 2026-11-10 · Branch `phase-5-7` · Phases 5, 6 and 7 are done (training, plans and weekly sets; the coach; weekly review, backup and polish).
 Phases 1–4 are done and merged. The design (phase 3) is in [`requirements.md`](requirements.md), [`design/`](design/README.md) and [`plan.md`](plan.md).
 Choices made without asking are in [`decisions.md`](decisions.md).
 
 **Can I run it? Yes.** The debug build compiles with no errors. The app starts on the new Training screen and has working
 plans, workouts with RPE, a summary after each workout, exercise history, weekly sets per muscle group with targets, the
-Progress tab with Health Connect data and the Settings screen. The AI coach does not exist yet (phase 6); the app behaves as
-with the coach switched off.
+Progress tab with Health Connect data and the Settings screen. The Coach tab, weekly review and backup work. The coach needs your Claude API key (Settings); without it the app behaves as with the coach off.
 
 ## How to run
 
@@ -55,14 +54,19 @@ Installing a new build keeps your data: schema 7 → 8 (six muscle groups, "Othe
 
 | Feature | Phase |
 |---|---|
-| Coach: chat, tools, proposals for plans and targets, memory, API key and model screens | 6 |
-| Debug screen (debug builds only) | 6 |
-| Weekly review, export and import, loading states, polished empty and error states | 7 |
+Nothing planned is missing. See the known gaps below.
 
 ## Known gaps
 
 - The Polish texts of the new screens were written from the mockups and have not been read on a phone.
 - Only the strings of Health Connect workout types listed in `ExternalWorkoutText.kt` have their own names; other types show "Other activity".
 - A first sync made without the "past data" permission is not extended to a year when the permission is granted later.
-- Sync errors are not shown to the user.
+- Sync errors show one line on the Health Connect screen only.
+- Not checked on a phone with a real key: the real Claude calls, the weekly review text, and backup import with a file from another device (the app restarts after an import).
+- The final design audit of every screen against the mockups was done only for the empty and error states listed in `decisions.md`; small visual differences may remain.
 - The IDE shows unresolved references in `jvmTest` files; Gradle compiles them (see `decisions.md`).
+
+## Final summary
+
+All tasks of phases 5, 6 and 7 are ticked. `./gradlew.bat build` passes (unit tests, architecture rules, lint, release build). The last full instrumented run on the emulator had 58 tests with one failure (a test of the weekly review, fixed afterwards and passing on its own); the full suite was not rerun after that fix. One workout test failed once earlier with a Compose idle timeout and passed in the later runs.
+Check by hand: enter your key in Settings and talk to the coach; accept a plan and a target change; open the app after a full week of data to see the weekly review; export a backup and import it; try the app with the coach off.

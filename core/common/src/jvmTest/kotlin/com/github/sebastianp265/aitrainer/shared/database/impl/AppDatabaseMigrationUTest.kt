@@ -105,6 +105,18 @@ class AppDatabaseMigrationUTest {
         }
     }
 
+    @Test
+    fun `migration from 11 to 12 adds an empty review column and keeps messages`() {
+        helper.createDatabase(11).use { connection ->
+            connection.execSQL("INSERT INTO coach_message (role, text, createdAt, checked) VALUES ('USER', 'Hi', 1000, NULL)")
+        }
+
+        helper.runMigrationsAndValidate(12).use { connection ->
+            assertEquals(1, connection.count("coach_message"))
+            assertEquals(1, connection.count("coach_message WHERE review IS NULL"))
+        }
+    }
+
     private fun migratedSeedOfVersion7(): MuscleSnapshot {
         helper.createDatabase(7).use { runSeed(it, "/seed-v7.sql") }
         return helper.runMigrationsAndValidate(8, listOf(migration7To8)).use { it.snapshotOfMuscles() }

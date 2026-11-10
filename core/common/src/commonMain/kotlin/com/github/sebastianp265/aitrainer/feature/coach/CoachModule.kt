@@ -5,13 +5,15 @@ import com.github.sebastianp265.aitrainer.feature.coach.impl.DefaultCoachService
 import com.github.sebastianp265.aitrainer.feature.coach.impl.KtorClaudeClient
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeClient
 import com.github.sebastianp265.aitrainer.integration.coach.CoachService
-import org.koin.core.module.dsl.bind
+import com.github.sebastianp265.aitrainer.integration.shared.REAL_CLAUDE_CLIENT
 import org.koin.core.module.dsl.factoryOf
-import org.koin.core.module.dsl.singleOf
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 internal val coachModule = module {
-    factoryOf(::KtorClaudeClient) { bind<ClaudeClient>() }
+    factory<ClaudeClient>(named(REAL_CLAUDE_CLIENT)) { KtorClaudeClient(get(), get()) }
     factoryOf(::CoachToolbox)
-    singleOf(::DefaultCoachService) { bind<CoachService>() }
+    single<CoachService> {
+        DefaultCoachService({ get() }, get(), get(), get(), get(), get(), get(), get(), get())
+    }
 }

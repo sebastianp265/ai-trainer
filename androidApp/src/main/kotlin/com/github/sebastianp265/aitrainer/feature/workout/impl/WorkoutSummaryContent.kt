@@ -13,6 +13,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -35,6 +36,8 @@ import com.github.sebastianp265.aitrainer.integration.workout.ReportExercise
 import com.github.sebastianp265.aitrainer.integration.workout.WorkoutRecord
 import com.github.sebastianp265.aitrainer.integration.workout.WorkoutReport
 import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
+import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
+import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeekdayDate
 import com.github.sebastianp265.aitrainer.shared.workout.rememberLastTimeLabels
 import com.github.sebastianp265.aitrainer.shared.workout.text
@@ -63,6 +66,9 @@ internal fun WorkoutSummaryContent(
             if (report.records.isNotEmpty()) RecordsCard(report.records, state.exercises)
             if (report.plan != null) PlanComparisonCard(report.exercises, state.exercises)
             report.previousWithSamePlan?.let { PreviousLine(it) }
+            if (LocalCoachEnabled.current) {
+                FilledTonalButton(onClick = LocalOpenCoach.current, Modifier.fillMaxWidth().testTag(ReportTags.ASK_COACH)) { Text(stringResource(R.string.summary_discuss_with_coach)) }
+            }
             Button(onClick = onDone, Modifier.fillMaxWidth().testTag(ReportTags.DONE)) { Text(stringResource(R.string.summary_done)) }
             TextButton(onClick = onShowAllSets, Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.summary_all_sets)) }
         }
@@ -174,5 +180,6 @@ internal object ReportTags {
     const val PLAN_COMPARISON = "report_plan_comparison"
     const val DIFFERENCE = "report_difference"
     const val EDIT = "report_edit"
+    const val ASK_COACH = "report_ask_coach"
     const val SET_LINE = "report_set_line"
 }

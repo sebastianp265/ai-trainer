@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,6 +43,8 @@ import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.workout.ReportExercise
 import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
+import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
+import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.workout.PlanLine
 import com.github.sebastianp265.aitrainer.shared.workout.planExercises
 import com.github.sebastianp265.aitrainer.shared.workout.planWorkingRpeText
@@ -94,6 +97,9 @@ internal fun WorkoutDetailContent(
         ) {
             ReportStats(report)
             report.exercises.forEach { ExerciseReport(it, state.exercises) }
+            if (LocalCoachEnabled.current) {
+                FilledTonalButton(onClick = LocalOpenCoach.current, Modifier.fillMaxWidth().testTag(ReportTags.ASK_COACH)) { Text(stringResource(R.string.detail_ask_coach)) }
+            }
         }
     }
     if (confirmDelete) {

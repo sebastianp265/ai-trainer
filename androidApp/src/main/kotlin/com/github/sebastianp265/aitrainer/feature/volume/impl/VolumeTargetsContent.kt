@@ -50,6 +50,7 @@ internal fun VolumeTargetsContent(
     onShowTargetsChange: (Boolean) -> Unit,
     onTargetChange: (groupKey: String, minSets: Int, maxSets: Int) -> Unit,
     onRestoreDefaults: () -> Unit,
+    banner: @Composable () -> Unit = {},
 ) {
     if (state.isLoading) {
         Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
@@ -63,6 +64,7 @@ internal fun VolumeTargetsContent(
             Text(stringResource(R.string.targets_title), style = MaterialTheme.typography.headlineSmall)
             Text(stringResource(R.string.targets_subtitle), style = MaterialTheme.typography.bodyMedium)
         }
+        banner()
         ShowTargetsRow(state.showTargets, onShowTargetsChange)
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {

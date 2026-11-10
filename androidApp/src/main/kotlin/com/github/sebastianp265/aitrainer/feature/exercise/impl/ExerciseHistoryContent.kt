@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,6 +39,8 @@ import com.github.sebastianp265.aitrainer.shared.charts.LineChart
 import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeekdayDate
+import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
+import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.workout.rememberLastTimeLabels
 import com.github.sebastianp265.aitrainer.shared.workout.text
 import kotlinx.datetime.LocalDate
@@ -50,6 +53,8 @@ internal fun ExerciseHistoryContent(state: ExerciseHistoryUiState?, onOpenWorkou
     }
     val locale = LocalConfiguration.current.locales[0]
     val history = state.history
+    val coachEnabled = LocalCoachEnabled.current
+    val openCoach = LocalOpenCoach.current
     val oneRepMaxPoints = history.sessions.reversed().mapNotNull { entry -> entry.estimatedOneRepMaxKg?.let { DailyPoint(entry.date, it) } }
     val rpePoints = history.sessions.reversed().mapNotNull { entry -> entry.averageRpe?.let { DailyPoint(entry.date, it) } }
     LazyColumn(
@@ -70,6 +75,10 @@ internal fun ExerciseHistoryContent(state: ExerciseHistoryUiState?, onOpenWorkou
                 )
             }
         }
+        if (history.sessions.isEmpty()) {
+            item { Text(stringResource(R.string.exercise_history_empty), style = MaterialTheme.typography.bodyLarge) }
+            return@LazyColumn
+        }
         item { Stats(history) }
         if (oneRepMaxPoints.size >= 2) {
             item {
@@ -89,6 +98,11 @@ internal fun ExerciseHistoryContent(state: ExerciseHistoryUiState?, onOpenWorkou
         item {
             HistoryCard(stringResource(R.string.exercise_history_sessions_title)) {
                 history.sessions.forEach { SessionRow(it) { onOpenWorkout(it.sessionId) } }
+            }
+        }
+        if (coachEnabled) {
+            item {
+                FilledTonalButton(onClick = openCoach, Modifier.fillMaxWidth()) { Text(stringResource(R.string.history_ask_coach)) }
             }
         }
     }

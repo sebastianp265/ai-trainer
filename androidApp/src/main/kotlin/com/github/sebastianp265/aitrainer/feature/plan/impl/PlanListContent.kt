@@ -16,6 +16,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -39,6 +41,8 @@ import com.github.sebastianp265.aitrainer.integration.plan.Plan
 import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import com.github.sebastianp265.aitrainer.shared.localization.formatLongWeekdayDate
+import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
+import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
 import com.github.sebastianp265.aitrainer.shared.workout.PlanLine
 import com.github.sebastianp265.aitrainer.shared.workout.exerciseCount
@@ -53,6 +57,7 @@ internal fun PlanListContent(
     onNewPlan: () -> Unit,
     onOpenTargets: () -> Unit,
     modifier: Modifier = Modifier,
+    banner: @Composable () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -71,7 +76,7 @@ internal fun PlanListContent(
             when {
                 state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 state.plans.isEmpty() -> EmptyPlans(onNewPlan)
-                else -> PlanList(state, onOpenPlan, onOpenTargets)
+                else -> PlanList(state, onOpenPlan, onOpenTargets, banner)
             }
         }
     }
@@ -85,13 +90,23 @@ private fun EmptyPlans(onNewPlan: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(stringResource(R.string.plan_empty_title), style = MaterialTheme.typography.titleLarge)
-        Text(stringResource(R.string.plan_empty_text), style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
-        Button(onClick = onNewPlan, Modifier.testTag(PlanTags.NEW_PLAN)) { Text(stringResource(R.string.plan_write_own)) }
+        val coachEnabled = LocalCoachEnabled.current
+        Text(
+            stringResource(if (coachEnabled) R.string.plan_empty_text_with_coach else R.string.plan_empty_text),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+        )
+        if (coachEnabled) {
+            FilledTonalButton(onClick = LocalOpenCoach.current, Modifier.testTag(PlanTags.ASK_COACH)) { Text(stringResource(R.string.plan_ask_coach)) }
+            OutlinedButton(onClick = onNewPlan, Modifier.testTag(PlanTags.NEW_PLAN)) { Text(stringResource(R.string.plan_write_own)) }
+        } else {
+            Button(onClick = onNewPlan, Modifier.testTag(PlanTags.NEW_PLAN)) { Text(stringResource(R.string.plan_write_own)) }
+        }
     }
 }
 
 @Composable
-private fun PlanList(state: PlanListUiState, onOpenPlan: (Long) -> Unit, onOpenTargets: () -> Unit) {
+private fun PlanList(state: PlanListUiState, onOpenPlan: (Long) -> Unit, onOpenTargets: () -> Unit, banner: @Composable () -> Unit) {
     val dated = state.plans.filter { it.date != null }
     val undated = state.plans.filter { it.date == null }
     LazyColumn(
@@ -103,6 +118,7 @@ private fun PlanList(state: PlanListUiState, onOpenPlan: (Long) -> Unit, onOpenT
             item { WeekHeader(week) }
             item { WeekStrip(week) }
         }
+        item { banner() }
         if (state.volumeRows.isNotEmpty()) item { WeekVolumeCard(state.volumeRows, state.showTargets, onOpenTargets) }
         if (dated.isNotEmpty()) {
             item { SectionTitle(stringResource(R.string.plan_upcoming)) }
@@ -177,6 +193,7 @@ internal object PlanTags {
     const val NAME_FIELD = "plan_name"
     const val DATE_FIELD = "plan_date"
     const val SAVE = "plan_save"
+    const val ASK_COACH = "plan_ask_coach"
     const val WEEK_STRIP = "plan_week_strip"
     const val WEEK_VOLUME = "plan_week_volume"
     const val WEEK_TARGETS_LINK = "plan_week_targets_link"

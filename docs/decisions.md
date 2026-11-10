@@ -59,3 +59,16 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-10 · Claude client · Ktor (named in the plan) and raw HTTP instead of the Java SDK, behind `integration.coach.ClaudeClient` · `:core:common` is multiplatform and the SDK is JVM-only; request shape follows the claude-api skill (`x-api-key`, `anthropic-version`, tools with `input_schema`, no `temperature`, no forced `tool_choice`).
 - 2026-11-10 · Thinking for the coach · `thinking: {type: "between_tools"}` (thinking off, accepted by claude-sonnet-5-5 at effort high or below) · Stored conversations keep only text; replaying earlier thinking blocks would run into preserved thinking's history-editing check. Unknown content blocks inside one tool loop are passed back unchanged.
 - 2026-11-10 · API key check · `GET /v1/models?limit=1` with the typed key · Validates the key without spending tokens.
+
+## Phase 6
+
+- 2026-11-10 · Coach switch default · on from 6.9 (it was off while the coach did not exist) · Requirements 2.
+- 2026-11-10 · Debug fakes · two switches in the debug screen (fake coach, fake Health Connect), debuggable builds only · Lets the whole app be tried without a key or data.
+- 2026-11-10 · `DefaultCoachService` gets the Claude client through a provider · the service is a single, so tests that swap the client in Koin must reach it · Found when the e2e suite kept the first client.
+
+## Phase 7
+
+- 2026-11-10 · Weekly review trigger · when the app comes to the foreground, the coach is on, a key is stored, the last Monday-to-Sunday week has data and was not reviewed; a failed review is tried again on a later foreground · No background work needed.
+- 2026-11-10 · Review prompt · a transient user message that is not stored; the stats card is computed locally and stored with the coach's reply · The chat shows the card and the reply, not the prompt.
+- 2026-11-10 · Backup format · a copy of the Room database file (VACUUM INTO), without the API key (it is in the Keystore store) · Import checks the file, shows its counts, replaces the database and restarts the app.
+- 2026-11-10 · Coach shortcuts on screens · shown only when the coach is on, through `LocalCoachEnabled` and `LocalOpenCoach` · Requirements 2.

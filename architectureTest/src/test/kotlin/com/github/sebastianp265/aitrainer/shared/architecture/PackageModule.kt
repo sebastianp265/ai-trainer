@@ -14,6 +14,7 @@ enum class PackageModule(val path: String) {
     INTEGRATION_PLAN("integration.plan"),
     INTEGRATION_VOLUME("integration.volume"),
     INTEGRATION_COACH("integration.coach"),
+    INTEGRATION_DEBUG("integration.debug"),
     INTEGRATION_HEALTH("integration.health"),
     INTEGRATION_SETTINGS("integration.settings"),
     INTEGRATION_SHARED("integration.shared"),
@@ -27,6 +28,7 @@ enum class PackageModule(val path: String) {
     SHARED_SECURITY("shared.security"),
     SHARED_PLATFORM("shared.platform"),
     SHARED_NETWORK("shared.network"),
+    SHARED_BACKUP("shared.backup"),
     SHARED_LOCALIZATION("shared.localization"),
     SHARED_STATE("shared.state"),
     SHARED_CHARTS("shared.charts"),
@@ -38,6 +40,7 @@ enum class PackageModule(val path: String) {
     FEATURE_PLAN("feature.plan"),
     FEATURE_VOLUME("feature.volume"),
     FEATURE_COACH("feature.coach"),
+    FEATURE_DEBUG("feature.debug"),
     FEATURE_HISTORY("feature.history");
 
     val group: Group

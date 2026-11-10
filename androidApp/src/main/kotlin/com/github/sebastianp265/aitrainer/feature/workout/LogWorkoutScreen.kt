@@ -18,13 +18,15 @@ import com.github.sebastianp265.aitrainer.feature.workout.impl.WorkoutReportView
 import com.github.sebastianp265.aitrainer.feature.workout.impl.WorkoutSummaryContent
 import com.github.sebastianp265.aitrainer.feature.workout.impl.LogWorkoutViewModel
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
+import com.github.sebastianp265.aitrainer.shared.coach.PendingProposalBanner
+import com.github.sebastianp265.aitrainer.shared.coach.ProposalScope
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-internal fun LogWorkoutScreen(onOpenHistory: () -> Unit, onOpenWorkout: (Long) -> Unit) {
+internal fun LogWorkoutScreen(onOpenHistory: () -> Unit, onOpenWorkout: (Long) -> Unit, onOpenProposal: (Long) -> Unit, onOpenCoach: () -> Unit) {
     val viewModel: LogWorkoutViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LogWorkoutContent(
@@ -33,6 +35,7 @@ internal fun LogWorkoutScreen(onOpenHistory: () -> Unit, onOpenWorkout: (Long) -
         onStartFromPlan = viewModel::startWorkoutFromPlan,
         onOpenHistory = onOpenHistory,
         onOpenWorkout = onOpenWorkout,
+        banner = { PendingProposalBanner(ProposalScope.PLANS, onOpenProposal, onOpenCoach) },
     )
 }
 

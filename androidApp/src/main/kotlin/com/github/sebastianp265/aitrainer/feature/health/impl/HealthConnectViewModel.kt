@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.health.HealthConnectAccess
 import com.github.sebastianp265.aitrainer.integration.health.HealthService
 import com.github.sebastianp265.aitrainer.integration.health.HealthStatus
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,6 +17,7 @@ internal data class HealthConnectUiState(
     val status: HealthStatus? = null,
     val lastSync: Instant? = null,
     val isSyncing: Boolean = false,
+    val syncFailed: Boolean = false,
     val requiredPermissions: Set<String> = emptySet(),
 ) {
     val access: HealthConnectAccess? get() = status?.access
@@ -43,13 +45,17 @@ internal class HealthConnectViewModel(
 
     fun syncNow() {
         if (state.value.isSyncing) return
-        state.update { it.copy(isSyncing = true) }
+        state.update { it.copy(isSyncing = true, syncFailed = false) }
         viewModelScope.launch {
-            try {
+            val failed = try {
                 healthService.sync()
-            } finally {
-                state.update { it.copy(isSyncing = false) }
+                false
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                true
             }
+            state.update { it.copy(isSyncing = false, syncFailed = failed) }
             refresh()
         }
     }

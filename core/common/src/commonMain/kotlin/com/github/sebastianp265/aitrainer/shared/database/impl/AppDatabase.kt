@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import androidx.room.TypeConverters
 import com.github.sebastianp265.aitrainer.shared.coach.CoachDao
+import com.github.sebastianp265.aitrainer.shared.database.DATABASE_SCHEMA_VERSION
 import com.github.sebastianp265.aitrainer.shared.coach.CoachLogEntity
 import com.github.sebastianp265.aitrainer.shared.coach.CoachMessageEntity
 import com.github.sebastianp265.aitrainer.shared.coach.CoachNoteEntity
@@ -56,12 +57,13 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
         CoachUsageEntity::class,
         CoachLogEntity::class,
     ],
-    version = 11,
+    version = DATABASE_SCHEMA_VERSION,
     autoMigrations = [
         AutoMigration(from = 6, to = 7),
         AutoMigration(from = 8, to = 9, spec = Migration8To9::class),
         AutoMigration(from = 9, to = 10),
         AutoMigration(from = 10, to = 11),
+        AutoMigration(from = 11, to = 12),
     ],
     exportSchema = true,
 )

@@ -71,6 +71,9 @@ private fun androidx.compose.foundation.lazy.LazyListScope.connectedItems(
             Text(stringResource(if (state.isSyncing) R.string.hc_syncing else R.string.hc_sync_now))
         }
     }
+    if (state.syncFailed) {
+        item { Text(stringResource(R.string.hc_sync_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
+    }
     item { Text(stringResource(R.string.hc_data_types), style = MaterialTheme.typography.titleMedium) }
     item {
         Column {

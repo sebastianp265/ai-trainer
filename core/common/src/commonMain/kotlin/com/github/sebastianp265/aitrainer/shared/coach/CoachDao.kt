@@ -54,6 +54,9 @@ internal interface CoachDao {
     @Query("SELECT * FROM coach_note ORDER BY id")
     fun observeNotes(): Flow<List<CoachNoteEntity>>
 
+    @Query("SELECT COUNT(*) FROM coach_note")
+    fun observeNoteCount(): Flow<Int>
+
     @Query("SELECT * FROM coach_note ORDER BY id")
     suspend fun notes(): List<CoachNoteEntity>
 

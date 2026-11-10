@@ -59,6 +59,8 @@ import com.github.sebastianp265.aitrainer.integration.workout.RPE_MAX
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_MIN
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_STEP
 import com.github.sebastianp265.aitrainer.shared.localization.formatDate
+import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
+import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
@@ -113,6 +115,15 @@ internal fun PlanEditContent(state: PlanEditUiState, actions: PlanEditActions) {
             if (state.sets.isEmpty()) {
                 EmptyExercises(actions::addExercise)
                 Text(stringResource(R.string.plan_save_hint), style = MaterialTheme.typography.bodyMedium)
+                if (state.isNew && LocalCoachEnabled.current) {
+                    Card(Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Text(stringResource(R.string.plan_prefer_ready_title), style = MaterialTheme.typography.titleSmall)
+                            Text(stringResource(R.string.plan_prefer_ready_text), style = MaterialTheme.typography.bodyMedium)
+                            TextButton(onClick = LocalOpenCoach.current) { Text(stringResource(R.string.plan_go_to_coach)) }
+                        }
+                    }
+                }
             } else {
                 val setsByExercise = state.sets.groupBy { it.exerciseKey }
                 setsByExercise.forEach { (exerciseKey, sets) -> state.exercises[exerciseKey]?.let { ExerciseEditor(it, sets, actions) } }

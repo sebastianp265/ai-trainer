@@ -16,3 +16,24 @@ interface PreferencesStores {
 interface BundledFiles {
     fun read(path: String): String
 }
+
+interface DatabaseBackup {
+    suspend fun export(destination: String): Boolean
+
+    suspend fun inspect(source: String): BackupContents?
+
+    suspend fun import(source: String): Boolean
+}
+
+data class BackupContents(
+    val schemaVersion: Int,
+    val workouts: Int,
+    val plans: Int,
+    val healthDays: Int,
+    val coachNotes: Int,
+    val coachMessages: Int,
+)
+
+const val REAL_HEALTH_DATA_SOURCE = "real_health_data_source"
+
+const val REAL_CLAUDE_CLIENT = "real_claude_client"

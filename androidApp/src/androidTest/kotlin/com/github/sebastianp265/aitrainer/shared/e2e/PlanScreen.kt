@@ -5,7 +5,9 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -75,7 +77,11 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun close() = compose.onNode(hasContentDescription("Close")).performClick()
 
-    fun assertListed(planName: String) = waitFor(hasTestTag(PlanTags.card(planName)))
+    fun assertListed(planName: String) {
+        waitFor(hasScrollAction())
+        compose.onNode(hasScrollAction()).performScrollToNode(hasTestTag(PlanTags.card(planName)))
+        waitFor(hasTestTag(PlanTags.card(planName)))
+    }
 
     fun assertNotListed(planName: String) =
         compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(hasTestTag(PlanTags.card(planName)), useUnmergedTree = true).fetchSemanticsNodes().isEmpty() }

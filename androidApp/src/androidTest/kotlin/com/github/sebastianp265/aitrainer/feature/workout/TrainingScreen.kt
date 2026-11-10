@@ -11,7 +11,8 @@ import com.github.sebastianp265.aitrainer.shared.e2e.TEST_TIMEOUT_MS
 class TrainingScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun assertFirstLaunch() {
-        waitForText("Start on your own")
+        waitForText("Get to know your coach")
+        waitForText("Or start on your own")
         waitForText("You have no workouts yet")
     }
 

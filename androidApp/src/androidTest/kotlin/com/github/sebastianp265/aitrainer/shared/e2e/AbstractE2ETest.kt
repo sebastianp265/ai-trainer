@@ -18,6 +18,8 @@ import org.junit.Rule
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.loadKoinModules
 import org.koin.dsl.module
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 
@@ -72,6 +74,14 @@ abstract class AbstractE2ETest {
         scenario = ActivityScenario.launch(MainActivity::class.java)
     }
 
+    protected fun insertFinishedBenchWorkout(date: kotlinx.datetime.LocalDate) {
+        val startedAt = date.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds() + NOON_MS
+        context.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null).use { database ->
+            database.execSQL("INSERT INTO workout_session (date, startedAt, finishedAt, planId, notes) VALUES ('$date', $startedAt, ${startedAt + HOUR_MS}, NULL, NULL)")
+            database.execSQL("INSERT INTO set_entry (sessionId, exerciseKey, positionInSession, reps, weightKg, rpe, isWarmup) VALUES (last_insert_rowid(), 'BARBELL_BENCH_PRESS', 0, 8, 80.0, NULL, 0)")
+        }
+    }
+
     private fun disableAnimations() {
         ANIMATION_SCALE_SETTINGS.forEach { setting -> runShellCommand("settings put global $setting 0") }
     }
@@ -88,6 +98,7 @@ abstract class AbstractE2ETest {
             database.execSQL("DELETE FROM workout_session")
             database.execSQL("DELETE FROM planned_set")
             database.execSQL("DELETE FROM plan")
+            listOf("coach_message", "coach_proposal", "coach_note", "coach_profile", "coach_usage", "coach_log", "weekly_target").forEach { database.execSQL("DELETE FROM $it") }
             database.execSQL("DELETE FROM health_day")
             database.execSQL("DELETE FROM health_workout")
         }
@@ -95,6 +106,8 @@ abstract class AbstractE2ETest {
 
     private companion object {
         const val DATABASE_NAME = "aitrainer.db"
+        const val NOON_MS = 43_200_000L
+        const val HOUR_MS = 3_600_000L
         val ANIMATION_SCALE_SETTINGS = listOf("window_animation_scale", "transition_animation_scale", "animator_duration_scale")
     }
 }

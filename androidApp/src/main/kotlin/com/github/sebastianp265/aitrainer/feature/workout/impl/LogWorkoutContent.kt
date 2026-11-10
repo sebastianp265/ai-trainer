@@ -46,6 +46,8 @@ import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import com.github.sebastianp265.aitrainer.integration.workout.SessionSummary
 import com.github.sebastianp265.aitrainer.shared.localization.formatLongWeekdayDate
+import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
+import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeekdayDate
 import kotlinx.datetime.LocalDate
 import kotlin.time.Instant
@@ -58,6 +60,7 @@ internal fun LogWorkoutContent(
     onOpenHistory: () -> Unit,
     onOpenWorkout: (Long) -> Unit,
     modifier: Modifier = Modifier,
+    banner: @Composable () -> Unit = {},
 ) {
     var sheetOpen by rememberSaveable { mutableStateOf(false) }
     Box(modifier.fillMaxSize()) {
@@ -70,11 +73,14 @@ internal fun LogWorkoutContent(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 val nextPlan = state.plans.firstOrNull()
+                item { banner() }
                 item {
                     if (nextPlan != null) {
                         NextPlanCard(nextPlan, state.exercises, onStartFromPlan = { onStartFromPlan(nextPlan.id) }, onOtherWorkout = { sheetOpen = true })
                     } else {
-                        StartOnYourOwnCard(onStartEmpty)
+                        val coachEnabled = LocalCoachEnabled.current
+                        if (coachEnabled && state.recentSessions.isEmpty()) MeetCoachCard()
+                        StartOnYourOwnCard(onStartEmpty, coachEnabled)
                     }
                 }
                 item { RecentHeader(onOpenHistory) }
@@ -140,10 +146,21 @@ private fun planCountsWithAuthor(plan: Plan): String {
 }
 
 @Composable
-private fun StartOnYourOwnCard(onStartEmpty: () -> Unit) {
+private fun MeetCoachCard() {
+    Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.training_meet_coach_title), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.training_meet_coach_text), style = MaterialTheme.typography.bodyMedium)
+            Button(onClick = LocalOpenCoach.current, Modifier.testTag(LogWorkoutTags.MEET_COACH)) { Text(stringResource(R.string.training_meet_coach_button)) }
+        }
+    }
+}
+
+@Composable
+private fun StartOnYourOwnCard(onStartEmpty: () -> Unit, withCoach: Boolean) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.start_on_your_own), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(if (withCoach) R.string.start_on_your_own_or else R.string.start_on_your_own), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.start_on_your_own_text), style = MaterialTheme.typography.bodyMedium)
             Button(onClick = onStartEmpty, Modifier.testTag(LogWorkoutTags.START_EMPTY)) { Text(stringResource(R.string.empty_workout)) }
         }
@@ -264,6 +281,7 @@ private fun SheetOption(title: String, subtitle: String, badge: String?, selecte
 
 internal object LogWorkoutTags {
     const val NEXT_PLAN = "training_next_plan"
+    const val MEET_COACH = "training_meet_coach"
     const val START_NEXT_PLAN = "training_start_next_plan"
     const val START_EMPTY = "training_start_empty"
     const val OTHER_WORKOUT = "training_other_workout"

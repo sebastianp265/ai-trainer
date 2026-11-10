@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.github.sebastianp265.aitrainer.R
@@ -19,6 +20,7 @@ internal enum class TopLevelDestination(
 ) {
     LOG(LogRoute, LogRoute::class, R.string.nav_log, Icons.Default.Edit),
     PLAN(PlanRoute, PlanRoute::class, R.string.nav_plan, Icons.Default.DateRange),
+    COACH(CoachRoute, CoachRoute::class, R.string.nav_coach, Icons.Default.Face),
     PROGRESS(ProgressRoute, ProgressRoute::class, R.string.nav_progress, Icons.Default.Star),
 }
 
@@ -27,6 +29,9 @@ internal object LogRoute
 
 @Serializable
 internal object PlanRoute
+
+@Serializable
+internal object CoachRoute
 
 @Serializable
 internal object ProgressRoute
@@ -65,6 +70,24 @@ internal data class PlanDetailRoute(val planId: Long)
 internal data class PlanEditRoute(val planId: Long)
 
 @Serializable
+internal object CoachMemoryRoute
+
+@Serializable
+internal data class CoachProposalRoute(val proposalId: Long)
+
+@Serializable
+internal object ApiKeyRoute
+
+@Serializable
+internal object ModelRoute
+
+@Serializable
+internal object BackupRoute
+
+@Serializable
+internal object DebugRoute
+
+@Serializable
 internal object VolumeTargetsRoute
 
 @Serializable
@@ -74,7 +97,7 @@ internal object HistoryRoute
 internal data class ExternalWorkoutRoute(val startedAtMillis: Long)
 
 internal val fullScreenRoutes = listOf(ActiveWorkoutRoute::class, ExercisePickerRoute::class, PlanDetailRoute::class, PlanEditRoute::class,
-    WorkoutSummaryRoute::class, WorkoutDetailRoute::class,
+    WorkoutSummaryRoute::class, WorkoutDetailRoute::class, CoachProposalRoute::class,
 )
 
 internal val nestedRoutes = listOf(
@@ -84,6 +107,11 @@ internal val nestedRoutes = listOf(
     DayDetailRoute::class,
     HistoryRoute::class,
     VolumeTargetsRoute::class,
+    CoachMemoryRoute::class,
+    ApiKeyRoute::class,
+    ModelRoute::class,
+    DebugRoute::class,
+    BackupRoute::class,
     ExerciseHistoryRoute::class,
     ExternalWorkoutRoute::class,
 )

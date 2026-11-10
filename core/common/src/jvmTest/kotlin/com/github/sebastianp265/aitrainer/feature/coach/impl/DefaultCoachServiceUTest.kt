@@ -201,4 +201,49 @@ class DefaultCoachServiceUTest {
         assertEquals(emptyList(), f.coach.observeNotes().first())
         assertTrue(f.toolbox.run("update_profile", """{"field":"mood","value":"x"}""").isError)
     }
+
+    private suspend fun finishBenchWorkoutLastWeek() {
+        f.now = kotlin.time.Instant.parse("2026-11-05T10:00:00Z")
+        f.finishBenchWorkout()
+        f.now = kotlin.time.Instant.parse("2026-11-10T10:00:00Z")
+    }
+
+    @Test
+    fun `last weeks review is posted once with its numbers and a proposal for the next week`() = runBlocking {
+        finishBenchWorkoutLastWeek()
+        f.claude.callTool("propose_plans", """{"summary":"Next week","plans":[{"name":"Push A","date":"2026-11-12","sets":[{"exerciseKey":"bench","reps":8,"weightKg":82.5}]},{"name":"Legs B","date":"2026-11-14","sets":[{"exerciseKey":"squat","reps":5,"weightKg":110}]}]}""")
+        f.claude.answer("A solid week.")
+
+        f.coach.reviewLastWeekIfDue()
+        f.coach.reviewLastWeekIfDue()
+
+        val message = f.coach.observeMessages().first().single()
+        assertEquals("A solid week.", message.text)
+        assertEquals(1, message.review!!.workouts)
+        assertEquals(kotlinx.datetime.LocalDate(2026, 11, 2), message.review!!.weekStart)
+        assertEquals(ProposalType.MULTI_PLAN, message.proposals.single().type)
+        assertEquals(2, message.proposals.single().plans.size)
+        assertTrue("WEEKLY REVIEW of 2026-11-02 to 2026-11-08" in (f.claude.requests.first().messages.last().content.single() as ClaudeContent.Text).text)
+        assertEquals(2, f.claude.requests.size)
+    }
+
+    @Test
+    fun `a week with nothing to review is skipped without asking Claude`() = runBlocking {
+        f.coach.reviewLastWeekIfDue()
+
+        assertEquals(emptyList(), f.coach.observeMessages().first())
+        assertEquals(0, f.claude.requests.size)
+    }
+
+    @Test
+    fun `a review that failed is tried again the next time`() = runBlocking {
+        finishBenchWorkoutLastWeek()
+        f.claude.fail(ClaudeFailureKind.NO_NETWORK)
+        f.coach.reviewLastWeekIfDue()
+        f.claude.answer("Good week.")
+
+        f.coach.reviewLastWeekIfDue()
+
+        assertEquals("Good week.", f.coach.observeMessages().first().single().text)
+    }
 }
