@@ -3,8 +3,8 @@ package com.github.sebastianp265.aitrainer.shared.backup.impl
 import android.content.Context
 import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
-import android.net.Uri
 import android.os.Process
+import androidx.core.net.toUri
 import com.github.sebastianp265.aitrainer.integration.shared.BackupContents
 import com.github.sebastianp265.aitrainer.integration.shared.DatabaseBackup
 import kotlinx.coroutines.Dispatchers
@@ -25,7 +25,7 @@ internal class AndroidDatabaseBackup(private val context: Context) : DatabaseBac
             SQLiteDatabase.openDatabase(context.getDatabasePath(DATABASE_NAME).path, null, SQLiteDatabase.OPEN_READONLY).use { database ->
                 database.execSQL("VACUUM INTO '${snapshot.path}'")
             }
-            checkNotNull(context.contentResolver.openOutputStream(Uri.parse(destination))).use { output ->
+            checkNotNull(context.contentResolver.openOutputStream(destination.toUri())).use { output ->
                 snapshot.inputStream().use { it.copyTo(output) }
             }
             snapshot.delete()
@@ -67,7 +67,7 @@ internal class AndroidDatabaseBackup(private val context: Context) : DatabaseBac
 
     private fun copyToCache(source: String, name: String): File {
         val file = File(context.cacheDir, name).also { it.delete() }
-        checkNotNull(context.contentResolver.openInputStream(Uri.parse(source))).use { input ->
+        checkNotNull(context.contentResolver.openInputStream(source.toUri())).use { input ->
             file.outputStream().use { input.copyTo(it) }
         }
         return file

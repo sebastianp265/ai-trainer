@@ -134,7 +134,6 @@
     <string name="metric_average">Średnia 7 dni</string>
     <string name="metric_lowest">najniższa</string>
     <string name="metric_highest">najwyższa</string>
-    <string name="metric_per_week">%1$s na tydzień</string>
     <string name="metric_values">Wartości</string>
     <string name="metric_footnote">Jeśli jednego dnia jest kilka pomiarów, liczy się ostatni. Dni bez pomiaru są pomijane.</string>
     <string name="metric_calorie_balance">Bilans kalorii</string>

@@ -135,7 +135,6 @@
     <string name="metric_average">7-day average</string>
     <string name="metric_lowest">lowest</string>
     <string name="metric_highest">highest</string>
-    <string name="metric_per_week">%1$s per week</string>
     <string name="metric_values">Values</string>
     <string name="metric_footnote">If a day has several measurements, the last one counts. Days without a measurement are skipped.</string>
     <string name="metric_calorie_balance">Calorie balance</string>

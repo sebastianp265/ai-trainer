@@ -1,7 +1,9 @@
 package com.github.sebastianp265.aitrainer.feature.progress
 
+import androidx.annotation.Keep
 import kotlinx.serialization.Serializable
 
+@Keep
 @Serializable
 internal enum class ProgressMetric {
     WEIGHT,
