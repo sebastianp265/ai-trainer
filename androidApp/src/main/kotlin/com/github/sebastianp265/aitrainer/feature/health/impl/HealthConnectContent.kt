@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
@@ -71,7 +72,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.connectedItems(
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    stringResource(R.string.hc_connected_summary, status.grantedTypes.size, HealthDataType.entries.size),
+                    pluralStringResource(R.plurals.hc_connected_summary, HealthDataType.entries.size, status.grantedTypes.size, HealthDataType.entries.size),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 Text(lastSyncText(state.lastSync), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -191,8 +192,8 @@ internal fun HealthConnectSettingsRowContent(state: HealthConnectUiState, onOpen
                     Text(
                         when {
                             !connected -> stringResource(R.string.hc_not_connected)
-                            state.lastSync == null -> stringResource(R.string.hc_row_summary_never_synced, granted.size, total)
-                            else -> stringResource(R.string.hc_row_summary, granted.size, total, formatDateTime(state.lastSync))
+                            state.lastSync == null -> pluralStringResource(R.plurals.hc_row_summary_never_synced, total, granted.size, total)
+                            else -> pluralStringResource(R.plurals.hc_row_summary, total, granted.size, total, formatDateTime(state.lastSync))
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,

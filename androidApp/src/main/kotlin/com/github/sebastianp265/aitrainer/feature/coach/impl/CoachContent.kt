@@ -431,7 +431,7 @@ private fun proposalTitle(item: ProposalUi): String {
     if (proposal.workoutChange != null) return stringResource(R.string.coach_workout_change_title)
     proposal.newExercise?.let { return it.name }
     if (proposal.nutrition != null) return stringResource(R.string.coach_nutrition_title)
-    if (proposal.plans.size > 1) return stringResource(R.string.coach_plans_count, proposal.plans.size)
+    if (proposal.plans.size > 1) return pluralStringResource(R.plurals.coach_plans_count, proposal.plans.size, proposal.plans.size)
     val plan = proposal.plans.single()
     return plan.date?.let { stringResource(R.string.coach_plan_title_dated, plan.name, formatLongWeekdayDate(it)) } ?: plan.name
 }
@@ -442,7 +442,7 @@ internal fun changeText(change: PlanChange, exercises: Map<String, Exercise>, lo
     return when (change) {
         is PlanChange.Added -> stringResource(R.string.coach_change_added, name(change.exerciseKey))
         is PlanChange.Removed -> stringResource(R.string.coach_change_removed, name(change.exerciseKey), pluralStringResource(R.plurals.set_count, change.setCount, change.setCount))
-        is PlanChange.SetsChanged -> stringResource(R.string.coach_change_sets, name(change.exerciseKey), change.from, change.to)
+        is PlanChange.SetsChanged -> pluralStringResource(R.plurals.coach_change_sets, change.to, name(change.exerciseKey), change.from, change.to)
         is PlanChange.WeightChanged -> stringResource(R.string.coach_change_weight, name(change.exerciseKey), formatNumber(change.deltaKg, 1, signed = true))
     }
 }

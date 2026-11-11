@@ -42,7 +42,12 @@
     <string name="value_kcal">%1$s kcal</string>
     <string name="value_grams">%1$s g</string>
 
-    <string name="hc_connected_summary">Połączono · %1$d z %2$d typów danych</string>
+    <plurals name="hc_connected_summary">
+        <item quantity="one">Połączono · %1$d z %2$d typu danych</item>
+        <item quantity="few">Połączono · %1$d z %2$d typów danych</item>
+        <item quantity="many">Połączono · %1$d z %2$d typów danych</item>
+        <item quantity="other">Połączono · %1$d z %2$d typów danych</item>
+    </plurals>
     <string name="hc_not_connected">Nie połączono</string>
     <string name="hc_synced_at">Zsynchronizowano %1$s. Synchronizacja uruchamia się sama po otwarciu aplikacji.</string>
     <string name="hc_never_synced">Jeszcze nie synchronizowano. Synchronizacja uruchamia się sama po otwarciu aplikacji.</string>
@@ -69,8 +74,18 @@
     <string name="hc_benefit_workouts">Treningi z innych aplikacji</string>
     <string name="hc_benefit_workouts_text">bieg czy rower obok treningów z siłowni</string>
     <string name="hc_off_choice">Sam wybierasz, które typy danych udostępnić. Dane zostają na telefonie.</string>
-    <string name="hc_row_summary">%1$d z %2$d typów danych · zsynchronizowano %3$s</string>
-    <string name="hc_row_summary_never_synced">%1$d z %2$d typów danych · jeszcze nie synchronizowano</string>
+    <plurals name="hc_row_summary">
+        <item quantity="one">%1$d z %2$d typu danych · zsynchronizowano %3$s</item>
+        <item quantity="few">%1$d z %2$d typów danych · zsynchronizowano %3$s</item>
+        <item quantity="many">%1$d z %2$d typów danych · zsynchronizowano %3$s</item>
+        <item quantity="other">%1$d z %2$d typów danych · zsynchronizowano %3$s</item>
+    </plurals>
+    <plurals name="hc_row_summary_never_synced">
+        <item quantity="one">%1$d z %2$d typu danych · jeszcze nie synchronizowano</item>
+        <item quantity="few">%1$d z %2$d typów danych · jeszcze nie synchronizowano</item>
+        <item quantity="many">%1$d z %2$d typów danych · jeszcze nie synchronizowano</item>
+        <item quantity="other">%1$d z %2$d typów danych · jeszcze nie synchronizowano</item>
+    </plurals>
     <string name="hc_row_missing">Brakuje: %1$s. Wszystkie dane są opcjonalne.</string>
     <string name="hc_type_nutrition">Odżywianie</string>
     <string name="hc_type_nutrition_text">kalorie zjedzone, makro, błonnik, cukry, sód</string>
@@ -326,10 +341,15 @@
     <string name="workout_delete_title">Usunąć trening?</string>
     <string name="workout_delete_text">Trening i wszystkie jego serie zostaną usunięte. Tej operacji nie można cofnąć.</string>
     <string name="detail_plan_line">Plan: %1$s</string>
-    <string name="detail_set_not_done">Seria %1$d nie została zrobiona.</string>
+    <string name="detail_set_not_done">Nie zrobiono: seria %1$d.</string>
     <string name="detail_exercise_not_done">Nie zrobiono.</string>
     <string name="detail_diff_vs_plan">%1$s względem planu</string>
-    <string name="detail_row_reps">%1$d powt.</string>
+    <plurals name="detail_row_reps">
+        <item quantity="one">%1$d powt.</item>
+        <item quantity="few">%1$d powt.</item>
+        <item quantity="many">%1$d powt.</item>
+        <item quantity="other">%1$d powt.</item>
+    </plurals>
     <string name="detail_row_load">%1$s kg × %2$d</string>
     <string name="last_time_set_format">%1$d×%2$s kg</string>
     <string name="targets_title">Cele serii na tydzień</string>
@@ -358,10 +378,30 @@
     <string name="volume_how_we_count">Jak liczymy serie</string>
     <string name="volume_info_title">Skąd ułamki i cele?</string>
     <string name="volume_info_counting">Każda seria robocza liczy się jako 1 dla głównej partii ćwiczenia i 0,5 dla partii pomocniczych. Przykład: 3 serie wyciskania na ławce to 3 serie dla klatki i po 1,5 dla ramion i barków. Rozgrzewki się nie liczą.</string>
-    <string name="volume_info_target">Domyślny cel to %1$d–%2$d serii na partię w tygodniu: w badaniach nad treningiem siłowym taki zakres daje większości osób najlepszy przyrost mięśni. Cel możesz zmienić sam.</string>
-    <string name="volume_on_target">%1$d z %2$d partii w celu.</string>
-    <string name="volume_below">%1$s poniżej: %2$s z %3$d–%4$d serii.</string>
-    <string name="volume_above">%1$s powyżej: %2$s z %3$d–%4$d serii.</string>
+    <plurals name="volume_info_target">
+        <item quantity="one">Domyślny cel to %1$d–%2$d seria na partię w tygodniu: w badaniach nad treningiem siłowym taki zakres daje większości osób najlepszy przyrost mięśni. Cel możesz zmienić sam.</item>
+        <item quantity="few">Domyślny cel to %1$d–%2$d serie na partię w tygodniu: w badaniach nad treningiem siłowym taki zakres daje większości osób najlepszy przyrost mięśni. Cel możesz zmienić sam.</item>
+        <item quantity="many">Domyślny cel to %1$d–%2$d serii na partię w tygodniu: w badaniach nad treningiem siłowym taki zakres daje większości osób najlepszy przyrost mięśni. Cel możesz zmienić sam.</item>
+        <item quantity="other">Domyślny cel to %1$d–%2$d serii na partię w tygodniu: w badaniach nad treningiem siłowym taki zakres daje większości osób najlepszy przyrost mięśni. Cel możesz zmienić sam.</item>
+    </plurals>
+    <plurals name="volume_on_target">
+        <item quantity="one">%1$d z %2$d partii w celu.</item>
+        <item quantity="few">%1$d z %2$d partii w celu.</item>
+        <item quantity="many">%1$d z %2$d partii w celu.</item>
+        <item quantity="other">%1$d z %2$d partii w celu.</item>
+    </plurals>
+    <plurals name="volume_below">
+        <item quantity="one">%1$s poniżej: %2$s z %3$d–%4$d serii.</item>
+        <item quantity="few">%1$s poniżej: %2$s z %3$d–%4$d serii.</item>
+        <item quantity="many">%1$s poniżej: %2$s z %3$d–%4$d serii.</item>
+        <item quantity="other">%1$s poniżej: %2$s z %3$d–%4$d serii.</item>
+    </plurals>
+    <plurals name="volume_above">
+        <item quantity="one">%1$s powyżej: %2$s z %3$d–%4$d serii.</item>
+        <item quantity="few">%1$s powyżej: %2$s z %3$d–%4$d serii.</item>
+        <item quantity="many">%1$s powyżej: %2$s z %3$d–%4$d serii.</item>
+        <item quantity="other">%1$s powyżej: %2$s z %3$d–%4$d serii.</item>
+    </plurals>
     <string name="week_title">Ten tydzień · %1$s</string>
     <string name="week_counts">%1$s · %2$s</string>
     <plurals name="week_done_count">
@@ -454,11 +494,21 @@
     <string name="voice_unavailable">Rozpoznawanie mowy jest niedostępne na tym telefonie</string>
     <string name="coach_undo">Cofnij</string>
     <string name="coach_target_title">Serie na tydzień</string>
-    <string name="coach_plans_count">Plany: %1$d</string>
+    <plurals name="coach_plans_count">
+        <item quantity="one">%1$d plan</item>
+        <item quantity="few">%1$d plany</item>
+        <item quantity="many">%1$d planów</item>
+        <item quantity="other">%1$d planu</item>
+    </plurals>
     <string name="coach_plan_title_dated">%1$s · %2$s</string>
     <string name="coach_change_added">+  %1$s</string>
     <string name="coach_change_removed">−  %1$s (%2$s)</string>
-    <string name="coach_change_sets">~  %1$s: %2$d → %3$d serie</string>
+    <plurals name="coach_change_sets">
+        <item quantity="one">~  %1$s: %2$d → %3$d seria</item>
+        <item quantity="few">~  %1$s: %2$d → %3$d serie</item>
+        <item quantity="many">~  %1$s: %2$d → %3$d serii</item>
+        <item quantity="other">~  %1$s: %2$d → %3$d serii</item>
+    </plurals>
     <string name="coach_change_weight">~  %1$s: %2$s kg</string>
     <string name="coach_target_range">%1$d–%2$d</string>
     <string name="coach_target_note">Dotyczy następnych planów. Istniejące plany zostają bez zmian.</string>
@@ -504,7 +554,12 @@
     <string name="preview_removed">usunięte</string>
     <string name="preview_was">było: %1$s</string>
     <string name="preview_added">nowe</string>
-    <string name="preview_sets_changed">%1$d → %2$d serie</string>
+    <plurals name="preview_sets_changed">
+        <item quantity="one">%1$d → %2$d seria</item>
+        <item quantity="few">%1$d → %2$d serie</item>
+        <item quantity="many">%1$d → %2$d serii</item>
+        <item quantity="other">%1$d → %2$d serii</item>
+    </plurals>
     <string name="api_key_paste">Wklej klucz</string>
     <string name="api_key_paste_new">Wklej nowy klucz, żeby zastąpić zapisany</string>
     <string name="api_key_save_and_check">Zapisz i sprawdź</string>
@@ -545,10 +600,25 @@
     <string name="coach_accept_all">Akceptuj wszystkie</string>
     <string name="review_kind">PRZEGLĄD TYGODNIA · %1$s</string>
     <string name="review_workouts">Treningi</string>
-    <string name="review_workouts_of_planned">%1$d z %2$d zaplanowanych</string>
-    <string name="review_external">do tego %1$d z innych aplikacji</string>
+    <plurals name="review_workouts_of_planned">
+        <item quantity="one">%1$d z %2$d zaplanowanego</item>
+        <item quantity="few">%1$d z %2$d zaplanowanych</item>
+        <item quantity="many">%1$d z %2$d zaplanowanych</item>
+        <item quantity="other">%1$d z %2$d zaplanowanych</item>
+    </plurals>
+    <plurals name="review_external">
+        <item quantity="one">do tego %1$d z innej aplikacji</item>
+        <item quantity="few">do tego %1$d z innych aplikacji</item>
+        <item quantity="many">do tego %1$d z innych aplikacji</item>
+        <item quantity="other">do tego %1$d z innych aplikacji</item>
+    </plurals>
     <string name="review_strength">Siła</string>
-    <string name="review_records">nowe rekordy: %1$d</string>
+    <plurals name="review_records">
+        <item quantity="one">%1$d nowy rekord</item>
+        <item quantity="few">%1$d nowe rekordy</item>
+        <item quantity="many">%1$d nowych rekordów</item>
+        <item quantity="other">%1$d nowego rekordu</item>
+    </plurals>
     <string name="review_weight">Waga</string>
     <string name="review_weight_change">%1$s → %2$s kg</string>
     <string name="review_calories">Kalorie</string>

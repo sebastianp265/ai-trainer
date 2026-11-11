@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -141,7 +142,7 @@ internal fun ProposalPreviewContent(state: PreviewUiState, onAccept: () -> Unit,
 @Composable
 private fun previewSubtitle(proposal: CoachProposal): String {
     val first = proposal.plans.firstOrNull() ?: return ""
-    val name = if (proposal.plans.size > 1) stringResource(R.string.coach_plans_count, proposal.plans.size) else first.name
+    val name = if (proposal.plans.size > 1) pluralStringResource(R.plurals.coach_plans_count, proposal.plans.size, proposal.plans.size) else first.name
     val date = first.date?.takeIf { proposal.plans.size == 1 }?.let { formatLongWeekdayDate(it) }
     val effect = when (proposal.type) {
         ProposalType.CHANGE_PLAN -> stringResource(R.string.preview_replaces)
@@ -209,6 +210,6 @@ private fun changeKey(change: PlanChange): String = when (change) {
 private fun changeBadge(change: PlanChange): String = when (change) {
     is PlanChange.Added -> stringResource(R.string.preview_added)
     is PlanChange.Removed -> stringResource(R.string.preview_removed)
-    is PlanChange.SetsChanged -> stringResource(R.string.preview_sets_changed, change.from, change.to)
+    is PlanChange.SetsChanged -> pluralStringResource(R.plurals.preview_sets_changed, change.to, change.from, change.to)
     is PlanChange.WeightChanged -> stringResource(R.string.diff_kg, com.github.sebastianp265.aitrainer.shared.localization.formatNumber(change.deltaKg, 1, signed = true))
 }

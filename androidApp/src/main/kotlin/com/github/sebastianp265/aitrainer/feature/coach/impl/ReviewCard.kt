@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,7 +32,7 @@ internal fun ReviewCard(review: WeeklyReviewSummary) {
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
             ReviewRow(R.string.review_workouts, workoutsText(review))
-            if (review.records > 0) ReviewRow(R.string.review_strength, stringResource(R.string.review_records, review.records))
+            if (review.records > 0) ReviewRow(R.string.review_strength, pluralStringResource(R.plurals.review_records, review.records, review.records))
             review.weightFromKg?.let { from ->
                 val to = review.weightToKg
                 ReviewRow(
@@ -59,8 +60,8 @@ internal fun ReviewCard(review: WeeklyReviewSummary) {
 
 @Composable
 private fun workoutsText(review: WeeklyReviewSummary): String {
-    val base = review.plannedWorkouts?.let { stringResource(R.string.review_workouts_of_planned, review.workouts, it) } ?: review.workouts.toString()
-    return if (review.externalWorkouts > 0) base + ", " + stringResource(R.string.review_external, review.externalWorkouts) else base
+    val base = review.plannedWorkouts?.let { pluralStringResource(R.plurals.review_workouts_of_planned, it, review.workouts, it) } ?: review.workouts.toString()
+    return if (review.externalWorkouts > 0) base + ", " + pluralStringResource(R.plurals.review_external, review.externalWorkouts, review.externalWorkouts) else base
 }
 
 @Composable

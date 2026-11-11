@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -196,7 +197,7 @@ private fun SetLine(workingNumber: Int?, set: SetEntry) {
         )
         Text(
             if (set.weightKg > 0) stringResource(R.string.detail_row_load, formatWeight(set.weightKg), set.reps)
-            else stringResource(R.string.detail_row_reps, set.reps),
+            else pluralStringResource(R.plurals.detail_row_reps, set.reps, set.reps),
             Modifier.weight(1f),
             style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp),
         )

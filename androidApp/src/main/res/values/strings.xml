@@ -43,7 +43,10 @@
     <string name="value_kcal">%1$s kcal</string>
     <string name="value_grams">%1$s g</string>
 
-    <string name="hc_connected_summary">Connected · %1$d of %2$d data types</string>
+    <plurals name="hc_connected_summary">
+        <item quantity="one">Connected · %1$d of %2$d data type</item>
+        <item quantity="other">Connected · %1$d of %2$d data types</item>
+    </plurals>
     <string name="hc_not_connected">Not connected</string>
     <string name="hc_synced_at">Synced %1$s. Sync runs by itself when you open the app.</string>
     <string name="hc_never_synced">Not synced yet. Sync runs by itself when you open the app.</string>
@@ -70,8 +73,14 @@
     <string name="hc_benefit_workouts">Workouts from other apps</string>
     <string name="hc_benefit_workouts_text">a run or a ride next to your gym workouts</string>
     <string name="hc_off_choice">You choose which data types to share. Data stays on your phone.</string>
-    <string name="hc_row_summary">%1$d of %2$d data types · synced %3$s</string>
-    <string name="hc_row_summary_never_synced">%1$d of %2$d data types · not synced yet</string>
+    <plurals name="hc_row_summary">
+        <item quantity="one">%1$d of %2$d data type · synced %3$s</item>
+        <item quantity="other">%1$d of %2$d data types · synced %3$s</item>
+    </plurals>
+    <plurals name="hc_row_summary_never_synced">
+        <item quantity="one">%1$d of %2$d data type · not synced yet</item>
+        <item quantity="other">%1$d of %2$d data types · not synced yet</item>
+    </plurals>
     <string name="hc_row_missing">Missing: %1$s. All data is optional.</string>
     <string name="hc_type_nutrition">Nutrition</string>
     <string name="hc_type_nutrition_text">calories eaten, macros, fiber, sugars, sodium</string>
@@ -319,10 +328,13 @@
     <string name="workout_delete_title">Delete workout?</string>
     <string name="workout_delete_text">The workout and all its sets will be deleted. This cannot be undone.</string>
     <string name="detail_plan_line">Plan: %1$s</string>
-    <string name="detail_set_not_done">Set %1$d was not done.</string>
+    <string name="detail_set_not_done">Not done: set %1$d.</string>
     <string name="detail_exercise_not_done">Not done.</string>
     <string name="detail_diff_vs_plan">%1$s vs plan</string>
-    <string name="detail_row_reps">%1$d reps</string>
+    <plurals name="detail_row_reps">
+        <item quantity="one">%1$d rep</item>
+        <item quantity="other">%1$d reps</item>
+    </plurals>
     <string name="detail_row_load">%1$s kg × %2$d</string>
     <string name="last_time_set_format">%1$d×%2$s kg</string>
     <string name="targets_title">Weekly set targets</string>
@@ -336,7 +348,7 @@
     <string name="targets_from">%1$s, from</string>
     <string name="targets_to">%1$s, to</string>
     <string name="targets_restore">Restore defaults (%1$d–%2$d)</string>
-    <string name="targets_why_title">Where does the default %1$d–%2$d come from?</string>
+    <string name="targets_why_title">Why the default range of %1$d–%2$d?</string>
     <string name="targets_why_text">In strength training research, about 10–20 hard sets per muscle group per week gives most people the best muscle growth. Fewer also works, only slower. More usually does not help and makes recovery harder.</string>
     <string name="targets_why_fractions">Sets are counted fractionally: 1 for the exercise’s primary group, 0.5 for secondary ones.</string>
     <string name="targets_footer">You can type a range yourself.</string>
@@ -351,10 +363,22 @@
     <string name="volume_how_we_count">How sets are counted</string>
     <string name="volume_info_title">Why fractions and targets?</string>
     <string name="volume_info_counting">Each working set counts as 1 for the exercise’s primary group and 0.5 for secondary ones. For example, 3 sets of bench press are 3 sets for chest and 1.5 each for arms and shoulders. Warm-ups do not count.</string>
-    <string name="volume_info_target">The default target is %1$d–%2$d sets per muscle group per week: in strength training research this range gives most people the best muscle growth. You can change the target yourself.</string>
-    <string name="volume_on_target">%1$d of %2$d muscle groups on target.</string>
-    <string name="volume_below">%1$s below: %2$s of %3$d–%4$d sets.</string>
-    <string name="volume_above">%1$s above: %2$s of %3$d–%4$d sets.</string>
+    <plurals name="volume_info_target">
+        <item quantity="one">The default target is %1$d–%2$d set per muscle group per week: in strength training research this range gives most people the best muscle growth. You can change the target yourself.</item>
+        <item quantity="other">The default target is %1$d–%2$d sets per muscle group per week: in strength training research this range gives most people the best muscle growth. You can change the target yourself.</item>
+    </plurals>
+    <plurals name="volume_on_target">
+        <item quantity="one">%1$d of %2$d muscle group on target.</item>
+        <item quantity="other">%1$d of %2$d muscle groups on target.</item>
+    </plurals>
+    <plurals name="volume_below">
+        <item quantity="one">%1$s below: %2$s of %3$d–%4$d set.</item>
+        <item quantity="other">%1$s below: %2$s of %3$d–%4$d sets.</item>
+    </plurals>
+    <plurals name="volume_above">
+        <item quantity="one">%1$s above: %2$s of %3$d–%4$d set.</item>
+        <item quantity="other">%1$s above: %2$s of %3$d–%4$d sets.</item>
+    </plurals>
     <string name="week_title">This week · %1$s</string>
     <string name="week_counts">%1$s · %2$s</string>
     <plurals name="week_done_count">
@@ -443,11 +467,17 @@
     <string name="voice_unavailable">Speech recognition is not available on this phone</string>
     <string name="coach_undo">Undo</string>
     <string name="coach_target_title">Sets per week</string>
-    <string name="coach_plans_count">%1$d plans</string>
+    <plurals name="coach_plans_count">
+        <item quantity="one">%1$d plan</item>
+        <item quantity="other">%1$d plans</item>
+    </plurals>
     <string name="coach_plan_title_dated">%1$s · %2$s</string>
     <string name="coach_change_added">+  %1$s</string>
     <string name="coach_change_removed">−  %1$s (%2$s)</string>
-    <string name="coach_change_sets">~  %1$s: %2$d → %3$d sets</string>
+    <plurals name="coach_change_sets">
+        <item quantity="one">~  %1$s: %2$d → %3$d set</item>
+        <item quantity="other">~  %1$s: %2$d → %3$d sets</item>
+    </plurals>
     <string name="coach_change_weight">~  %1$s: %2$s kg</string>
     <string name="coach_target_range">%1$d–%2$d</string>
     <string name="coach_target_note">Applies to the next plans. Existing plans stay as they are.</string>
@@ -493,7 +523,10 @@
     <string name="preview_removed">removed</string>
     <string name="preview_was">was: %1$s</string>
     <string name="preview_added">new</string>
-    <string name="preview_sets_changed">%1$d → %2$d sets</string>
+    <plurals name="preview_sets_changed">
+        <item quantity="one">%1$d → %2$d set</item>
+        <item quantity="other">%1$d → %2$d sets</item>
+    </plurals>
     <string name="api_key_paste">Paste your key</string>
     <string name="api_key_paste_new">Paste a new key to replace the saved one</string>
     <string name="api_key_save_and_check">Save and check</string>
@@ -532,10 +565,19 @@
     <string name="coach_accept_all">Accept all</string>
     <string name="review_kind">WEEKLY REVIEW · %1$s</string>
     <string name="review_workouts">Workouts</string>
-    <string name="review_workouts_of_planned">%1$d of %2$d planned</string>
-    <string name="review_external">plus %1$d from other apps</string>
+    <plurals name="review_workouts_of_planned">
+        <item quantity="one">%1$d of %2$d planned</item>
+        <item quantity="other">%1$d of %2$d planned</item>
+    </plurals>
+    <plurals name="review_external">
+        <item quantity="one">plus %1$d from another app</item>
+        <item quantity="other">plus %1$d from other apps</item>
+    </plurals>
     <string name="review_strength">Strength</string>
-    <string name="review_records">%1$d new records</string>
+    <plurals name="review_records">
+        <item quantity="one">%1$d new record</item>
+        <item quantity="other">%1$d new records</item>
+    </plurals>
     <string name="review_weight">Weight</string>
     <string name="review_weight_change">%1$s → %2$s kg</string>
     <string name="review_calories">Calories</string>
@@ -556,7 +598,7 @@
     <string name="backup_import_button">Import from a file</string>
     <string name="backup_footer">The API key is not part of the backup. The file stays where you save it: the app never sends it anywhere.</string>
     <string name="backup_confirm_title">Replace all data?</string>
-    <string name="backup_confirm_text">The file contains %1$d workouts, %2$d plans, %3$d days of Health Connect data and %4$d coach notes. Importing replaces everything in the app and restarts it.</string>
+    <string name="backup_confirm_text">The file contains workouts: %1$d, plans: %2$d, days of Health Connect data: %3$d, coach notes: %4$d. Importing replaces everything in the app and restarts it.</string>
     <string name="backup_confirm_button">Import</string>
     <string name="backup_exported">The backup was saved.</string>
     <string name="backup_export_failed">The backup could not be saved.</string>

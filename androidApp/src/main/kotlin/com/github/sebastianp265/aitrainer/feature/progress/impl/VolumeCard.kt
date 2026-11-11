@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
@@ -60,7 +61,7 @@ internal fun VolumeCard(rows: List<VolumeRow>, showTargets: Boolean, onOpenTarge
 private fun VolumeInfoBox() {
     InfoNote(stringResource(R.string.volume_info_title), stringResource(R.string.volume_info_counting)) {
         Text(
-            stringResource(R.string.volume_info_target, DEFAULT_MIN_WEEKLY_SETS, DEFAULT_MAX_WEEKLY_SETS),
+            pluralStringResource(R.plurals.volume_info_target, DEFAULT_MAX_WEEKLY_SETS, DEFAULT_MIN_WEEKLY_SETS, DEFAULT_MAX_WEEKLY_SETS),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.85f),
         )
@@ -71,10 +72,11 @@ private fun VolumeInfoBox() {
 internal fun volumeSummary(rows: List<VolumeRow>): String {
     val locale = LocalConfiguration.current.locales[0]
     val onTarget = rows.count { it.status() == TargetStatus.IN_TARGET }
-    val first = stringResource(R.string.volume_on_target, onTarget, rows.size)
+    val first = pluralStringResource(R.plurals.volume_on_target, rows.size, onTarget, rows.size)
     val outside = rows.filter { it.status() != TargetStatus.IN_TARGET }.map { row ->
-        stringResource(
-            if (row.status() == TargetStatus.BELOW) R.string.volume_below else R.string.volume_above,
+        pluralStringResource(
+            if (row.status() == TargetStatus.BELOW) R.plurals.volume_below else R.plurals.volume_above,
+            row.maxSets,
             row.group.displayName(locale),
             formatWeight(row.total),
             row.minSets,
