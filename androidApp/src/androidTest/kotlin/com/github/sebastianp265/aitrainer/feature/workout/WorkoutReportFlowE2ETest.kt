@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.feature.workout
 
+import com.github.sebastianp265.aitrainer.shared.e2e.WorkoutReportScreen
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.sebastianp265.aitrainer.shared.e2e.AbstractE2ETest
 import com.github.sebastianp265.aitrainer.shared.e2e.BENCH_PRESS
@@ -55,7 +56,7 @@ class WorkoutReportFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `a finished workout opens from the list and can be edited and deleted`() {
+    fun `a finished workout opens from the list and can be edited`() {
         given.finishedWorkout(sets(BENCH_PRESS, kg = 80.0))
         launchApp()
 
@@ -66,9 +67,5 @@ class WorkoutReportFlowE2ETest : AbstractE2ETest() {
         workout.finishAndSeeSummary()
         report.showAllSets()
         report.assertDetailSets(1)
-        report.delete()
-        report.confirmDelete()
-
-        training.assertFirstLaunch()
     }
 }

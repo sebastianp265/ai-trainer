@@ -131,6 +131,17 @@ class AppDatabaseMigrationUTest {
         }
     }
 
+    @Test
+    fun `migration from 14 to 15 gives proposals no undo yet`() {
+        helper.createDatabase(14).use { connection ->
+            connection.execSQL("INSERT INTO coach_proposal (id, type, state, summary, payload, subjectKey, messageId, createdAt) VALUES (1, 'NEW_PLAN', 'ACCEPTED', 's', '{}', NULL, NULL, 1000)")
+        }
+
+        helper.runMigrationsAndValidate(15).use { connection ->
+            assertEquals(1, connection.count("coach_proposal WHERE undo IS NULL"))
+        }
+    }
+
     private fun migratedSeedOfVersion7(): MuscleSnapshot {
         helper.createDatabase(7).use { runSeed(it, "/seed-v7.sql") }
         return helper.runMigrationsAndValidate(8, listOf(migration7To8)).use { it.snapshotOfMuscles() }

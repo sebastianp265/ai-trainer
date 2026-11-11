@@ -48,6 +48,11 @@ class LogWorkoutScreen(
 
     fun addSet() = clickText("+ Set")
 
+    fun askCoach() {
+        waitFor(hasTestTag(ActiveWorkoutTags.ASK_COACH))
+        compose.onNode(hasTestTag(ActiveWorkoutTags.ASK_COACH)).performClick()
+    }
+
     fun deleteSet(exercise: String, setIndex: Int) {
         nodeInCard(hasContentDescription("Delete set"), exercise, setIndex).performClick()
     }

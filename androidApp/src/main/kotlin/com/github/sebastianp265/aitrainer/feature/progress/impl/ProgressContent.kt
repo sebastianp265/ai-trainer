@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -90,11 +91,10 @@ internal fun ProgressContent(
         item { RangeSwitch(state.range, onRangeSelected) }
         item { HealthConnectCard(onConnectionChanged = onHealthConnectChanged) }
         cards.weight?.let { item { WeightCard(it, state.range) { onOpenMetric(ProgressMetric.WEIGHT) } } }
-        cards.balance?.let { item { BalanceCard(it) { onOpenMetric(ProgressMetric.CALORIE_BALANCE) } } }
-        cards.macros?.let { item { MacrosCard(it) } }
-        items(tiles.chunked(2).size) { index ->
+        cards.balance?.let { item { BalanceCard(it, state.nutritionTarget?.kcal) { onOpenMetric(ProgressMetric.CALORIE_BALANCE) } } }
+        cards.macros?.let { item { MacrosCard(it, state.nutritionTarget?.proteinG) } }
+        items(tiles.chunked(2)) { pair ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                val pair = tiles.chunked(2)[index]
                 pair.forEach { tile -> MiniTileCard(tile, Modifier.weight(1f)) { onOpenMetric(tile.metric) } }
                 if (pair.size == 1) Box(Modifier.weight(1f))
             }
@@ -199,7 +199,7 @@ private fun WeightCard(card: TrendCard, range: ProgressRange, onDetails: () -> U
 }
 
 @Composable
-private fun BalanceCard(card: BalanceCard, onDetails: () -> Unit) {
+private fun BalanceCard(card: BalanceCard, targetKcal: Int?, onDetails: () -> Unit) {
     ProgressCard(R.string.progress_balance_title, Modifier.testTag(ProgressTags.BALANCE_CARD), onDetails) {
         BigValue(stringResource(R.string.value_kcal, formatNumber(card.averageBalanceKcal.toDouble(), signed = true))) {
             SmallDetail(
@@ -210,13 +210,14 @@ private fun BalanceCard(card: BalanceCard, onDetails: () -> Unit) {
                 ),
             )
         }
+        targetKcal?.let { TargetLine(stringResource(R.string.progress_kcal_target, formatNumber(it.toDouble()))) }
         BarChart(card.weeks.map { it.balanceKcal })
         Text(stringResource(R.string.progress_balance_weeks), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
-private fun MacrosCard(card: MacrosCard) {
+private fun MacrosCard(card: MacrosCard, targetProteinG: Int?) {
     ProgressCard(R.string.progress_macros_title, Modifier.testTag(ProgressTags.MACROS_CARD)) {
         val macros = listOf(
             Triple(R.string.macro_protein, card.proteinG, MaterialTheme.colorScheme.primary),
@@ -228,7 +229,13 @@ private fun MacrosCard(card: MacrosCard) {
         macros.forEach { (label, grams, color) ->
             grams?.let { MacroRow(stringResource(label), it, (it / scale).toFloat(), color) }
         }
+        targetProteinG?.let { TargetLine(stringResource(R.string.progress_protein_target, formatNumber(it.toDouble()))) }
     }
+}
+
+@Composable
+private fun TargetLine(text: String) {
+    Text(text, Modifier.testTag(ProgressTags.NUTRITION_TARGET), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.tertiary)
 }
 
 private const val MACRO_SCALE_MARGIN = 1.2
@@ -361,6 +368,7 @@ internal object ProgressTags {
     const val WEIGHT_CARD = "progress_weight_card"
     const val BALANCE_CARD = "progress_balance_card"
     const val MACROS_CARD = "progress_macros_card"
+    const val NUTRITION_TARGET = "progress_nutrition_target"
     const val STRENGTH_CARD = "progress_strength_card"
     const val VOLUME_CARD = "progress_volume_card"
     const val VOLUME_TARGETS_LINK = "progress_volume_targets_link"

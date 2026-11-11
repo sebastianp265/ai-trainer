@@ -158,7 +158,8 @@ private fun MeetCoachCard() {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.training_meet_coach_title), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.training_meet_coach_text), style = MaterialTheme.typography.bodyMedium)
-            Button(onClick = LocalOpenCoach.current, Modifier.testTag(LogWorkoutTags.MEET_COACH)) { Text(stringResource(R.string.training_meet_coach_button)) }
+            val openCoach = LocalOpenCoach.current
+            Button(onClick = { openCoach(null) }, Modifier.testTag(LogWorkoutTags.MEET_COACH)) { Text(stringResource(R.string.training_meet_coach_button)) }
         }
     }
 }

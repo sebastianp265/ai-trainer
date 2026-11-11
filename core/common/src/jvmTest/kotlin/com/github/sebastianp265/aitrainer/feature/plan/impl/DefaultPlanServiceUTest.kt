@@ -61,7 +61,7 @@ class DefaultPlanServiceUTest {
     }
 
     @Test
-    fun `updating a plan replaces its name, date and sets and keeps the coach note`() = runBlocking {
+    fun `updating a plan replaces its name, date, sets and coach note`() = runBlocking {
         val id = plans.createPlan(draft("Old", null, set("bench"), set("bench")).copy(coachNote = "Lighter week"), PlanAuthor.COACH)
 
         plans.updatePlan(id, draft("New", LocalDate(2026, 11, 20), set("squat", 5, 100.0)))
@@ -70,7 +70,7 @@ class DefaultPlanServiceUTest {
         assertEquals("New", plan.name)
         assertEquals(LocalDate(2026, 11, 20), plan.date)
         assertEquals(listOf("squat"), plan.sets.map { it.exerciseKey })
-        assertEquals("Lighter week", plan.coachNote)
+        assertEquals(null, plan.coachNote)
     }
 
     @Test

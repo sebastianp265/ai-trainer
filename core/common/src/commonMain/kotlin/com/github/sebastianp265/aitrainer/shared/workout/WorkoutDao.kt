@@ -110,6 +110,18 @@ internal interface WorkoutDao {
     @Insert
     suspend fun insertSet(set: SetEntryEntity): Long
 
+    @Insert
+    suspend fun insertSets(sets: List<SetEntryEntity>)
+
+    @Query("DELETE FROM set_entry WHERE sessionId = :sessionId")
+    suspend fun deleteSessionSets(sessionId: Long)
+
+    @Transaction
+    suspend fun replaceSessionSets(sessionId: Long, sets: List<SetEntryEntity>) {
+        deleteSessionSets(sessionId)
+        insertSets(sets)
+    }
+
     @Transaction
     suspend fun insertSetAtEnd(set: SetEntryEntity): Long =
         insertSet(set.copy(positionInSession = nextSetOrder(set.sessionId)))

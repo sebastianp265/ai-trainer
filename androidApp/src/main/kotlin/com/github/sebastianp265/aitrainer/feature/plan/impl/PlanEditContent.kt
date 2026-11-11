@@ -51,6 +51,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.shared.design.ChipButton
@@ -132,7 +134,7 @@ internal fun PlanEditContent(state: PlanEditUiState, actions: PlanEditActions) {
                     val openCoach = LocalOpenCoach.current
                     InfoNote(stringResource(R.string.plan_prefer_ready_title), stringResource(R.string.plan_prefer_ready_text)) {
                         TextButton(
-                            onClick = openCoach,
+                            onClick = { openCoach(null) },
                             contentPadding = PaddingValues(0.dp),
                             colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onTertiaryContainer),
                         ) { Text(stringResource(R.string.plan_go_to_coach)) }
@@ -288,7 +290,7 @@ private fun SetEditor(label: String, workingNumber: Int?, set: EditableSet, acti
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
         Text(
             workingNumber?.toString() ?: stringResource(R.string.warmup_short),
-            Modifier.width(28.dp).clickable { actions.toggleWarmup(set.id) },
+            Modifier.width(28.dp).toggleable(value = set.isWarmup, role = Role.Checkbox) { actions.toggleWarmup(set.id) },
             style = MaterialTheme.typography.labelLarge,
             color = if (set.isWarmup) extendedColors.warning else MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,

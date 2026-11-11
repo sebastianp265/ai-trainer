@@ -1,11 +1,13 @@
 package com.github.sebastianp265.aitrainer.feature.coach.impl
 
+import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.coach.CoachActivity
 import com.github.sebastianp265.aitrainer.integration.coach.CoachMessage
 import com.github.sebastianp265.aitrainer.integration.coach.CoachProposal
 import com.github.sebastianp265.aitrainer.integration.coach.CoachService
+import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalType
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
@@ -36,6 +38,7 @@ internal data class CoachUiState(
     val activity: CoachActivity = CoachActivity.Idle,
     val exercises: Map<String, Exercise> = emptyMap(),
     val pendingProposalIds: List<Long> = emptyList(),
+    val topic: CoachTopic? = null,
 )
 
 internal class CoachViewModel(
@@ -44,6 +47,9 @@ internal class CoachViewModel(
     planService: PlanService,
     exerciseService: ExerciseService,
 ) : ViewModel() {
+
+    private val pendingTopic = MutableStateFlow<CoachTopic?>(null)
+    private var topicTaken = false
 
     private val conversation = combine(
         coachService.observeMessages(),
@@ -55,7 +61,8 @@ internal class CoachViewModel(
         conversation,
         settingsService.observeIsClaudeApiKeyStored(),
         exerciseService.observeExercisesByKey(),
-    ) { (messages, activity, plans), hasKey, exercises ->
+        pendingTopic,
+    ) { (messages, activity, plans), hasKey, exercises, topic ->
         val plansById = plans.associateBy { it.id }
         CoachUiState(
             isLoading = false,
@@ -64,12 +71,31 @@ internal class CoachViewModel(
             activity = activity,
             exercises = exercises,
             pendingProposalIds = messages.flatMap { it.proposals }.filter { it.state == com.github.sebastianp265.aitrainer.integration.coach.ProposalState.PENDING }.map { it.id },
+            topic = topic,
         )
     }.stateIn(viewModelScope, WhileUiSubscribed, CoachUiState())
 
-    fun send(text: String) = keepRunning { coachService.send(text) }
+    fun send(text: String) {
+        val topic = pendingTopic.value
+        pendingTopic.value = null
+        keepRunning { coachService.send(text, topic) }
+    }
+
+    fun startWith(topic: CoachTopic?) {
+        if (topicTaken) return
+        topicTaken = true
+        pendingTopic.value = topic
+    }
+
+    fun clearTopic() {
+        pendingTopic.value = null
+    }
 
     fun retry() = keepRunning { coachService.retry() }
+
+    fun undo(proposalId: Long) {
+        viewModelScope.launch { coachService.undo(proposalId) }
+    }
 
     fun accept(proposalId: Long, onAccepted: () -> Unit = {}) {
         viewModelScope.launch {

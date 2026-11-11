@@ -1,5 +1,7 @@
 package com.github.sebastianp265.aitrainer.feature.coach.impl
 
+import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
+import androidx.compose.material3.IconButton
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +59,8 @@ import com.github.sebastianp265.aitrainer.integration.coach.ClaudeFailureKind
 import com.github.sebastianp265.aitrainer.integration.coach.CoachActivity
 import com.github.sebastianp265.aitrainer.integration.coach.CoachMessage
 import com.github.sebastianp265.aitrainer.integration.coach.CoachRole
+import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
+import com.github.sebastianp265.aitrainer.integration.coach.TopicKind
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalState
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalType
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
@@ -75,7 +79,9 @@ import com.github.sebastianp265.aitrainer.shared.design.extendedColors
 internal interface CoachActions {
     fun send(text: String)
     fun retry()
+    fun clearTopic()
     fun accept(proposalId: Long)
+    fun undo(proposalId: Long)
     fun preview(proposalId: Long)
     fun openTargets()
     fun openApiKey()
@@ -155,6 +161,10 @@ private fun Conversation(state: CoachUiState, actions: CoachActions, modifier: M
             if (working) item(key = "working") { WorkingRow(state.activity) }
             if (failed != null && lastIsUser) item(key = "failed") { FailedRow(failed, actions) }
         }
+        state.topic?.let { topic ->
+            TopicChip(topic, actions::clearTopic)
+            if (topic.kind == TopicKind.ACTIVE_WORKOUT) QuickQuestions(enabled = !working, onSend = actions::send)
+        }
         InputRow(enabled = !working, onSend = actions::send)
     }
 }
@@ -205,12 +215,17 @@ private fun MessageBubble(message: CoachMessage, exercises: Map<String, Exercise
     if (message.role == CoachRole.USER) {
         Row(Modifier.fillMaxWidth().alpha(if (unsent) UNSENT_ALPHA else 1f), horizontalArrangement = Arrangement.End) {
             Surface(shape = RoundedCornerShape(18.dp, 18.dp, 6.dp, 18.dp), color = MaterialTheme.colorScheme.primary) {
-                Text(
-                    message.text,
-                    Modifier.padding(horizontal = 14.dp, vertical = 10.dp).widthIn(max = 300.dp).testTag(CoachTags.USER_MESSAGE),
-                    style = BubbleTextStyle,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                )
+                Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp).widthIn(max = 300.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    message.topic?.let { topic ->
+                        Text(
+                            topicText(topic),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                            modifier = Modifier.testTag(CoachTags.MESSAGE_TOPIC),
+                        )
+                    }
+                    Text(message.text, Modifier.testTag(CoachTags.USER_MESSAGE), style = BubbleTextStyle, color = MaterialTheme.colorScheme.onPrimary)
+                }
             }
         }
     } else {
@@ -252,6 +267,7 @@ private fun checkedPhrases(tokens: List<String>, exercises: Map<String, Exercise
             token == "external_workouts" -> stringResource(R.string.coach_checked_external)
             token == "plans" -> stringResource(R.string.coach_checked_plans)
             token == "weekly_sets" -> stringResource(R.string.coach_checked_weekly_sets)
+            token == "workout" -> stringResource(R.string.coach_checked_workout)
             token.startsWith("exercise:") ->
                 stringResource(R.string.coach_checked_exercise, exercises[token.removePrefix("exercise:")]?.displayName(locale) ?: token.removePrefix("exercise:"))
             else -> token
@@ -264,7 +280,7 @@ private fun ProposalCard(item: ProposalUi, exercises: Map<String, Exercise>, act
     val proposal = item.proposal
     val locale = LocalConfiguration.current.locales[0]
     val pending = proposal.state == ProposalState.PENDING
-    val superseded = proposal.state == ProposalState.SUPERSEDED
+    val superseded = proposal.state == ProposalState.SUPERSEDED || proposal.state == ProposalState.UNDONE
     Card(
         Modifier.fillMaxWidth().padding(end = 24.dp).alpha(if (superseded) UNSENT_ALPHA else 1f).testTag(CoachTags.PROPOSAL),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
@@ -296,6 +312,48 @@ private fun ProposalCard(item: ProposalUi, exercises: Map<String, Exercise>, act
                 }
             }
             item.changes.forEach { change -> Text(changeText(change, exercises, locale), style = MaterialTheme.typography.bodyMedium) }
+            proposal.nutrition?.let { target ->
+                target.kcal?.let { kcal ->
+                    ChangeRow(
+                        stringResource(R.string.coach_nutrition_kcal),
+                        target.previousKcal?.let { stringResource(R.string.value_kcal, formatNumber(it.toDouble())) },
+                        stringResource(R.string.value_kcal, formatNumber(kcal.toDouble())),
+                    )
+                }
+                target.proteinG?.let { protein ->
+                    ChangeRow(
+                        stringResource(R.string.coach_nutrition_protein),
+                        target.previousProteinG?.let { stringResource(R.string.value_grams, formatNumber(it.toDouble())) },
+                        stringResource(R.string.value_grams, formatNumber(protein.toDouble())),
+                    )
+                }
+            }
+            proposal.newExercise?.let { exercise ->
+                val groups = exercises.values.flatMap { it.primaryMuscles + it.secondaryMuscles }.associateBy { it.key }
+                fun group(key: String) = groups[key]?.displayName(locale) ?: key
+                Text(
+                    if (exercise.secondaryGroupKeys.isEmpty()) {
+                        stringResource(R.string.coach_new_exercise_group, group(exercise.primaryGroupKey))
+                    } else {
+                        stringResource(R.string.coach_new_exercise_groups, group(exercise.primaryGroupKey), exercise.secondaryGroupKeys.joinToString { group(it) })
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            proposal.workoutChange?.let { change ->
+                change.exerciseKeys.forEach { key ->
+                    val name = exercises[key]?.displayName(locale) ?: key
+                    val sets = change.sets.filter { it.exerciseKey == key }
+                    Text(
+                        if (sets.isEmpty()) {
+                            stringResource(R.string.coach_workout_removed, name)
+                        } else {
+                            stringResource(R.string.coach_workout_exercise, name, sets.map { "${it.reps}×${formatWeight(it.weightKg)} kg" }.joinToString(", "))
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
             proposal.target?.let { target ->
                 val group = exercises.values.flatMap { it.primaryMuscles }.firstOrNull { it.key == target.groupKey }
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -313,7 +371,7 @@ private fun ProposalCard(item: ProposalUi, exercises: Map<String, Exercise>, act
                 }
                 Text(stringResource(R.string.coach_target_note), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            if (proposal.target == null) {
+            if (proposal.plans.isNotEmpty()) {
                 Text(
                     stringResource(
                         R.string.session_summary,
@@ -324,14 +382,19 @@ private fun ProposalCard(item: ProposalUi, exercises: Map<String, Exercise>, act
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+            if (proposal.isUndoable) {
+                DesignOutlinedButton(onClick = { actions.undo(proposal.id) }, Modifier.padding(top = 4.dp).testTag(CoachTags.UNDO)) {
+                    Text(stringResource(R.string.coach_undo))
+                }
+            }
             if (pending) {
                 Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = { actions.accept(proposal.id) }, Modifier.testTag(CoachTags.ACCEPT)) {
                         Text(stringResource(if (proposal.type == ProposalType.MULTI_PLAN) R.string.coach_accept_all else R.string.coach_accept))
                     }
-                    if (proposal.target == null) {
+                    if (proposal.plans.isNotEmpty()) {
                         DesignOutlinedButton(onClick = { actions.preview(proposal.id) }, Modifier.testTag(CoachTags.PREVIEW)) { Text(stringResource(R.string.coach_preview)) }
-                    } else {
+                    } else if (proposal.target != null) {
                         DesignOutlinedButton(onClick = actions::openTargets) { Text(stringResource(R.string.coach_change_myself)) }
                     }
                 }
@@ -348,12 +411,16 @@ private fun kindText(type: ProposalType, state: ProposalState): String {
             ProposalType.CHANGE_PLAN -> R.string.coach_kind_change_plan
             ProposalType.MULTI_PLAN -> R.string.coach_kind_multi_plan
             ProposalType.TARGET -> R.string.coach_kind_target
+            ProposalType.WORKOUT_CHANGE -> R.string.coach_kind_workout_change
+            ProposalType.NEW_EXERCISE -> R.string.coach_kind_new_exercise
+            ProposalType.NUTRITION_TARGET -> R.string.coach_kind_nutrition
         },
     )
     return when (state) {
         ProposalState.PENDING -> kind
         ProposalState.ACCEPTED -> kind + " · " + stringResource(R.string.coach_state_accepted)
         ProposalState.SUPERSEDED -> kind + " · " + stringResource(R.string.coach_state_superseded)
+        ProposalState.UNDONE -> kind + " · " + stringResource(R.string.coach_state_undone)
     }
 }
 
@@ -361,6 +428,9 @@ private fun kindText(type: ProposalType, state: ProposalState): String {
 private fun proposalTitle(item: ProposalUi): String {
     val proposal = item.proposal
     if (proposal.target != null) return stringResource(R.string.coach_target_title)
+    if (proposal.workoutChange != null) return stringResource(R.string.coach_workout_change_title)
+    proposal.newExercise?.let { return it.name }
+    if (proposal.nutrition != null) return stringResource(R.string.coach_nutrition_title)
     if (proposal.plans.size > 1) return stringResource(R.string.coach_plans_count, proposal.plans.size)
     val plan = proposal.plans.single()
     return plan.date?.let { stringResource(R.string.coach_plan_title_dated, plan.name, formatLongWeekdayDate(it)) } ?: plan.name
@@ -396,6 +466,7 @@ private fun toolPhrase(tool: String): String = when (tool) {
     "get_external_workouts" -> stringResource(R.string.coach_checked_external)
     "get_plans" -> stringResource(R.string.coach_checked_plans)
     "get_weekly_sets" -> stringResource(R.string.coach_checked_weekly_sets)
+    "get_workout" -> stringResource(R.string.coach_checked_workout)
     "find_exercises" -> stringResource(R.string.coach_tool_find_exercises)
     else -> stringResource(R.string.coach_tool_writing)
 }
@@ -429,6 +500,58 @@ private fun ErrorCard(title: Int, text: Int, action: Int, onAction: () -> Unit) 
         }
     }
 }
+
+@Composable
+private fun TopicChip(topic: CoachTopic, onClear: () -> Unit) {
+    Row(
+        Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp)
+            .background(MaterialTheme.colorScheme.secondaryContainer, MaterialTheme.shapes.small)
+            .padding(start = 10.dp)
+            .testTag(CoachTags.TOPIC),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(topicText(topic), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSecondaryContainer)
+        IconButton(onClick = onClear, Modifier.size(36.dp)) {
+            Icon(DesignIcons.Close, contentDescription = stringResource(R.string.coach_topic_remove), Modifier.size(18.dp))
+        }
+    }
+}
+
+@Composable
+private fun ChangeRow(label: String, before: String?, after: String) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp))
+        Text(
+            before ?: stringResource(R.string.coach_nutrition_none),
+            style = MaterialTheme.typography.bodyMedium.copy(textDecoration = if (before != null) TextDecoration.LineThrough else TextDecoration.None),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(" → ", style = MaterialTheme.typography.bodyMedium)
+        Text(after, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
+    }
+}
+
+@Composable
+private fun QuickQuestions(enabled: Boolean, onSend: (String) -> Unit) {
+    FlowRow(Modifier.padding(start = 16.dp, top = 8.dp, end = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf(R.string.coach_quick_too_heavy, R.string.coach_quick_pain, R.string.coach_quick_less_time).forEach { question ->
+            val text = stringResource(question)
+            DesignFilterChip(selected = false, onClick = { if (enabled) onSend(text) }, label = text, modifier = Modifier.testTag(CoachTags.QUICK_QUESTION))
+        }
+    }
+}
+
+@Composable
+private fun topicText(topic: CoachTopic): String = stringResource(
+    when (topic.kind) {
+        TopicKind.PLAN -> R.string.coach_topic_plan
+        TopicKind.WORKOUT -> R.string.coach_topic_workout
+        TopicKind.ACTIVE_WORKOUT -> R.string.coach_topic_active_workout
+        TopicKind.EXERCISE -> R.string.coach_topic_exercise
+        TopicKind.EXTERNAL_WORKOUT -> R.string.coach_topic_external
+    },
+    topic.label,
+)
 
 @Composable
 private fun InputRow(enabled: Boolean, onSend: (String) -> Unit) {
@@ -471,10 +594,14 @@ internal object CoachTags {
     const val INPUT = "coach_input"
     const val SEND = "coach_send"
     const val USER_MESSAGE = "coach_user_message"
+    const val TOPIC = "coach_topic"
+    const val QUICK_QUESTION = "coach_quick_question"
+    const val MESSAGE_TOPIC = "coach_message_topic"
     const val COACH_MESSAGE = "coach_coach_message"
     const val CHECKED = "coach_checked"
     const val PROPOSAL = "coach_proposal"
     const val ACCEPT = "coach_accept"
+    const val UNDO = "coach_undo"
     const val PREVIEW = "coach_preview"
     const val WORKING = "coach_working"
     const val CHIP = "coach_chip"
@@ -496,14 +623,16 @@ private fun CoachPreview() {
                 isLoading = false,
                 hasKey = true,
                 messages = listOf(
-                    MessageUi(CoachMessage(1, CoachRole.USER, "Plan me a push day", Instant.fromEpochMilliseconds(1_767_600_000_000), emptyList(), emptyList(), null), emptyList()),
-                    MessageUi(CoachMessage(2, CoachRole.COACH, "Here is a push day.", Instant.fromEpochMilliseconds(1_767_600_060_000), listOf("workouts"), emptyList(), null), emptyList()),
+                    MessageUi(CoachMessage(1, CoachRole.USER, "Plan me a push day", Instant.fromEpochMilliseconds(1_767_600_000_000), emptyList(), emptyList(), null, null), emptyList()),
+                    MessageUi(CoachMessage(2, CoachRole.COACH, "Here is a push day.", Instant.fromEpochMilliseconds(1_767_600_060_000), listOf("workouts"), emptyList(), null, null), emptyList()),
                 ),
             ),
             actions = object : CoachActions {
                 override fun send(text: String) = Unit
                 override fun retry() = Unit
+                override fun clearTopic() = Unit
                 override fun accept(proposalId: Long) = Unit
+                override fun undo(proposalId: Long) = Unit
                 override fun preview(proposalId: Long) = Unit
                 override fun openTargets() = Unit
                 override fun openApiKey() = Unit

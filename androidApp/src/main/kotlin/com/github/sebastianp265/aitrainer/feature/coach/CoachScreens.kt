@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.feature.coach
 
+import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,14 +21,17 @@ import com.github.sebastianp265.aitrainer.feature.coach.impl.ProposalPreviewView
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-internal fun CoachScreen(onOpenPreview: (Long) -> Unit, onOpenTargets: () -> Unit, onOpenApiKey: () -> Unit) {
+internal fun CoachScreen(topic: CoachTopic?, onOpenPreview: (Long) -> Unit, onOpenTargets: () -> Unit, onOpenApiKey: () -> Unit) {
     val viewModel: CoachViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    LaunchedEffect(viewModel) { viewModel.startWith(topic) }
     val actions = remember(viewModel) {
         object : CoachActions {
             override fun send(text: String) = viewModel.send(text)
             override fun retry() = viewModel.retry()
+            override fun clearTopic() = viewModel.clearTopic()
             override fun accept(proposalId: Long) = viewModel.accept(proposalId)
+            override fun undo(proposalId: Long) = viewModel.undo(proposalId)
             override fun preview(proposalId: Long) = onOpenPreview(proposalId)
             override fun openTargets() = onOpenTargets()
             override fun openApiKey() = onOpenApiKey()

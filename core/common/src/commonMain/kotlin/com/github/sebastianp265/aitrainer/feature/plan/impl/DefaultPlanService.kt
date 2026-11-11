@@ -35,15 +35,14 @@ internal class DefaultPlanService(
 
     override suspend fun updatePlan(id: Long, draft: PlanDraft) {
         require(draft.isSavable()) { "A plan needs a name and at least one set" }
-        dao.updatePlan(id, draft.name.trim(), draft.date)
-        draft.coachNote?.let { dao.setCoachNote(id, it) }
+        dao.updatePlan(id, draft.name.trim(), draft.date, draft.coachNote)
         dao.replacePlannedSets(id, draft.sets.toEntities(id))
     }
 
     override suspend fun deletePlan(id: Long) = dao.deletePlan(id)
 }
 
-private fun PlanDraft.isSavable() = name.isNotBlank() && sets.isNotEmpty()
+private fun PlanDraft.isSavable() = name.isNotBlank() && sets.isNotEmpty() && sets.all { it.reps > 0 }
 
 private fun List<PlannedSet>.toEntities(planId: Long) = mapIndexed { index, set ->
     PlannedSetEntity(

@@ -1,5 +1,9 @@
 package com.github.sebastianp265.aitrainer.feature.workout.impl
 
+import com.github.sebastianp265.aitrainer.shared.localization.formatDate
+import com.github.sebastianp265.aitrainer.integration.workout.WorkoutReport
+import com.github.sebastianp265.aitrainer.integration.coach.TopicKind
+import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -100,7 +104,9 @@ internal fun WorkoutDetailContent(
             ReportStats(report)
             report.exercises.forEach { ExerciseReport(it, state.exercises) }
             if (LocalCoachEnabled.current) {
-                FilledTonalButton(onClick = LocalOpenCoach.current, Modifier.fillMaxWidth().height(48.dp).testTag(ReportTags.ASK_COACH)) {
+                val openCoach = LocalOpenCoach.current
+                val topic = workoutTopic(report)
+                FilledTonalButton(onClick = { openCoach(topic) }, Modifier.fillMaxWidth().height(48.dp).testTag(ReportTags.ASK_COACH)) {
                     Icon(DesignIcons.Coach, contentDescription = null, Modifier.padding(end = 8.dp))
                     Text(stringResource(R.string.detail_ask_coach))
                 }
@@ -164,6 +170,10 @@ private fun missingSetsText(exercise: ReportExercise): String? {
         else -> null
     }
 }
+
+@Composable
+internal fun workoutTopic(report: WorkoutReport): CoachTopic =
+    CoachTopic(TopicKind.WORKOUT, report.session.id.toString(), report.plan?.name ?: formatDate(report.session.date))
 
 @Composable
 private fun plannedLine(exercise: ReportExercise): String =

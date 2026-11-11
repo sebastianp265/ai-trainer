@@ -1,5 +1,7 @@
 package com.github.sebastianp265.aitrainer.shared.database.impl
 
+import com.github.sebastianp265.aitrainer.shared.nutrition.NutritionDao
+import com.github.sebastianp265.aitrainer.shared.nutrition.NutritionTargetEntity
 import androidx.room.AutoMigration
 import androidx.room.ConstructedBy
 import androidx.room.Database
@@ -54,6 +56,7 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
         CoachNoteEntity::class,
         CoachProfileEntity::class,
         CoachUsageEntity::class,
+        NutritionTargetEntity::class,
     ],
     version = DATABASE_SCHEMA_VERSION,
     autoMigrations = [
@@ -64,6 +67,7 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
         AutoMigration(from = 11, to = 12),
         AutoMigration(from = 12, to = 13, spec = Migration12To13::class),
         AutoMigration(from = 13, to = 14),
+        AutoMigration(from = 14, to = 15),
     ],
     exportSchema = true,
 )
@@ -76,6 +80,7 @@ internal abstract class AppDatabase : RoomDatabase() {
     abstract fun planDao(): PlanDao
     abstract fun volumeDao(): VolumeDao
     abstract fun coachDao(): CoachDao
+    abstract fun nutritionDao(): NutritionDao
 
     companion object {
         const val NAME = "aitrainer.db"

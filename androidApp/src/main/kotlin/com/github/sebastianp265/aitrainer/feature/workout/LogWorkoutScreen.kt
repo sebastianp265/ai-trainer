@@ -65,6 +65,8 @@ internal fun ActiveWorkoutScreen(
             override fun removeExercise(exercise: Exercise) = viewModel.removeExercise(exercise)
             override fun addSet(block: ExerciseBlock) = viewModel.addSet(block)
             override fun copySetsFromLastTime(block: ExerciseBlock) = viewModel.copySetsFromLastTime(block)
+            override fun addSpokenSet(block: ExerciseBlock, alternatives: List<String>) = viewModel.addSpokenSet(block, alternatives)
+            override fun voiceUnavailable() = viewModel.voiceUnavailable()
             override fun changeSet(set: SetEntry, change: SetChange) = viewModel.changeSet(set, change)
             override fun deleteSet(set: SetEntry) = viewModel.deleteSet(set)
         }

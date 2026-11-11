@@ -31,5 +31,10 @@ class FakeClaudeClient : ClaudeClient {
         return script.removeFirstOrNull() ?: ClaudeResult.Success(ClaudeResponse(listOf(ClaudeContent.Text("OK")), "end_turn", 1, 1))
     }
 
+    fun assertFirstMessageMentions(text: String) {
+        val first = requests.last().messages.first().content.first() as ClaudeContent.Text
+        kotlin.test.assertTrue(text in first.text, "\"$text\" not in \"${first.text}\"")
+    }
+
     override suspend fun checkApiKey(apiKey: String): ClaudeFailureKind? = keyCheckResult
 }

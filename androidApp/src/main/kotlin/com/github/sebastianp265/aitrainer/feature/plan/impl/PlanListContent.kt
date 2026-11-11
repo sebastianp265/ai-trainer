@@ -101,7 +101,8 @@ private fun EmptyPlans(onNewPlan: () -> Unit) {
             textAlign = TextAlign.Center,
         )
         if (coachEnabled) {
-            CoachButton(stringResource(R.string.plan_ask_coach), LocalOpenCoach.current, Modifier.testTag(PlanTags.ASK_COACH))
+            val openCoach = LocalOpenCoach.current
+            CoachButton(stringResource(R.string.plan_ask_coach), { openCoach(null) }, Modifier.testTag(PlanTags.ASK_COACH))
             DesignOutlinedButton(onClick = onNewPlan, Modifier.fillMaxWidth().height(48.dp).testTag(PlanTags.NEW_PLAN)) { Text(stringResource(R.string.plan_write_own)) }
         } else {
             Button(onClick = onNewPlan, Modifier.fillMaxWidth().height(48.dp).testTag(PlanTags.NEW_PLAN)) { Text(stringResource(R.string.plan_write_own)) }

@@ -12,6 +12,8 @@ import com.github.sebastianp265.aitrainer.shared.e2e.Screen
 
 class CoachScreen(compose: ComposeTestRule) : Screen(compose) {
 
+    fun assertTopic(text: String) = waitForText(text)
+
     fun assertKeyPrompt() = waitForText("The coach needs an API key")
 
     fun openApiKeyFromPrompt() {
@@ -25,6 +27,13 @@ class CoachScreen(compose: ComposeTestRule) : Screen(compose) {
     }
 
     fun tapSuggestion(text: String) = clickText(text)
+
+    fun tapQuickQuestion(text: String) {
+        waitForText(text)
+        clickText(text)
+    }
+
+    fun back() = compose.onNode(hasContentDescription("Back")).performClick()
 
     fun send(message: String) {
         waitFor(hasTestTag(CoachTags.INPUT))
@@ -44,6 +53,11 @@ class CoachScreen(compose: ComposeTestRule) : Screen(compose) {
     }
 
     fun assertProposalState(text: String) = waitForText(text, substring = true)
+
+    fun undo() {
+        waitFor(hasTestTag(CoachTags.UNDO))
+        compose.onNode(hasTestTag(CoachTags.UNDO), useUnmergedTree = true).performClick()
+    }
 
     fun accept() {
         waitFor(hasTestTag(CoachTags.ACCEPT))

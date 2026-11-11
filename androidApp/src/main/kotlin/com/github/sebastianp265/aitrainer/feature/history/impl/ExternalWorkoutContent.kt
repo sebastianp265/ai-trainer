@@ -1,5 +1,7 @@
 package com.github.sebastianp265.aitrainer.feature.history.impl
 
+import com.github.sebastianp265.aitrainer.integration.coach.TopicKind
+import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -80,7 +82,11 @@ internal fun ExternalWorkoutContent(state: ExternalWorkoutUiState) {
         }
         InfoNote(stringResource(R.string.external_read_only_title), stringResource(R.string.external_read_only_text))
         Text(stringResource(R.string.external_note), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        if (LocalCoachEnabled.current) CoachButton(stringResource(R.string.detail_ask_coach), LocalOpenCoach.current)
+        if (LocalCoachEnabled.current) {
+            val openCoach = LocalOpenCoach.current
+            val topic = CoachTopic(TopicKind.EXTERNAL_WORKOUT, workout.startedAt.toString(), externalWorkoutTitle(workout))
+            CoachButton(stringResource(R.string.detail_ask_coach), { openCoach(topic) })
+        }
     }
 }
 

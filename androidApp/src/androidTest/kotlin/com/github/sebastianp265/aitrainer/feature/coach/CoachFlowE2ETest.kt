@@ -5,7 +5,10 @@ import com.github.sebastianp265.aitrainer.feature.settings.SettingsScreen
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeFailureKind
 import com.github.sebastianp265.aitrainer.shared.e2e.AbstractE2ETest
 import com.github.sebastianp265.aitrainer.shared.e2e.BottomBarScreen
+import com.github.sebastianp265.aitrainer.shared.e2e.BENCH_PRESS
 import com.github.sebastianp265.aitrainer.shared.e2e.FakeClaudeClient
+import com.github.sebastianp265.aitrainer.shared.e2e.LogWorkoutScreen
+import com.github.sebastianp265.aitrainer.shared.e2e.sets
 import com.github.sebastianp265.aitrainer.shared.e2e.PlanScreen
 import org.junit.runner.RunWith
 import kotlin.test.Test
@@ -14,6 +17,7 @@ import kotlin.test.Test
 class CoachFlowE2ETest : AbstractE2ETest() {
 
     private companion object {
+        const val LIGHTER_BENCH = """{"summary":"Lighter bench","sets":[{"exerciseKey":"BARBELL_BENCH_PRESS","reps":8,"weightKg":70},{"exerciseKey":"BARBELL_BENCH_PRESS","reps":8,"weightKg":70}]}"""
         const val PUSH_PLAN = """{"name":"Push A","summary":"Push day with a heavier bench","sets":[{"exerciseKey":"BARBELL_BENCH_PRESS","reps":8,"weightKg":80,"rpe":8}]}"""
     }
 
@@ -22,6 +26,7 @@ class CoachFlowE2ETest : AbstractE2ETest() {
     private val coach = CoachScreen(compose)
     private val settings = SettingsScreen(compose)
     private val plans = PlanScreen(compose)
+    private val workout = LogWorkoutScreen(compose)
 
     @Test
     fun `without a key the Coach tab leads to the key screen`() {
@@ -43,7 +48,7 @@ class CoachFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `a proposed plan accepted from its card is found on the Plan tab`() {
+    fun `a proposed plan accepted from its card is found on the Plan tab until it is undone`() {
         openCoachWithKey()
         claude.answerWithToolCall("propose_plan", PUSH_PLAN)
         claude.answerWith("I wrote a push day for you.")
@@ -53,6 +58,11 @@ class CoachFlowE2ETest : AbstractE2ETest() {
         coach.assertProposalState("ACCEPTED")
         tabs.open("Plan")
         plans.assertListed("Push A")
+        tabs.open("Coach")
+        coach.undo()
+        coach.assertProposalState("UNDONE")
+        tabs.open("Plan")
+        plans.assertNotListed("Push A")
     }
 
     @Test
@@ -141,6 +151,40 @@ class CoachFlowE2ETest : AbstractE2ETest() {
         coach.openMemory()
         coach.editProfile("goal", "Get stronger")
         coach.assertProfile("Get stronger")
+    }
+
+    @Test
+    fun `asking the coach from a plan sends the message about that plan`() {
+        given.claudeApiKey()
+        val planId = given.plan("Push A", sets(BENCH_PRESS, kg = 80.0))
+        launchApp(claudeClient = claude)
+        tabs.open("Plan")
+        plans.open("Push A")
+        plans.askCoach()
+        coach.assertTopic("About plan: Push A")
+        claude.answerWith("It fits your week.")
+        coach.send("Is this too much?")
+        coach.assertYouSaid("Is this too much?")
+        coach.assertCoachSaid("It fits your week.")
+        coach.assertTopic("About plan: Push A")
+        claude.assertFirstMessageMentions("plan id $planId")
+    }
+
+    @Test
+    fun `during a workout the coach changes its sets after a quick question`() {
+        given.claudeApiKey()
+        given.runningWorkout(sets(BENCH_PRESS, count = 2, reps = 8, kg = 80.0))
+        launchApp(claudeClient = claude)
+        workout.askCoach()
+        coach.assertTopic("About the workout in progress")
+        claude.answerWithToolCall("propose_workout_change", LIGHTER_BENCH)
+        claude.answerWith("Drop to 70 kg.")
+        coach.tapQuickQuestion("This is too heavy")
+        coach.assertCoachSaid("Drop to 70 kg.")
+        coach.accept()
+        coach.assertProposalState("ACCEPTED")
+        coach.back()
+        workout.assertSets(BENCH_PRESS, "70" to "8", "70" to "8")
     }
 
     private fun openCoachWithKey() {

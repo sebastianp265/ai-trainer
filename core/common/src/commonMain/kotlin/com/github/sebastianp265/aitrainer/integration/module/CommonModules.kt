@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.integration.module
 
+import com.github.sebastianp265.aitrainer.feature.nutrition.nutritionModule
 import com.github.sebastianp265.aitrainer.feature.exercise.exerciseModule
 import com.github.sebastianp265.aitrainer.feature.coach.coachModule
 import com.github.sebastianp265.aitrainer.feature.health.healthModule
@@ -15,6 +16,7 @@ val commonModules = listOf(
     workoutModule,
     planModule,
     volumeModule,
+    nutritionModule,
     coachModule,
     healthModule,
     settingsModule,

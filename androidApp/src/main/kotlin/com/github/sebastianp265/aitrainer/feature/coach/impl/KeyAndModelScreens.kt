@@ -164,17 +164,19 @@ internal fun ApiKeyContent(state: ApiKeyUiState, onSave: (String) -> Unit, onRem
 @Composable
 private fun KeyStatus(state: ApiKeyUiState) {
     val checkedAt = state.checkedAt
+    val neutral = MaterialTheme.colorScheme.onSurfaceVariant
     val (text, color) = when {
-        state.check == KeyCheck.CHECKING -> stringResource(R.string.api_key_checking) to MaterialTheme.colorScheme.onSurfaceVariant
+        state.check == KeyCheck.CHECKING -> stringResource(R.string.api_key_checking) to neutral
         state.check == KeyCheck.REJECTED -> stringResource(R.string.api_key_rejected) to MaterialTheme.colorScheme.error
         state.check == KeyCheck.OFFLINE -> stringResource(R.string.api_key_offline) to extendedColors.warning
         state.check == KeyCheck.OTHER -> stringResource(R.string.api_key_other) to extendedColors.warning
         checkedAt != null -> stringResource(R.string.api_key_works, formatTime(checkedAt)) to extendedColors.success
         state.isStored -> stringResource(R.string.settings_api_key_saved) to extendedColors.success
-        else -> stringResource(R.string.settings_api_key_missing) to MaterialTheme.colorScheme.onSurfaceVariant
+        else -> stringResource(R.string.settings_api_key_missing) to neutral
     }
+    val isFine = state.check == KeyCheck.IDLE && state.isStored
     Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (color == extendedColors.success) Icon(DesignIcons.Check, contentDescription = null, Modifier.size(16.dp), tint = color)
+        if (isFine) Icon(DesignIcons.Check, contentDescription = null, Modifier.size(16.dp), tint = color)
         Text(text, style = MaterialTheme.typography.bodyMedium, color = color, modifier = Modifier.testTag(CoachApiKeyTags.STATUS))
     }
 }

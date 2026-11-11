@@ -87,6 +87,9 @@ internal object VolumeTargetsRoute
 internal object HistoryRoute
 
 @Serializable
+internal data class CoachAboutRoute(val topicKind: String, val topicId: String, val topicLabel: String)
+
+@Serializable
 internal data class ExternalWorkoutRoute(val startedAtMillis: Long)
 
 internal val fullScreenRoutes = listOf(ActiveWorkoutRoute::class, ExercisePickerRoute::class, PlanDetailRoute::class, PlanEditRoute::class,
@@ -94,6 +97,7 @@ internal val fullScreenRoutes = listOf(ActiveWorkoutRoute::class, ExercisePicker
 )
 
 internal val nestedRoutes = listOf(
+    CoachAboutRoute::class,
     SettingsRoute::class,
     HealthConnectRoute::class,
     ProgressMetricRoute::class,

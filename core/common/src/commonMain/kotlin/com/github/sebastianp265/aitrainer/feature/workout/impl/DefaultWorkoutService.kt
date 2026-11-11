@@ -5,6 +5,7 @@ import com.github.sebastianp265.aitrainer.shared.workout.SessionSummaryRow
 import com.github.sebastianp265.aitrainer.shared.workout.SetEntryEntity
 import com.github.sebastianp265.aitrainer.shared.workout.WorkoutDao
 import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
+import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import com.github.sebastianp265.aitrainer.integration.workout.CopyResult
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
@@ -150,6 +151,25 @@ internal class DefaultWorkoutService(
 
     override suspend fun removeExercise(sessionId: Long, exerciseKey: String) =
         dao.deleteExerciseSets(sessionId, exerciseKey)
+
+    override suspend fun findSession(sessionId: Long): WorkoutSession? = dao.getSession(sessionId)?.toModel()
+
+    override suspend fun addSetWith(sessionId: Long, set: PlannedSet) {
+        dao.insertSetAtEnd(SetEntryEntity(0, sessionId, set.exerciseKey, 0, set.reps, set.weightKg, set.rpe, set.isWarmup))
+    }
+
+    override suspend fun replaceExerciseSets(sessionId: Long, exerciseKeys: List<String>, sets: List<PlannedSet>) {
+        val current = dao.getSets(sessionId).sortedBy { it.positionInSession }
+        val order = (current.map { it.exerciseKey } + exerciseKeys).distinct()
+        val rebuilt = order.flatMap { key ->
+            if (key in exerciseKeys) {
+                sets.filter { it.exerciseKey == key }.map { SetEntryEntity(0, sessionId, key, 0, it.reps, it.weightKg, it.rpe, it.isWarmup) }
+            } else {
+                current.filter { it.exerciseKey == key }
+            }
+        }
+        dao.replaceSessionSets(sessionId, rebuilt.mapIndexed { index, set -> set.copy(positionInSession = index) })
+    }
 
     private suspend fun buildReport(sessionId: Long): WorkoutReport? {
         val session = dao.getSession(sessionId) ?: return null

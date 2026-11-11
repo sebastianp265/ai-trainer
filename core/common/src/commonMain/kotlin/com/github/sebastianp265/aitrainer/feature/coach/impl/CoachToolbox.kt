@@ -1,10 +1,10 @@
 package com.github.sebastianp265.aitrainer.feature.coach.impl
 
+import com.github.sebastianp265.aitrainer.integration.nutrition.NutritionService
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTool
 import com.github.sebastianp265.aitrainer.integration.coach.CoachService
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalState
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalType
-import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
 import com.github.sebastianp265.aitrainer.integration.health.HealthService
 import com.github.sebastianp265.aitrainer.integration.plan.PlanService
@@ -23,7 +23,6 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
@@ -43,6 +42,7 @@ internal class CoachToolbox(
     private val plans: PlanService,
     private val volume: VolumeService,
     private val exercises: ExerciseService,
+    private val nutrition: NutritionService,
     private val dao: CoachDao,
     private val clock: Clock,
 ) {
@@ -61,10 +61,27 @@ internal class CoachToolbox(
         tool("get_external_workouts", "Workouts recorded by other apps (Health Connect) between two dates.", """{"type":"object","properties":{"from":{"type":"string"},"to":{"type":"string"}},"required":["from","to"]}"""),
         tool("get_plans", "Upcoming plans (not done yet) with all their sets.", """{"type":"object","properties":{}}"""),
         tool("get_weekly_sets", "Working sets per muscle group per week (primary 1, secondary 0.5) for the last N weeks, with the weekly targets.", """{"type":"object","properties":{"weeks":{"type":"integer"}}}"""),
+        tool("get_workout", "All sets of one gym workout. Without sessionId: the workout running right now.", """{"type":"object","properties":{"sessionId":{"type":"integer"}}}"""),
+        tool(
+            "propose_workout_change",
+            "Proposes new sets for some exercises of the running workout (default) or of a finished workout (sessionId from get_workouts, e.g. to fix a typo). " +
+                "For each exercise you list, give ALL its sets, including the ones already done; exercises in removeExerciseKeys are removed. The user must accept it.",
+            """{"type":"object","properties":{"sessionId":{"type":"integer"},"summary":{"type":"string"},"sets":{"type":"array","items":${setItemSchema()}},"removeExerciseKeys":{"type":"array","items":{"type":"string"}}},"required":["summary"]}""",
+        ),
         tool("propose_plan", "Proposes a NEW plan. The user must accept it in the chat. Give a one-line summary in the user's language.", planSchema(withId = false)),
         tool("propose_plan_change", "Proposes a change of an EXISTING upcoming plan (full new content). planId is required.", planSchema(withId = true)),
         tool("propose_plans", "Proposes several plans at once (new, or changes when planId is set). The user can accept all.", """{"type":"object","properties":{"summary":{"type":"string"},"plans":{"type":"array","items":${planItemSchema()}}},"required":["summary","plans"]}"""),
         tool("propose_target_change", "Proposes a new weekly working-set target range for one muscle group (CHEST, BACK, LEGS, SHOULDERS, ARMS, ABS).", """{"type":"object","properties":{"groupKey":{"type":"string"},"minSets":{"type":"integer"},"maxSets":{"type":"integer"},"reason":{"type":"string"},"summary":{"type":"string"}},"required":["groupKey","minSets","maxSets","reason","summary"]}"""),
+        tool(
+            "propose_new_exercise",
+            "Proposes a new exercise when find_exercises finds nothing that fits. Muscle groups: CHEST, BACK, LEGS, SHOULDERS, ARMS, ABS. The user must accept it.",
+            """{"type":"object","properties":{"name":{"type":"string"},"primaryGroupKey":{"type":"string"},"secondaryGroupKeys":{"type":"array","items":{"type":"string"}},"summary":{"type":"string"}},"required":["name","primaryGroupKey","summary"]}""",
+        ),
+        tool(
+            "propose_nutrition_target",
+            "Proposes a daily calorie and/or protein target shown in Progress. Base it on the Health Connect data and the goal. The user must accept it.",
+            """{"type":"object","properties":{"kcal":{"type":"integer"},"proteinG":{"type":"integer"},"reason":{"type":"string"},"summary":{"type":"string"}},"required":["reason","summary"]}""",
+        ),
         tool("add_note", "Saves a short note about the user for future conversations.", """{"type":"object","properties":{"text":{"type":"string"}},"required":["text"]}"""),
         tool("update_note", "Changes the text of one of your notes.", """{"type":"object","properties":{"id":{"type":"integer"},"text":{"type":"string"}},"required":["id","text"]}"""),
         tool("delete_note", "Deletes one of your notes.", """{"type":"object","properties":{"id":{"type":"integer"}},"required":["id"]}"""),
@@ -81,6 +98,10 @@ internal class CoachToolbox(
             "get_external_workouts" -> getExternalWorkouts(input.date("from"), input.date("to"))
             "get_plans" -> getPlans()
             "get_weekly_sets" -> getWeeklySets(input.int("weeks") ?: 4)
+            "get_workout" -> getWorkout(input.int("sessionId")?.toLong())
+            "propose_workout_change" -> proposeWorkoutChange(inputJson)
+            "propose_new_exercise" -> proposeNewExercise(inputJson)
+            "propose_nutrition_target" -> proposeNutritionTarget(inputJson)
             "propose_plan" -> proposePlan(inputJson, ProposalType.NEW_PLAN)
             "propose_plan_change" -> proposePlan(inputJson, ProposalType.CHANGE_PLAN)
             "propose_plans" -> proposePlans(inputJson)
@@ -105,7 +126,7 @@ internal class CoachToolbox(
             val report = workouts.observeWorkoutReport(session.id).first()
             val title = session.planName ?: "Workout"
             val lines = report?.exercises.orEmpty().joinToString("; ") { "${names[it.exerciseKey] ?: it.exerciseKey}: ${groupsText(it.groups)}" }
-            "${session.date} $title (${session.finishedAt?.let { (it - session.startedAt).inWholeMinutes }} min): $lines"
+            "sessionId=${session.id} ${session.date} $title (${session.finishedAt?.let { (it - session.startedAt).inWholeMinutes }} min): $lines"
         }.joinToString("\n")
         return ToolRun(text.ifEmpty { "No workouts in the last $days days." }, checked = "workouts")
     }
@@ -151,6 +172,84 @@ internal class CoachToolbox(
             "planId=${plan.id} \"${plan.name}\" ${plan.date ?: "no date"} by ${plan.author.name.lowercase()}: $sets"
         }
         return ToolRun(text.ifEmpty { "No upcoming plans." }, checked = "plans")
+    }
+
+    private suspend fun getWorkout(sessionId: Long?): ToolRun {
+        val session = (if (sessionId == null) workouts.observeActiveSession().first() else workouts.findSession(sessionId))
+            ?: return ToolRun(if (sessionId == null) "No workout is running." else "No workout with id $sessionId.", isError = sessionId != null)
+        val names = exerciseNames()
+        val sets = workouts.observeSets(session.id).first().sortedBy { it.positionInSession }
+        val plan = session.planId?.let { plans.observePlan(it).first() }
+        val text = buildString {
+            appendLine("sessionId=${session.id} ${session.date} ${if (session.finishedAt == null) "RUNNING now" else "finished"}${plan?.let { " from plan \"${it.name}\"" }.orEmpty()}")
+            sets.groupBy { it.exerciseKey }.forEach { (key, exerciseSets) ->
+                appendLine("${names[key] ?: key} [$key]: " + exerciseSets.joinToString("; ") { "${if (it.isWarmup) "warm-up " else ""}${it.reps}×${roundKg(it.weightKg)} kg${it.rpe?.let { r -> " @${roundKg(r)}" }.orEmpty()}" })
+            }
+            if (plan != null) appendLine("Planned: " + plan.sets.joinToString("; ") { "${it.exerciseKey} ${if (it.isWarmup) "warm-up " else ""}${it.reps}×${roundKg(it.weightKg)} kg" })
+        }
+        return ToolRun(text.trim(), checked = "workout")
+    }
+
+    private suspend fun proposeWorkoutChange(inputJson: String): ToolRun {
+        val input = coachJson.decodeFromString<ProposeWorkoutChangeInput>(inputJson)
+        val session = (input.sessionId?.let { workouts.findSession(it) } ?: workouts.observeActiveSession().first())
+            ?: throw IllegalArgumentException("no running workout; give sessionId of a finished workout from get_workouts")
+        val exerciseKeys = (input.sets.map { it.exerciseKey } + input.removeExerciseKeys).distinct()
+        require(exerciseKeys.isNotEmpty()) { "nothing to change" }
+        val known = exerciseNames().keys
+        exerciseKeys.forEach { require(it in known) { "unknown exerciseKey $it; use find_exercises" } }
+        input.sets.forEach { require(it.reps > 0) { "reps must be positive" } }
+        val id = dao.insertSupersedingProposal(
+            CoachProposalEntity(
+                type = ProposalType.WORKOUT_CHANGE, state = ProposalState.PENDING, summary = input.summary,
+                payload = coachJson.encodeToString(ProposalPayload.serializer(), ProposalPayload(sessionId = session.id, exerciseKeys = exerciseKeys, workoutSets = input.sets)),
+                subjectKey = "workout:${session.id}", messageId = null, createdAt = clock.now(),
+            ),
+        )
+        return ToolRun("Proposal saved. The user will see it as a card and must accept it.", proposalId = id)
+    }
+
+    private suspend fun proposeNutritionTarget(inputJson: String): ToolRun {
+        val input = coachJson.decodeFromString<ProposeNutritionTargetInput>(inputJson)
+        require(input.kcal != null || input.proteinG != null) { "give kcal, proteinG or both" }
+        input.kcal?.let { require(it in 1000..6000) { "kcal must be between 1000 and 6000" } }
+        input.proteinG?.let { require(it in 30..400) { "proteinG must be between 30 and 400" } }
+        val current = nutrition.observeTarget().first()
+        val id = dao.insertSupersedingProposal(
+            CoachProposalEntity(
+                type = ProposalType.NUTRITION_TARGET, state = ProposalState.PENDING, summary = input.summary,
+                payload = coachJson.encodeToString(
+                    ProposalPayload.serializer(),
+                    ProposalPayload(
+                        reason = input.reason,
+                        nutrition = NutritionPayload(input.kcal, input.proteinG, current?.kcal, current?.proteinG, current?.reason),
+                    ),
+                ),
+                subjectKey = "nutrition", messageId = null, createdAt = clock.now(),
+            ),
+        )
+        return ToolRun("Proposal saved. The user will see it as a card and must accept it.", proposalId = id)
+    }
+
+    private suspend fun proposeNewExercise(inputJson: String): ToolRun {
+        val input = coachJson.decodeFromString<ProposeNewExerciseInput>(inputJson)
+        require(input.name.isNotBlank()) { "name is empty" }
+        val groups = exercises.observeMuscleGroups().first().map { it.key }
+        (input.secondaryGroupKeys + input.primaryGroupKey).forEach { require(it in groups) { "unknown muscle group $it; use one of ${groups.joinToString()}" } }
+        exerciseNames().entries.firstOrNull { it.value.equals(input.name.trim(), ignoreCase = true) }?.let {
+            throw IllegalArgumentException("this exercise already exists with key ${it.key}")
+        }
+        val id = dao.insertSupersedingProposal(
+            CoachProposalEntity(
+                type = ProposalType.NEW_EXERCISE, state = ProposalState.PENDING, summary = input.summary,
+                payload = coachJson.encodeToString(
+                    ProposalPayload.serializer(),
+                    ProposalPayload(newExercise = NewExercisePayload(input.name.trim(), input.primaryGroupKey, input.secondaryGroupKeys)),
+                ),
+                subjectKey = "exercise:${input.name.trim().lowercase()}", messageId = null, createdAt = clock.now(),
+            ),
+        )
+        return ToolRun("Proposal saved. Once the user accepts it, find_exercises returns its key.", proposalId = id)
     }
 
     private suspend fun getWeeklySets(weeks: Int): ToolRun {
@@ -246,7 +345,8 @@ internal class CoachToolbox(
     private fun groupsText(groups: List<LastTimeGroup>): String =
         groups.joinToString(", ") { g ->
             val load = if (g.weightKg > 0) "${roundKg(g.weightKg)} kg" else "bodyweight"
-            val rpe = g.rpeFrom?.let { from -> "@${roundKg(from)}" + if (g.rpeTo != null && g.rpeTo != from) "-${roundKg(g.rpeTo!!)}" else "" }.orEmpty()
+            val rpeTo = g.rpeTo
+            val rpe = g.rpeFrom?.let { from -> "@${roundKg(from)}" + if (rpeTo != null && rpeTo != from) "-${roundKg(rpeTo)}" else "" }.orEmpty()
             "${g.setCount}×${g.reps}×$load$rpe"
         }
 
@@ -268,6 +368,25 @@ internal data class ProposePlanInput(
     val date: String? = null,
     val summary: String,
     val sets: List<PlannedSetPayload>,
+)
+
+@Serializable
+internal data class ProposeNutritionTargetInput(val kcal: Int? = null, val proteinG: Int? = null, val reason: String, val summary: String)
+
+@Serializable
+internal data class ProposeNewExerciseInput(
+    val name: String,
+    val primaryGroupKey: String,
+    val secondaryGroupKeys: List<String> = emptyList(),
+    val summary: String,
+)
+
+@Serializable
+internal data class ProposeWorkoutChangeInput(
+    val sessionId: Long? = null,
+    val summary: String,
+    val sets: List<PlannedSetPayload> = emptyList(),
+    val removeExerciseKeys: List<String> = emptyList(),
 )
 
 @Serializable

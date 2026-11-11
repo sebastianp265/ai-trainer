@@ -1,5 +1,7 @@
 package com.github.sebastianp265.aitrainer.feature.progress.impl
 
+import com.github.sebastianp265.aitrainer.integration.nutrition.NutritionTarget
+import com.github.sebastianp265.aitrainer.integration.nutrition.NutritionService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
@@ -33,6 +35,7 @@ internal data class ProgressUiState(
     val strength: List<StrengthRow> = emptyList(),
     val volumeRows: List<VolumeRow> = emptyList(),
     val showTargets: Boolean = true,
+    val nutritionTarget: NutritionTarget? = null,
 )
 
 private class StoredProgress(
@@ -48,6 +51,7 @@ internal class ProgressViewModel(
     private val healthService: HealthService,
     private val workoutService: WorkoutService,
     private val volumeService: VolumeService,
+    private val nutritionService: NutritionService,
     settingsService: SettingsService,
     exerciseService: ExerciseService,
     private val clock: Clock,
@@ -77,13 +81,14 @@ internal class ProgressViewModel(
         val volume = combine(volumeService.observeWeeklySets(firstDay, today), targetsAndGroups) { weeks, (targets, groups, showTargets) ->
             volumeRows(groups, targets, averageSetsPerWeek(weeks, selected.days)) to showTargets
         }
-        combine(stored, volume) { data, (rows, showTargets) ->
+        combine(stored, volume, nutritionService.observeTarget()) { data, (rows, showTargets), nutritionTarget ->
             ProgressUiState(
                 range = selected,
                 cards = ProgressCalculator.calculate(data.days, data.sessionCount, selected, today),
                 strength = data.strength.take(STRENGTH_ROWS).map { StrengthRow(data.exercises.getValue(it.exerciseKey), it.estimatedOneRepMaxKg, it.isRecord) },
                 volumeRows = rows.takeIf { list -> list.any { it.done > 0 } }.orEmpty(),
                 showTargets = showTargets,
+                nutritionTarget = nutritionTarget,
             )
         }
     }.stateIn(viewModelScope, WhileUiSubscribed, ProgressUiState())

@@ -78,7 +78,9 @@ internal fun WorkoutSummaryContent(
             if (report.plan != null) PlanComparisonCard(report.exercises, state.exercises)
             report.previousWithSamePlan?.let { PreviousLine(it) }
             if (LocalCoachEnabled.current) {
-                CoachButton(stringResource(R.string.summary_discuss_with_coach), LocalOpenCoach.current, Modifier.testTag(ReportTags.ASK_COACH))
+                val openCoach = LocalOpenCoach.current
+                val topic = workoutTopic(report)
+                CoachButton(stringResource(R.string.summary_discuss_with_coach), { openCoach(topic) }, Modifier.testTag(ReportTags.ASK_COACH))
             }
             Button(onClick = onDone, Modifier.fillMaxWidth().height(48.dp).testTag(ReportTags.DONE)) { Text(stringResource(R.string.summary_done)) }
             TextButton(onClick = onShowAllSets, Modifier.align(Alignment.CenterHorizontally)) { Text(stringResource(R.string.summary_all_sets)) }

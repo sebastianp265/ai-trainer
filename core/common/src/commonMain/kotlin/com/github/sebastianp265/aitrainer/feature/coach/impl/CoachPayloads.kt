@@ -2,6 +2,7 @@ package com.github.sebastianp265.aitrainer.feature.coach.impl
 
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import com.github.sebastianp265.aitrainer.integration.coach.ProposedPlan
+import com.github.sebastianp265.aitrainer.integration.volume.TargetSource
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -37,11 +38,50 @@ internal data class ProposalPayload(
     val reason: String? = null,
     val previousMinSets: Int? = null,
     val previousMaxSets: Int? = null,
+    val sessionId: Long? = null,
+    val exerciseKeys: List<String> = emptyList(),
+    val workoutSets: List<PlannedSetPayload> = emptyList(),
+    val newExercise: NewExercisePayload? = null,
+    val nutrition: NutritionPayload? = null,
+)
+
+@Serializable
+internal data class NutritionPayload(val kcal: Int?, val proteinG: Int?, val previousKcal: Int?, val previousProteinG: Int?, val previousReason: String?)
+
+@Serializable
+internal data class NewExercisePayload(val name: String, val primaryGroupKey: String, val secondaryGroupKeys: List<String> = emptyList())
+
+@Serializable
+internal data class UndoPayload(
+    val createdPlans: List<CreatedPlan> = emptyList(),
+    val previousPlans: List<PreviousPlan> = emptyList(),
+    val previousTarget: PreviousTarget? = null,
+    val previousWorkoutSets: List<PlannedSetPayload> = emptyList(),
+    val wasRunningWorkout: Boolean = false,
+)
+
+@Serializable
+internal data class CreatedPlan(val planId: Long, val proposedIndex: Int)
+
+@Serializable
+internal data class PreviousPlan(val plan: PlanPayload, val coachNote: String?)
+
+@Serializable
+internal data class PreviousTarget(
+    val groupKey: String,
+    val minSets: Int,
+    val maxSets: Int,
+    val source: TargetSource,
+    val reason: String?,
 )
 
 internal fun PlanPayload.toProposedPlan() = ProposedPlan(
     planId = planId,
     name = name,
     date = date?.let(LocalDate::parse),
-    sets = sets.map { PlannedSet(it.exerciseKey, it.reps, it.weightKg, it.rpe, it.warmup) },
+    sets = sets.map { it.toPlannedSet() },
 )
+
+internal fun PlannedSetPayload.toPlannedSet() = PlannedSet(exerciseKey, reps, weightKg, rpe, warmup)
+
+internal fun PlannedSet.toPayload() = PlannedSetPayload(exerciseKey, reps, weightKg, rpe, isWarmup)

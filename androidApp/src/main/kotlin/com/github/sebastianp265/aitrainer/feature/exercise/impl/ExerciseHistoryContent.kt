@@ -1,5 +1,7 @@
 package com.github.sebastianp265.aitrainer.feature.exercise.impl
 
+import com.github.sebastianp265.aitrainer.integration.coach.TopicKind
+import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -108,7 +110,7 @@ internal fun ExerciseHistoryContent(state: ExerciseHistoryUiState?, onOpenWorkou
         }
         if (coachEnabled) {
             item {
-                CoachButton(stringResource(R.string.history_ask_coach), openCoach)
+                CoachButton(stringResource(R.string.history_ask_coach), { openCoach(CoachTopic(TopicKind.EXERCISE, state.exercise.key, state.exercise.displayName(locale))) })
             }
         }
     }

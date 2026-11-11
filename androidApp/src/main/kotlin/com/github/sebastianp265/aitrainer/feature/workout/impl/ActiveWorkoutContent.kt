@@ -1,5 +1,13 @@
 package com.github.sebastianp265.aitrainer.feature.workout.impl
 
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.FilledTonalIconButton
+import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
+import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
+import com.github.sebastianp265.aitrainer.integration.coach.TopicKind
+import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
 import android.content.res.Resources
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -146,8 +154,10 @@ private fun WorkoutHeader(session: WorkoutSession, plan: Plan?) {
             delay(1.seconds)
         }
     }
-    Column(Modifier.heightIn(min = 64.dp).padding(vertical = 8.dp), verticalArrangement = Arrangement.Center) {
-        Text(plan?.name ?: stringResource(R.string.workout_empty_title), style = MaterialTheme.typography.titleLarge)
+    val title = plan?.name ?: stringResource(R.string.workout_empty_title)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+    Column(Modifier.weight(1f).heightIn(min = 64.dp).padding(vertical = 8.dp), verticalArrangement = Arrangement.Center) {
+        Text(title, style = MaterialTheme.typography.titleLarge)
         val origin = when (plan?.author) {
             null -> stringResource(R.string.workout_empty_subtitle)
             PlanAuthor.USER -> stringResource(R.string.workout_from_own_plan)
@@ -160,11 +170,25 @@ private fun WorkoutHeader(session: WorkoutSession, plan: Plan?) {
             modifier = Modifier.testTag(ActiveWorkoutTags.SUBTITLE),
         )
     }
+    if (LocalCoachEnabled.current) {
+        val openCoach = LocalOpenCoach.current
+        FilledTonalIconButton(
+            onClick = { openCoach(CoachTopic(TopicKind.ACTIVE_WORKOUT, session.id.toString(), title)) },
+            modifier = Modifier.size(48.dp).testTag(ActiveWorkoutTags.ASK_COACH),
+            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+            ),
+        ) { Icon(DesignIcons.Coach, contentDescription = stringResource(R.string.workout_ask_coach)) }
+    }
+    }
 }
 
 private fun ActiveWorkoutMessage.text(resources: Resources): String = when (this) {
     is ActiveWorkoutMessage.NoPreviousSets ->
         resources.getString(R.string.no_previous_sets, exercise.displayName(resources.configuration.locales[0]))
+    is ActiveWorkoutMessage.NotUnderstood -> resources.getString(R.string.voice_not_understood, text)
+    ActiveWorkoutMessage.VoiceUnavailable -> resources.getString(R.string.voice_unavailable)
 }
 
 @Composable
@@ -194,11 +218,15 @@ internal interface ActiveWorkoutActions {
     fun removeExercise(exercise: Exercise)
     fun addSet(block: ExerciseBlock)
     fun copySetsFromLastTime(block: ExerciseBlock)
+    fun addSpokenSet(block: ExerciseBlock, alternatives: List<String>)
+    fun voiceUnavailable()
     fun changeSet(set: SetEntry, change: SetChange)
     fun deleteSet(set: SetEntry)
 }
 
 internal object ActiveWorkoutTags {
+    const val ASK_COACH = "workout_ask_coach"
+    const val SAY_SET = "workout_say_set"
     const val WEIGHT = "set_weight"
     const val REPS = "set_reps"
     const val RPE = "set_rpe"
@@ -248,6 +276,8 @@ private fun ActiveWorkoutPreview() {
                     override fun removeExercise(exercise: Exercise) = Unit
                     override fun addSet(block: ExerciseBlock) = Unit
                     override fun copySetsFromLastTime(block: ExerciseBlock) = Unit
+                    override fun addSpokenSet(block: ExerciseBlock, alternatives: List<String>) = Unit
+                    override fun voiceUnavailable() = Unit
                     override fun changeSet(set: SetEntry, change: SetChange) = Unit
                     override fun deleteSet(set: SetEntry) = Unit
                 },

@@ -13,6 +13,7 @@ enum class PackageModule(val path: String) {
     INTEGRATION_WORKOUT("integration.workout"),
     INTEGRATION_PLAN("integration.plan"),
     INTEGRATION_VOLUME("integration.volume"),
+    INTEGRATION_NUTRITION("integration.nutrition"),
     INTEGRATION_COACH("integration.coach"),
     INTEGRATION_HEALTH("integration.health"),
     INTEGRATION_SETTINGS("integration.settings"),
@@ -21,6 +22,7 @@ enum class PackageModule(val path: String) {
     SHARED_WORKOUT("shared.workout"),
     SHARED_PLAN("shared.plan"),
     SHARED_VOLUME("shared.volume"),
+    SHARED_NUTRITION("shared.nutrition"),
     SHARED_COACH("shared.coach"),
     SHARED_HEALTH("shared.health"),
     SHARED_DATABASE("shared.database"),
@@ -39,6 +41,7 @@ enum class PackageModule(val path: String) {
     FEATURE_PROGRESS("feature.progress"),
     FEATURE_PLAN("feature.plan"),
     FEATURE_VOLUME("feature.volume"),
+    FEATURE_NUTRITION("feature.nutrition"),
     FEATURE_COACH("feature.coach"),
     FEATURE_HISTORY("feature.history");
 

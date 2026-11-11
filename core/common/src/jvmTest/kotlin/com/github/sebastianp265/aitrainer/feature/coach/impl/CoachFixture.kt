@@ -68,6 +68,7 @@ internal class CoachFixture {
     val workouts = DefaultWorkoutService(database.workoutDao(), database.planDao(), plans, clock)
     val volume = DefaultVolumeService(database.volumeDao(), clock)
     val exercises = DefaultExerciseService(database.exerciseDao(), clock)
+    val nutrition = com.github.sebastianp265.aitrainer.feature.nutrition.impl.DefaultNutritionService(database.nutritionDao(), clock)
     val healthSource = FakeHealthDataSource()
     private val dataStore = { name: String -> PreferenceDataStoreFactory.create(produceFile = { Files.createTempDirectory(name).resolve("$name.preferences_pb").toFile() }) }
     val health = DefaultHealthService(healthSource, database.healthDao(), dataStore("health"), clock, kotlinx.datetime.TimeZone.UTC)
@@ -75,13 +76,13 @@ internal class CoachFixture {
         dataStore("settings"),
         object : SecretStore {
             override suspend fun write(secret: Secret, value: String) = Unit
-            override suspend fun read(secret: Secret): String? = "test-key"
+            override suspend fun read(secret: Secret): String = "test-key"
             override suspend fun delete(secret: Secret) = Unit
             override fun observeIsStored(secret: Secret): Flow<Boolean> = flowOf(true)
         },
     )
-    val toolbox = CoachToolbox(workouts, health, plans, volume, exercises, database.coachDao(), clock)
-    val coach = DefaultCoachService({ claude }, settings, database.coachDao(), toolbox, workouts, health, plans, volume, clock)
+    val toolbox = CoachToolbox(workouts, health, plans, volume, exercises, nutrition, database.coachDao(), clock)
+    val coach = DefaultCoachService({ claude }, settings, database.coachDao(), toolbox, workouts, health, plans, volume, exercises, nutrition, clock)
 
     suspend fun finishBenchWorkout(weight: Double = 80.0) {
         workouts.startSession()

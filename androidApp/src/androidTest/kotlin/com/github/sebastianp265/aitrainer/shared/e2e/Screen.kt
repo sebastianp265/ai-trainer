@@ -14,13 +14,13 @@ abstract class Screen(protected val compose: ComposeTestRule) {
     protected fun waitForText(text: String, substring: Boolean = false) =
         compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText(text, substring = substring).fetchSemanticsNodes().isNotEmpty() }
 
-    protected fun waitForTextShownOnce(text: String) =
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText(text).fetchSemanticsNodes().size == 1 }
-
     protected fun waitFor(matcher: SemanticsMatcher) =
         compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(matcher, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
 
     protected fun clickText(text: String) = compose.onNodeWithText(text).performClick()
+
+    protected fun waitForTextGone(text: String) =
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText(text).fetchSemanticsNodes().isEmpty() }
 
     protected fun assertTextNotShown(text: String) =
         assertEquals(0, compose.onAllNodesWithText(text, substring = true).fetchSemanticsNodes().size, "\"$text\" is shown")

@@ -1,5 +1,12 @@
 package com.github.sebastianp265.aitrainer.feature.workout.impl
 
+import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
+import android.speech.RecognizerIntent
+import android.content.Intent
+import android.content.ActivityNotFoundException
+import android.app.Activity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,6 +53,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.R
@@ -102,6 +111,7 @@ internal fun ExerciseCard(ui: ExerciseBlockUi, actions: ActiveWorkoutActions, on
                 Row(Modifier.padding(start = 30.dp, top = 4.dp, bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ChipButton(stringResource(R.string.add_set), onClick = { actions.addSet(block) })
                     ChipButton(stringResource(R.string.same_as_last_time), onClick = { actions.copySetsFromLastTime(block) })
+                    SaySetButton(block, actions)
                 }
             }
         }
@@ -140,6 +150,29 @@ private fun LastTimeLabel(ui: ExerciseBlockUi, onOpenHistory: () -> Unit) {
 private const val NO_BREAK_SPACE = ' '
 
 @Composable
+private fun SaySetButton(block: ExerciseBlock, actions: ActiveWorkoutActions) {
+    val prompt = stringResource(R.string.voice_prompt)
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val alternatives = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS).orEmpty()
+        if (result.resultCode == Activity.RESULT_OK && alternatives.isNotEmpty()) actions.addSpokenSet(block, alternatives)
+    }
+    IconButton(
+        onClick = {
+            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                .putExtra(RecognizerIntent.EXTRA_PROMPT, prompt)
+                .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+            try {
+                launcher.launch(intent)
+            } catch (_: ActivityNotFoundException) {
+                actions.voiceUnavailable()
+            }
+        },
+        modifier = Modifier.size(36.dp).testTag(ActiveWorkoutTags.SAY_SET),
+    ) { Icon(DesignIcons.Mic, contentDescription = stringResource(R.string.voice_add_set), tint = MaterialTheme.colorScheme.primary) }
+}
+
+@Composable
 internal fun SetRow(workingNumber: Int?, set: SetEntry, actions: ActiveWorkoutActions) {
     var typing by rememberSaveable(set.id) { mutableStateOf<TypedField?>(null) }
     var pickingRpe by rememberSaveable(set.id) { mutableStateOf(false) }
@@ -154,7 +187,7 @@ internal fun SetRow(workingNumber: Int?, set: SetEntry, actions: ActiveWorkoutAc
         ) {
             Text(
                 workingNumber?.toString() ?: stringResource(R.string.warmup_short),
-                modifier = Modifier.width(24.dp).clickable { actions.changeSet(set, SetChange.ToggleWarmup) }.testTag(ActiveWorkoutTags.WARMUP_TOGGLE),
+                modifier = Modifier.width(24.dp).toggleable(value = set.isWarmup, role = Role.Checkbox) { actions.changeSet(set, SetChange.ToggleWarmup) }.testTag(ActiveWorkoutTags.WARMUP_TOGGLE),
                 style = MaterialTheme.typography.labelLarge,
                 color = if (set.isWarmup) extendedColors.warning else MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,

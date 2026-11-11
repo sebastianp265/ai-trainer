@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 internal object DesignIcons {
     val Training = lineIcon("training", "M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12")
     val Plan = lineIcon("plan", "M6 5h12a2 2 0 0 1 2 2v11a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2z", "M4 10h16M9 3v4M15 3v4")
+    val Mic = lineIcon("mic", "M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1 -6 0v-6a3 3 0 0 1 3 -3z", "M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6")
     val Coach = lineIcon("coach", "M5 5h14a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-9l-4 3v-3H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z")
     val Progress = lineIcon("progress", "M4 19h16M7 16v-5M12 16V7M17 16v-8")
     val Settings = lineIcon(

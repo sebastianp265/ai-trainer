@@ -1,14 +1,19 @@
 package com.github.sebastianp265.aitrainer.integration.coach
 
+import com.github.sebastianp265.aitrainer.integration.exercise.NewExercise
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import kotlinx.datetime.LocalDate
 import kotlin.time.Instant
 
 enum class CoachRole { USER, COACH }
 
-enum class ProposalType { NEW_PLAN, CHANGE_PLAN, MULTI_PLAN, TARGET }
+enum class TopicKind { PLAN, WORKOUT, ACTIVE_WORKOUT, EXERCISE, EXTERNAL_WORKOUT }
 
-enum class ProposalState { PENDING, ACCEPTED, SUPERSEDED }
+data class CoachTopic(val kind: TopicKind, val id: String, val label: String)
+
+enum class ProposalType { NEW_PLAN, CHANGE_PLAN, MULTI_PLAN, TARGET, WORKOUT_CHANGE, NEW_EXERCISE, NUTRITION_TARGET }
+
+enum class ProposalState { PENDING, ACCEPTED, SUPERSEDED, UNDONE }
 
 data class ProposedPlan(
     val planId: Long?,
@@ -26,6 +31,10 @@ data class ProposedTarget(
     val previousMaxSets: Int,
 )
 
+data class ProposedNutritionTarget(val kcal: Int?, val proteinG: Int?, val previousKcal: Int?, val previousProteinG: Int?, val reason: String?)
+
+data class ProposedWorkoutChange(val sessionId: Long, val exerciseKeys: List<String>, val sets: List<PlannedSet>)
+
 data class CoachProposal(
     val id: Long,
     val type: ProposalType,
@@ -33,7 +42,11 @@ data class CoachProposal(
     val summary: String,
     val plans: List<ProposedPlan>,
     val target: ProposedTarget?,
+    val workoutChange: ProposedWorkoutChange?,
+    val newExercise: NewExercise?,
+    val nutrition: ProposedNutritionTarget?,
     val createdAt: Instant,
+    val isUndoable: Boolean,
 )
 
 data class WeeklyReviewSummary(
@@ -59,6 +72,7 @@ data class CoachMessage(
     val checked: List<String>,
     val proposals: List<CoachProposal>,
     val review: WeeklyReviewSummary?,
+    val topic: CoachTopic?,
 )
 
 data class CoachNote(val id: Long, val text: String, val createdAt: Instant)

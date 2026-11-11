@@ -149,13 +149,22 @@ The same format is used in the exercise history and the workout summary.
 
 | Tool group | Tools |
 |---|---|
-| Read | workouts, one exercise's history, days from Health Connect, workouts from other apps, plans, weekly sets and targets |
-| Propose | new plan, change of a plan, several plans at once, change of a weekly target |
+| Read | workouts, one workout with all its sets (the running one by default), one exercise's history, days from Health Connect, workouts from other apps, plans, weekly sets and targets |
+| Propose | new plan, change of a plan, several plans at once (also a block of several weeks), change of a weekly target, change of the sets of the running or a finished workout, new exercise, daily calorie and protein target |
 | Memory | add, change and delete its own notes; fill in the profile |
 
-- A proposal is pending, accepted or superseded. A newer proposal for the same plan or target
+- A proposal is pending, accepted, superseded or undone. A newer proposal for the same plan or target
   supersedes the older one. Only "Akceptuj" applies a proposal. Replying is how it is declined
   or adjusted.
+- "Cofnij" on an accepted proposal restores what was there before, as long as nothing used it since:
+  no workout was started from its plans, its weekly or nutrition target was not changed again, and
+  for a change of the running workout the workout is still running. A new exercise cannot be undone.
+- Asking the coach from a plan, a workout, an exercise's history or a workout from another app
+  opens the chat with that topic attached to the next message, so the coach knows what it is about.
+- During a workout a button opens the coach about the running workout, with quick questions
+  ("Za ciężko", "Coś mnie boli", "Mam mniej czasu"). An accepted change replaces the sets of the
+  exercises it names.
+- The accepted nutrition target is shown in Progress (calorie balance and macros cards).
 - A pending proposal is also shown as a card on Trening and Plan, and on the targets screen when
   it concerns a target.
 - Under a coach message, "Sprawdzono: …" lists what the tools read for that answer.

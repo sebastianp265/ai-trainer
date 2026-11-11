@@ -12,6 +12,6 @@ internal val coachModule = module {
     factory<ClaudeClient> { KtorClaudeClient(get(), get()) }
     factoryOf(::CoachToolbox)
     single<CoachService> {
-        DefaultCoachService({ get() }, get(), get(), get(), get(), get(), get(), get(), get())
+        DefaultCoachService({ get() }, get(), get(), get(), get(), get(), get(), get(), get(), get(), get())
     }
 }

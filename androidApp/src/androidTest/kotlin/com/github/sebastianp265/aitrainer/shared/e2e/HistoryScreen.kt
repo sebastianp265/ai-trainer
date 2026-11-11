@@ -1,7 +1,6 @@
-package com.github.sebastianp265.aitrainer.feature.history
+package com.github.sebastianp265.aitrainer.shared.e2e
 
 import androidx.compose.ui.test.junit4.ComposeTestRule
-import com.github.sebastianp265.aitrainer.shared.e2e.Screen
 
 class HistoryScreen(compose: ComposeTestRule) : Screen(compose) {
 
@@ -11,6 +10,8 @@ class HistoryScreen(compose: ComposeTestRule) : Screen(compose) {
         waitForText("All workouts")
     }
 
+    fun assertShown() = waitForText("All workouts")
+
     fun filterOtherApps() = clickText("From other apps")
 
     fun filterGym() = clickText("Gym")
@@ -18,6 +19,8 @@ class HistoryScreen(compose: ComposeTestRule) : Screen(compose) {
     fun assertWorkoutListed(title: String) = waitForText(title)
 
     fun assertWorkoutNotListed(title: String) = assertTextNotShown(title)
+
+    fun assertWorkoutGone(title: String) = waitForTextGone(title)
 
     fun openWorkout(title: String) = clickText(title)
 

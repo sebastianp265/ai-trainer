@@ -43,6 +43,9 @@ internal interface CoachDao {
     @Query("UPDATE coach_proposal SET state = :state WHERE id = :id")
     suspend fun setProposalState(id: Long, state: ProposalState)
 
+    @Query("UPDATE coach_proposal SET state = 'ACCEPTED', undo = :undo WHERE id = :id")
+    suspend fun markAccepted(id: Long, undo: String)
+
     @Transaction
     suspend fun insertSupersedingProposal(proposal: CoachProposalEntity): Long {
         proposal.subjectKey?.let { key ->

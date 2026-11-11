@@ -35,8 +35,21 @@ internal enum class ProposalScope { PLANS, TARGETS }
 internal fun PendingProposalBanner(scope: ProposalScope, onOpenPlanProposal: (Long) -> Unit, onOpenCoach: () -> Unit) {
     val viewModel: PendingProposalViewModel = koinViewModel()
     val pending by viewModel.pending.collectAsStateWithLifecycle()
-    val proposal = pending.lastOrNull { (it.type == ProposalType.TARGET) == (scope == ProposalScope.TARGETS) } ?: return
-    PendingProposalCard(proposal, onClick = { if (proposal.target == null) onOpenPlanProposal(proposal.id) else onOpenCoach() })
+    val proposal = pending.lastOrNull {
+        when (scope) {
+            ProposalScope.PLANS -> it.plans.isNotEmpty()
+            ProposalScope.TARGETS -> it.type == ProposalType.TARGET
+        }
+    } ?: return
+    PendingProposalCard(
+        proposal,
+        onClick = {
+            when (scope) {
+                ProposalScope.PLANS -> onOpenPlanProposal(proposal.id)
+                ProposalScope.TARGETS -> onOpenCoach()
+            }
+        },
+    )
 }
 
 @Composable

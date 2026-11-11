@@ -1,5 +1,9 @@
 package com.github.sebastianp265.aitrainer.feature.history
 
+import com.github.sebastianp265.aitrainer.shared.e2e.sets
+import com.github.sebastianp265.aitrainer.shared.e2e.BENCH_PRESS
+import com.github.sebastianp265.aitrainer.shared.e2e.WorkoutReportScreen
+import com.github.sebastianp265.aitrainer.shared.e2e.HistoryScreen
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.sebastianp265.aitrainer.integration.health.ExternalWorkoutReading
 import com.github.sebastianp265.aitrainer.shared.e2e.AbstractE2ETest
@@ -21,6 +25,7 @@ class HistoryFlowE2ETest : AbstractE2ETest() {
     private val zone = TimeZone.currentSystemDefault()
     private val today = Clock.System.todayIn(zone)
     private val history = HistoryScreen(compose)
+    private val report = WorkoutReportScreen(compose)
 
     @BeforeTest
     fun start() {
@@ -36,6 +41,7 @@ class HistoryFlowE2ETest : AbstractE2ETest() {
                 writtenByThisApp = false,
             ),
         )
+        given.finishedWorkout(sets(BENCH_PRESS, kg = 80.0))
         launchApp(healthDataSource = healthConnect)
     }
 
@@ -48,6 +54,18 @@ class HistoryFlowE2ETest : AbstractE2ETest() {
         history.assertWorkoutNotListed("Run")
         history.filterOtherApps()
         history.assertWorkoutListed("Run")
+    }
+
+    @Test
+    fun `a gym workout deleted from the history returns to the history without it`() {
+        history.open()
+        history.openWorkout("Workout")
+
+        report.delete()
+        report.confirmDelete()
+
+        history.assertShown()
+        history.assertWorkoutGone("Workout")
     }
 
     @Test

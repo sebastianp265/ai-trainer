@@ -1,5 +1,8 @@
 package com.github.sebastianp265.aitrainer.shared.architecture
 
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_NUTRITION
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_NUTRITION
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_NUTRITION
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_APP
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_EXERCISE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_HEALTH
@@ -46,9 +49,9 @@ enum class GradleModule(
         directoryName = "core/common",
         packageModules = setOf(
             INTEGRATION_MODULE,
-            INTEGRATION_EXERCISE, INTEGRATION_WORKOUT, INTEGRATION_PLAN, INTEGRATION_VOLUME, INTEGRATION_COACH, INTEGRATION_HEALTH, INTEGRATION_SETTINGS, INTEGRATION_SHARED,
-            SHARED_EXERCISE, SHARED_WORKOUT, SHARED_PLAN, SHARED_VOLUME, SHARED_COACH, SHARED_HEALTH, SHARED_DATABASE,
-            FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_PLAN, FEATURE_VOLUME, FEATURE_COACH, FEATURE_HEALTH, FEATURE_SETTINGS,
+            INTEGRATION_EXERCISE, INTEGRATION_WORKOUT, INTEGRATION_PLAN, INTEGRATION_VOLUME, INTEGRATION_NUTRITION, INTEGRATION_COACH, INTEGRATION_HEALTH, INTEGRATION_SETTINGS, INTEGRATION_SHARED,
+            SHARED_EXERCISE, SHARED_WORKOUT, SHARED_PLAN, SHARED_VOLUME, SHARED_NUTRITION, SHARED_COACH, SHARED_HEALTH, SHARED_DATABASE,
+            FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_PLAN, FEATURE_VOLUME, FEATURE_NUTRITION, FEATURE_COACH, FEATURE_HEALTH, FEATURE_SETTINGS,
         ),
     ),
     CORE_ANDROID(

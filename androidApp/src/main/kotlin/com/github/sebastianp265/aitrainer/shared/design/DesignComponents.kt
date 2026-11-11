@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -159,9 +160,9 @@ internal fun Tag(
 
 @Composable
 internal fun ListRow(modifier: Modifier = Modifier, onClick: (() -> Unit)? = null, content: @Composable RowScope.() -> Unit) {
-    Column(modifier.fillMaxWidth()) {
+    Column((if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier).then(modifier).fillMaxWidth()) {
         Row(
-            (if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier).fillMaxWidth().padding(vertical = 12.dp),
+            Modifier.fillMaxWidth().padding(vertical = 12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
             content = content,
@@ -244,7 +245,7 @@ internal fun DashedButton(text: String, icon: ImageVector?, onClick: () -> Unit,
                 )
             }
             .clip(shape)
-            .clickable(onClick = onClick),
+            .clickable(role = Role.Button, onClick = onClick),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {

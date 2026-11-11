@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.feature.workout
+package com.github.sebastianp265.aitrainer.shared.e2e
 
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeTimeoutException
@@ -10,8 +10,6 @@ import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.performClick
 import com.github.sebastianp265.aitrainer.feature.workout.impl.ReportTags
-import com.github.sebastianp265.aitrainer.shared.e2e.Screen
-import com.github.sebastianp265.aitrainer.shared.e2e.TEST_TIMEOUT_MS
 
 class WorkoutReportScreen(compose: ComposeTestRule) : Screen(compose) {
 

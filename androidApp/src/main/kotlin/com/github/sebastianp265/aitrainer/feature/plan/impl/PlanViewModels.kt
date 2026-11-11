@@ -151,7 +151,7 @@ internal data class PlanEditUiState(
     val sets: List<EditableSet> = emptyList(),
     val exercises: Map<String, Exercise> = emptyMap(),
 ) {
-    val canSave: Boolean get() = name.isNotBlank() && sets.isNotEmpty()
+    val canSave: Boolean get() = name.isNotBlank() && sets.isNotEmpty() && sets.all { (it.reps.toIntOrNull() ?: 0) > 0 }
 }
 
 internal class PlanEditViewModel(
@@ -265,7 +265,7 @@ internal class PlanEditViewModel(
 
     private fun EditableSet.toPlanned() = PlannedSet(
         exerciseKey = exerciseKey,
-        reps = reps.toIntOrNull() ?: 0,
+        reps = reps.toInt(),
         weightKg = weight.trim().replace(',', '.').toDoubleOrNull() ?: 0.0,
         rpe = rpe,
         isWarmup = isWarmup,

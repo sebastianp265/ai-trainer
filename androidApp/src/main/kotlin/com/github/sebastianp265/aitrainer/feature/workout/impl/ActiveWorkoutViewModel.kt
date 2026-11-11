@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.feature.workout.impl
 
+import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
@@ -30,6 +31,8 @@ internal data class ExerciseBlockUi(val block: ExerciseBlock, val lastTime: List
 
 internal sealed interface ActiveWorkoutMessage {
     data class NoPreviousSets(val exercise: Exercise) : ActiveWorkoutMessage
+    data class NotUnderstood(val text: String) : ActiveWorkoutMessage
+    data object VoiceUnavailable : ActiveWorkoutMessage
 }
 
 internal data class ActiveWorkoutUiState(
@@ -114,6 +117,19 @@ internal class ActiveWorkoutViewModel(
         if (workoutService.copySetsFromLastTime(session.id, block.exercise.key) == CopyResult.NO_PREVIOUS_SETS) {
             message.value = ActiveWorkoutMessage.NoPreviousSets(block.exercise)
         }
+    }
+
+    fun addSpokenSet(block: ExerciseBlock, alternatives: List<String>) = withSession { session ->
+        val spoken = alternatives.firstNotNullOfOrNull { parseSpokenSet(it) }
+        if (spoken == null) {
+            message.value = ActiveWorkoutMessage.NotUnderstood(alternatives.firstOrNull().orEmpty())
+        } else {
+            workoutService.addSetWith(session.id, PlannedSet(block.exercise.key, spoken.reps, spoken.weightKg, spoken.rpe, isWarmup = false))
+        }
+    }
+
+    fun voiceUnavailable() {
+        message.value = ActiveWorkoutMessage.VoiceUnavailable
     }
 
     fun changeSet(set: SetEntry, change: SetChange) = launch { workoutService.changeSet(set.id, change) }

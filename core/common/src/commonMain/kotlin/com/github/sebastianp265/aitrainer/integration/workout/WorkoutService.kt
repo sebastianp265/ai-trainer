@@ -1,5 +1,7 @@
 package com.github.sebastianp265.aitrainer.integration.workout
 
+import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
+
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
@@ -46,4 +48,10 @@ interface WorkoutService {
     suspend fun deleteSet(setId: Long)
 
     suspend fun removeExercise(sessionId: Long, exerciseKey: String)
+
+    suspend fun findSession(sessionId: Long): WorkoutSession?
+
+    suspend fun addSetWith(sessionId: Long, set: PlannedSet)
+
+    suspend fun replaceExerciseSets(sessionId: Long, exerciseKeys: List<String>, sets: List<PlannedSet>)
 }

@@ -7,7 +7,7 @@ interface CoachService {
 
     fun observeActivity(): Flow<CoachActivity>
 
-    suspend fun send(text: String)
+    suspend fun send(text: String, topic: CoachTopic? = null)
 
     suspend fun retry()
 
@@ -20,6 +20,8 @@ interface CoachService {
     suspend fun accept(proposalId: Long): Boolean
 
     suspend fun acceptAll(proposalIds: List<Long>)
+
+    suspend fun undo(proposalId: Long): Boolean
 
     fun observeProfile(): Flow<Map<String, String>>
 

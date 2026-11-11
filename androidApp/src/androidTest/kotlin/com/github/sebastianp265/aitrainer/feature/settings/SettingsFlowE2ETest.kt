@@ -30,7 +30,8 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `the coach is on at first and switching it off hides its settings and its tab`() {
+    fun `the coach is on at first and switching it off on its tab hides its settings and its tab`() {
+        tabs.open("Coach")
         settings.open()
         settings.assertCoachOn()
 
@@ -40,6 +41,7 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
         settings.assertCoachRowsHidden()
         settings.goBackToTab()
         tabs.assertTabHidden("Coach")
+        tabs.assertSelected("Training")
     }
 
     @Test

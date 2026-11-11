@@ -62,6 +62,8 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
         lines.forEach { waitForText(it) }
     }
 
+    fun askCoach() = clickText("Change with the coach")
+
     fun edit() = compose.onNode(hasContentDescription("Edit")).performClick()
 
     fun delete() = compose.onNode(hasContentDescription("Delete plan")).performClick()
@@ -75,6 +77,9 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
         compose.onNode(hasScrollAction()).performScrollToNode(hasTestTag(PlanTags.card(planName)))
         waitFor(hasTestTag(PlanTags.card(planName)))
     }
+
+    fun assertNotListed(planName: String) =
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(hasTestTag(PlanTags.card(planName)), useUnmergedTree = true).fetchSemanticsNodes().isEmpty() }
 
     fun open(planName: String) {
         waitFor(hasTestTag(PlanTags.card(planName)))

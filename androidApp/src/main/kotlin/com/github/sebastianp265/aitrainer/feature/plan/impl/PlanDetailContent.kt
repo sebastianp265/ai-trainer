@@ -1,5 +1,7 @@
 package com.github.sebastianp265.aitrainer.feature.plan.impl
 
+import com.github.sebastianp265.aitrainer.integration.coach.TopicKind
+import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -102,8 +104,9 @@ internal fun PlanDetailContent(
             Button(onClick = onStart, Modifier.fillMaxWidth().height(48.dp).testTag(PlanTags.START)) { Text(stringResource(R.string.plan_start)) }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (coachEnabled) {
+                    val openCoach = LocalOpenCoach.current
                     Button(
-                        onClick = LocalOpenCoach.current,
+                        onClick = { openCoach(CoachTopic(TopicKind.PLAN, plan.id.toString(), plan.name)) },
                         modifier = Modifier.weight(1f).height(48.dp).testTag(PlanTags.ASK_COACH),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
