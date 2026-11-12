@@ -97,7 +97,7 @@ private fun Headline(metric: ProgressMetric, detail: MetricDetail, range: Progre
                     }
                 }
             }
-            LineChart(detail.points, detail.averageSeries)
+            LineChart(detail.points, detail.averageSeries, valueLabel = { formatMetricValue(metric, it) })
             ChartLegend(
                 MaterialTheme.colorScheme.inversePrimary to stringResource(R.string.progress_legend_daily),
                 MaterialTheme.colorScheme.primary to stringResource(R.string.progress_legend_average),

@@ -4,58 +4,170 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
+import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.shared.charts.impl.ChartScale
+import com.github.sebastianp265.aitrainer.shared.charts.impl.chartScale
+import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
+import com.github.sebastianp265.aitrainer.shared.localization.rememberDayMonthFormatter
+import com.patrykandpatrick.vico.compose.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.compose.cartesian.Zoom
+import com.patrykandpatrick.vico.compose.cartesian.axis.Axis
+import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisGuidelineComponent
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLabelComponent
+import com.patrykandpatrick.vico.compose.cartesian.axis.rememberAxisLineComponent
+import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModel
+import com.patrykandpatrick.vico.compose.cartesian.data.CartesianLayerRangeProvider
+import com.patrykandpatrick.vico.compose.cartesian.data.CartesianValueFormatter
+import com.patrykandpatrick.vico.compose.cartesian.data.LineCartesianLayerModel
+import com.patrykandpatrick.vico.compose.cartesian.layer.LineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLine
+import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
+import com.patrykandpatrick.vico.compose.cartesian.marker.CartesianMarkerController
+import com.patrykandpatrick.vico.compose.cartesian.marker.DefaultCartesianMarker
+import com.patrykandpatrick.vico.compose.cartesian.marker.rememberDefaultCartesianMarker
+import com.patrykandpatrick.vico.compose.cartesian.rememberCartesianChart
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoScrollState
+import com.patrykandpatrick.vico.compose.cartesian.rememberVicoZoomState
+import com.patrykandpatrick.vico.compose.common.Fill
+import com.patrykandpatrick.vico.compose.common.Insets
+import com.patrykandpatrick.vico.compose.common.component.ShapeComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
+import com.patrykandpatrick.vico.compose.common.component.rememberTextComponent
+import com.patrykandpatrick.vico.compose.common.data.ExtraStore
 import kotlinx.datetime.LocalDate
 import kotlin.math.abs
+import kotlin.math.ceil
 
-private const val GRID_LINES = 3
+private const val X_LABEL_COUNT = 3
 
 internal data class DailyPoint(val date: LocalDate, val value: Double)
 
 @Composable
-internal fun LineChart(points: List<DailyPoint>, average: List<DailyPoint>, modifier: Modifier = Modifier) {
-    val pointColor = MaterialTheme.colorScheme.inversePrimary
-    val lineColor = MaterialTheme.colorScheme.primary
-    val gridColor = MaterialTheme.colorScheme.outlineVariant
-    Canvas(modifier.fillMaxWidth().height(160.dp)) {
-        val all = points + average
-        val firstDay = all.minOf { it.date.toEpochDays() }
-        val lastDay = all.maxOf { it.date.toEpochDays() }
-        val minValue = all.minOf { it.value }
-        val maxValue = all.maxOf { it.value }
-        val padding = 8.dp.toPx()
-        fun x(date: LocalDate): Float {
-            val span = (lastDay - firstDay).coerceAtLeast(1)
-            return padding + (size.width - 2 * padding) * (date.toEpochDays() - firstDay) / span
-        }
-        fun y(value: Double): Float {
-            val span = (maxValue - minValue).takeIf { it > 0 } ?: 1.0
-            return (size.height - padding - (size.height - 2 * padding) * ((value - minValue) / span)).toFloat()
-        }
-        repeat(GRID_LINES) { index ->
-            val gridY = padding + (size.height - 2 * padding) * index / (GRID_LINES - 1)
-            drawLine(gridColor, Offset(0f, gridY), Offset(size.width, gridY), strokeWidth = 1.dp.toPx())
-        }
-        points.forEach { drawCircle(pointColor, radius = 3.dp.toPx(), center = Offset(x(it.date), y(it.value))) }
-        val path = Path()
-        average.forEachIndexed { index, point ->
-            val offset = Offset(x(point.date), y(point.value))
-            if (index == 0) path.moveTo(offset.x, offset.y) else path.lineTo(offset.x, offset.y)
-        }
-        drawPath(path, lineColor, style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+internal fun LineChart(
+    points: List<DailyPoint>,
+    average: List<DailyPoint>,
+    modifier: Modifier = Modifier,
+    valueLabel: (@Composable (Double) -> String)? = null,
+) {
+    val colors = MaterialTheme.colorScheme
+    val scale = remember(points, average) { (points + average).let { all -> chartScale(all.minOf { it.value }, all.maxOf { it.value }) } }
+    val model = remember(points, average) {
+        CartesianChartModel(
+            LineCartesianLayerModel.build {
+                if (average.isNotEmpty()) series(x = average.map { it.date.toEpochDays() }, y = average.map { it.value })
+                series(x = points.map { it.date.toEpochDays() }, y = points.map { it.value })
+            },
+        )
     }
+    val dots = LineCartesianLayer.rememberLine(
+        fill = remember { LineCartesianLayer.LineFill.single(Fill.Transparent) },
+        pointProvider = remember(colors.inversePrimary) {
+            LineCartesianLayer.PointProvider.single(LineCartesianLayer.Point(ShapeComponent(Fill(colors.inversePrimary), CircleShape), 6.dp))
+        },
+    )
+    val averageLine = LineCartesianLayer.rememberLine(
+        fill = remember(colors.primary) { LineCartesianLayer.LineFill.single(Fill(colors.primary)) },
+        stroke = remember { LineCartesianLayer.LineStroke.Continuous(thickness = 3.dp) },
+    )
+    val layer = rememberLineCartesianLayer(
+        lineProvider = remember(dots, averageLine, average.isEmpty()) {
+            LineCartesianLayer.LineProvider.series(if (average.isEmpty()) listOf(dots) else listOf(averageLine, dots))
+        },
+        rangeProvider = remember(scale) { scale.rangeProvider() },
+    )
+    val chart = if (valueLabel == null) {
+        rememberCartesianChart(layer, getXStep = { _, _, _ -> 1.0 })
+    } else {
+        val days = (points + average).map { it.date.toEpochDays() }
+        val labelSpacing = ceil((days.max() - days.min()).toDouble() / X_LABEL_COUNT).toInt().coerceAtLeast(1)
+        rememberCartesianChart(
+            layer,
+            startAxis = rememberValueAxis(scale, valueLabel),
+            bottomAxis = rememberDayAxis(labelSpacing),
+            marker = rememberPointMarker(points, average, valueLabel),
+            getXStep = { _, _, _ -> 1.0 },
+            markerController = CartesianMarkerController.rememberToggleOnTap(),
+        )
+    }
+    CartesianChartHost(
+        chart = chart,
+        model = model,
+        modifier = modifier.fillMaxWidth().height(if (valueLabel == null) 160.dp else 200.dp),
+        scrollState = rememberVicoScrollState(scrollEnabled = false),
+        zoomState = rememberVicoZoomState(zoomEnabled = false, initialZoom = Zoom.Content),
+    )
+}
+
+private fun ChartScale.rangeProvider() = object : CartesianLayerRangeProvider {
+    override fun getMinY(minY: Double, maxY: Double, extraStore: ExtraStore) = min
+
+    override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore) = max
+}
+
+@Composable
+private fun rememberAxisLabel() = rememberAxisLabelComponent(
+    style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant),
+)
+
+@Composable
+private fun rememberValueAxis(scale: ChartScale, valueLabel: @Composable (Double) -> String): VerticalAxis<Axis.Position.Vertical.Start> {
+    val tickLabels = scale.ticks.associateWith { valueLabel(it) }
+    return VerticalAxis.rememberStart(
+        line = null,
+        label = rememberAxisLabel(),
+        tick = null,
+        guideline = rememberAxisGuidelineComponent(fill = Fill(MaterialTheme.colorScheme.outlineVariant)),
+        itemPlacer = remember(scale) { VerticalAxis.ItemPlacer.step({ scale.step }) },
+        valueFormatter = remember(tickLabels) {
+            CartesianValueFormatter { _, value, _ -> tickLabels.minBy { abs(it.key - value) }.value }
+        },
+    )
+}
+
+@Composable
+private fun rememberDayAxis(labelSpacing: Int): HorizontalAxis<Axis.Position.Horizontal.Bottom> {
+    val dayLabel = rememberDayMonthFormatter()
+    return HorizontalAxis.rememberBottom(
+        line = rememberAxisLineComponent(fill = Fill(MaterialTheme.colorScheme.outlineVariant)),
+        label = rememberAxisLabel(),
+        tick = null,
+        guideline = null,
+        itemPlacer = remember(labelSpacing) { HorizontalAxis.ItemPlacer.aligned(spacing = { labelSpacing }) },
+        valueFormatter = remember(dayLabel) { CartesianValueFormatter { _, x, _ -> dayLabel(LocalDate.fromEpochDays(x.toLong())) } },
+    )
+}
+
+@Composable
+private fun rememberPointMarker(points: List<DailyPoint>, average: List<DailyPoint>, valueLabel: @Composable (Double) -> String): DefaultCartesianMarker {
+    val colors = MaterialTheme.colorScheme
+    val dayLabel = rememberDayMonthFormatter()
+    val labels = (average + points).associate { it.date.toEpochDays() to "${dayLabel(it.date)} · ${valueLabel(it.value)}" }
+    return rememberDefaultCartesianMarker(
+        label = rememberTextComponent(
+            style = MaterialTheme.typography.labelMedium.copy(color = colors.onSurface),
+            padding = Insets(horizontal = 8.dp, vertical = 4.dp),
+            background = rememberShapeComponent(Fill(colors.surfaceContainerHighest), RoundedCornerShape(8.dp)),
+        ),
+        valueFormatter = remember(labels) { DefaultCartesianMarker.ValueFormatter { _, targets -> labels.getValue(targets.first().x.toLong()) } },
+        indicator = remember(colors.surface) { { color: Color -> ShapeComponent(Fill(color), CircleShape, strokeFill = Fill(colors.surface), strokeThickness = 2.dp) } },
+        guideline = rememberAxisGuidelineComponent(fill = Fill(colors.outline)),
+    )
 }
 
 @Composable
@@ -86,6 +198,7 @@ private fun ChartsPreview() {
             val days = (0..9).map { DailyPoint(LocalDate(2026, 11, 1 + it), 82.0 + (it % 3) * 0.4 - it * 0.1) }
             Column {
                 LineChart(days, days)
+                LineChart(days, days, valueLabel = { stringResource(R.string.value_kg, formatNumber(it, 1)) })
                 BarChart(listOf(-200, -320, -320, 150))
             }
         }

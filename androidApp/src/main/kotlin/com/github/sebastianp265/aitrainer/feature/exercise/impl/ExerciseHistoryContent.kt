@@ -51,6 +51,7 @@ import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.workout.rememberLastTimeLabels
 import com.github.sebastianp265.aitrainer.shared.workout.text
 import kotlinx.datetime.LocalDate
+import kotlin.math.roundToInt
 
 @Composable
 internal fun ExerciseHistoryContent(state: ExerciseHistoryUiState?, onOpenWorkout: (Long) -> Unit) {
@@ -91,14 +92,14 @@ internal fun ExerciseHistoryContent(state: ExerciseHistoryUiState?, onOpenWorkou
         if (oneRepMaxPoints.size >= 2) {
             item {
                 HistoryCard(stringResource(R.string.exercise_history_one_rep_max_chart)) {
-                    LineChart(oneRepMaxPoints, oneRepMaxPoints)
+                    LineChart(oneRepMaxPoints, oneRepMaxPoints, valueLabel = { stringResource(R.string.value_kg, formatWeight((it * 10).roundToInt() / 10.0)) })
                 }
             }
         }
         if (rpePoints.size >= 2) {
             item {
                 HistoryCard(stringResource(R.string.exercise_history_rpe_chart)) {
-                    LineChart(rpePoints, rpePoints)
+                    LineChart(rpePoints, rpePoints, valueLabel = { formatWeight(it) })
                     Text(stringResource(R.string.exercise_history_rpe_caption), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }

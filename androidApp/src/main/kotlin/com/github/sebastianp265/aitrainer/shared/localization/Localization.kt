@@ -86,10 +86,15 @@ internal fun formatLongWeekdayDate(date: LocalDate): String {
 }
 
 @Composable
-internal fun formatDayMonth(date: LocalDate): String {
+internal fun formatDayMonth(date: LocalDate): String = rememberDayMonthFormatter()(date)
+
+@Composable
+internal fun rememberDayMonthFormatter(): (LocalDate) -> String {
     val locale = LocalConfiguration.current.locales[0]
-    val format = remember(locale) { DateTimeFormatter.ofPattern("d MMM", locale) }
-    return format.format(date.toJavaLocalDate())
+    return remember(locale) {
+        val format = DateTimeFormatter.ofPattern("d MMM", locale)
+        return@remember { date: LocalDate -> format.format(date.toJavaLocalDate()) }
+    }
 }
 
 @Composable
