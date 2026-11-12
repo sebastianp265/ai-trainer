@@ -63,11 +63,9 @@ import com.github.sebastianp265.aitrainer.feature.exercise.PICKED_EXERCISE_KEY
 import com.github.sebastianp265.aitrainer.feature.health.ReloadHealthOnForeground
 import com.github.sebastianp265.aitrainer.feature.history.HistoryScreen
 import com.github.sebastianp265.aitrainer.feature.plan.NEW_PLAN
-import com.github.sebastianp265.aitrainer.feature.plan.TrainingPlans
 import com.github.sebastianp265.aitrainer.feature.plan.TrainingWeek
 import com.github.sebastianp265.aitrainer.feature.plan.PlanDetailScreen
 import com.github.sebastianp265.aitrainer.feature.plan.PlanEditScreen
-import com.github.sebastianp265.aitrainer.feature.plan.PlanScreen
 import com.github.sebastianp265.aitrainer.feature.progress.DayDetailScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetricScreen
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressScreen
@@ -132,7 +130,6 @@ internal fun AppNavigation() {
     val coachEnabledViewModel: CoachEnabledViewModel = koinViewModel()
     val coachEnabled by coachEnabledViewModel.enabled.collectAsStateWithLifecycle()
     val title = when {
-        destination?.hasRoute(PlanRoute::class) == true -> R.string.plans_all_title
         destination?.hasRoute(CoachMemoryRoute::class) == true -> R.string.memory_title
         destination?.hasRoute(ApiKeyRoute::class) == true -> R.string.settings_claude_api_key
         destination?.hasRoute(ModelRoute::class) == true -> R.string.model_title
@@ -175,15 +172,9 @@ internal fun AppNavigation() {
                     onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) },
                     onOpenProposal = { navController.navigate(CoachProposalRoute(it)) },
                     onOpenCoach = { navController.openTab(TopLevelDestination.COACH) },
+                    onOpenPlan = { navController.navigate(PlanDetailRoute(it)) },
+                    onNewPlan = { navController.navigate(PlanEditRoute(NEW_PLAN)) },
                     week = { TrainingWeek() },
-                    plans = {
-                        TrainingPlans(
-                            onOpenPlan = { navController.navigate(PlanDetailRoute(it)) },
-                            onNewPlan = { navController.navigate(PlanEditRoute(NEW_PLAN)) },
-                            onOpenAllPlans = { navController.navigate(PlanRoute) },
-                            onOpenTargets = { navController.navigate(VolumeTargetsRoute) },
-                        )
-                    },
                 ) }
             screen<CoachAboutRoute> { entry ->
                 val route = entry.toRoute<CoachAboutRoute>()
@@ -264,12 +255,6 @@ internal fun AppNavigation() {
                     onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) },
                 )
             }
-            screen<PlanRoute> {
-                PlanScreen(
-                    onOpenPlan = { navController.navigate(PlanDetailRoute(it)) },
-                    onNewPlan = { navController.navigate(PlanEditRoute(NEW_PLAN)) },
-                )
-            }
             screen<PlanDetailRoute> { entry ->
                 PlanDetailScreen(
                     planId = entry.toRoute<PlanDetailRoute>().planId,
@@ -296,9 +281,7 @@ internal fun AppNavigation() {
                             navController.popBackStack()
                         }
                     },
-                    onDeleted = {
-                        if (!navController.popBackStack<PlanRoute>(inclusive = false)) navController.popBackStack<LogRoute>(inclusive = false)
-                    },
+                    onDeleted = { navController.popBackStack<LogRoute>(inclusive = false) },
                 )
             }
             screen<ProgressRoute> {

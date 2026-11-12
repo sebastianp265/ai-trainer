@@ -48,7 +48,7 @@ class CoachFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `a proposed plan accepted from its card is listed in all plans until it is undone`() {
+    fun `a proposed plan accepted from its card is offered when starting a workout until it is undone`() {
         openCoachWithKey()
         claude.answerWithToolCall("propose_plan", PUSH_PLAN)
         claude.answerWith("I wrote a push day for you.")
@@ -57,14 +57,14 @@ class CoachFlowE2ETest : AbstractE2ETest() {
         coach.accept()
         coach.assertProposalState("ACCEPTED")
         tabs.open("Training")
-        plans.openAll()
+        plans.openStartSheet()
         plans.assertListed("Push A")
-        plans.back()
+        plans.closeStartSheet()
         tabs.open("Coach")
         coach.undo()
         coach.assertProposalState("UNDONE")
         tabs.open("Training")
-        plans.openAll()
+        plans.openStartSheet()
         plans.assertNotListed("Push A")
     }
 
@@ -161,7 +161,7 @@ class CoachFlowE2ETest : AbstractE2ETest() {
         given.claudeApiKey()
         val planId = given.plan("Push A", sets(BENCH_PRESS, kg = 80.0))
         launchApp(claudeClient = claude)
-        plans.openAll()
+        plans.openStartSheet()
         plans.open("Push A")
         plans.askCoach()
         coach.assertTopic("About plan: Push A")

@@ -16,7 +16,7 @@ class PlanFlowE2ETest : AbstractE2ETest() {
     private val picker = ExercisePickerScreen(compose)
 
     @Test
-    fun `without plans the list of all plans invites to write one`() {
+    fun `without plans the start sheet offers only an empty workout and a new plan`() {
         openAllPlans()
 
         plans.assertNoPlansYet()
@@ -38,7 +38,8 @@ class PlanFlowE2ETest : AbstractE2ETest() {
 
         plans.assertDetailShown("Push A", "Barbell Bench Press", "1 × 10 · 80 kg")
         plans.back()
-        plans.assertListedUnder("No date", "Push A")
+        plans.openStartSheet()
+        plans.assertListed("Push A")
     }
 
     @Test
@@ -63,11 +64,12 @@ class PlanFlowE2ETest : AbstractE2ETest() {
         plans.delete()
         plans.confirmDelete()
 
+        plans.openStartSheet()
         plans.assertNoPlansYet()
     }
 
     private fun openAllPlans() {
         launchApp()
-        plans.openAll()
+        plans.openStartSheet()
     }
 }

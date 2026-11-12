@@ -32,17 +32,10 @@ class VolumeRowsUTest {
 
     @Test
     fun `rows are ordered by the most sets and groups without sets have zero`() {
-        val rows = volumeRows(groups, targets, done = mapOf("BACK" to 15.5, "CHEST" to 13.0), planned = emptyMap())
+        val rows = volumeRows(groups, targets, done = mapOf("BACK" to 15.5, "CHEST" to 13.0))
 
         assertEquals(listOf("BACK", "CHEST", "ABS"), rows.map { it.group.key })
         assertEquals(0.0, rows.last().done)
-    }
-
-    @Test
-    fun `planned sets add to the done sets of the week`() {
-        val row = volumeRows(groups, targets, done = mapOf("BACK" to 9.0), planned = mapOf("BACK" to 7.5)).first()
-
-        assertEquals(16.5, row.total)
     }
 
     @Test

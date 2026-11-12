@@ -19,9 +19,9 @@ Hard constraints and secrets handling are in [`../CLAUDE.md`](../CLAUDE.md).
 
 - Bottom bar: **Trening · Trener · Postęp · Ustawienia**. The tabs have no top bar; nested screens have one with
   the back arrow and their title. "Co trener o mnie wie" opens from Settings.
-- Trening shows, from the top: the week strip, a pending proposal, the next plan with "Zacznij",
-  the next three plans after it with "Wszystkie plany" and "Napisz własny plan", the sets this week
-  against the targets, and the recent workouts. "Wszystkie plany" opens the list of all plans.
+- Trening shows, from the top: the week strip, a pending proposal, "Zacznij trening" and the recent
+  workouts. "Zacznij trening" opens a sheet with every plan (the next one first; tapping one starts it,
+  its info icon opens the plan to edit, delete or ask the coach), "Pusty trening" and "Nowy plan".
 - With the coach switched off the bar has three tabs and no coach elements appear anywhere.
 - During a workout the bottom bar is hidden; the bottom shows "Odrzuć" and "Zakończ".
 - Until the coach exists (before phase 6) the app behaves as with the coach switched off.
@@ -89,7 +89,7 @@ The same format is used in the exercise history and the workout summary.
 - A plan is one workout to do: name, optional date, exercises, and for each set a target weight,
   reps, optional target RPE and the warm-up flag.
 - A plan has an author: the coach or the user. Both kinds are edited the same way.
-- Lists: upcoming plans by date, then plans without a date. Done plans are not listed.
+- The start sheet lists upcoming plans by date, then plans without a date. Done plans are not listed.
 - The week strip shows Monday to Sunday of the current week: finished workouts and planned
   workouts.
 - "Zapisz" on a new plan needs a name and at least one exercise.
@@ -104,7 +104,6 @@ The same format is used in the exercise history and the workout summary.
   range only through an accepted proposal. Accepting a target change does not touch existing plans.
 - "Pokazuj cele" switches the target bands off; the counts stay.
 - Progress shows the weekly average over the selected range against the target.
-- Trening shows the current week: sets done plus sets in this week's plans, against the target.
 
 ## 7. Health Connect
 

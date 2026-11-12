@@ -11,21 +11,28 @@ import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.test.espresso.Espresso
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanTags
+import com.github.sebastianp265.aitrainer.feature.workout.impl.LogWorkoutTags
 
 class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
 
-    fun openAll() {
-        scrollTo(hasTestTag(PlanTags.ALL_PLANS))
-        compose.onNode(hasTestTag(PlanTags.ALL_PLANS)).performClick()
-        waitForText("All plans")
+    fun openStartSheet() {
+        waitFor(hasTestTag(LogWorkoutTags.START_WORKOUT))
+        compose.onNode(hasTestTag(LogWorkoutTags.START_WORKOUT)).performClick()
+        waitFor(hasTestTag(LogWorkoutTags.SHEET_EMPTY))
     }
 
-    fun assertNoPlansYet() = waitForText("You have no plans yet")
+    fun closeStartSheet() = Espresso.pressBack()
+
+    fun assertNoPlansYet() {
+        waitFor(hasTestTag(LogWorkoutTags.SHEET_EMPTY))
+        assertTextNotShown("From a plan")
+    }
 
     fun startWritingOwnPlan() {
-        waitFor(hasTestTag(PlanTags.NEW_PLAN))
-        compose.onNode(hasTestTag(PlanTags.NEW_PLAN), useUnmergedTree = true).performClick()
+        waitFor(hasTestTag(LogWorkoutTags.SHEET_NEW_PLAN))
+        compose.onNode(hasTestTag(LogWorkoutTags.SHEET_NEW_PLAN)).performClick()
     }
 
     fun typeName(name: String) {
@@ -76,20 +83,13 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun back() = compose.onNode(hasContentDescription("Back")).performClick()
 
-    fun assertListed(planName: String) {
-        scrollTo(hasTestTag(PlanTags.card(planName)))
-    }
+    fun assertListed(planName: String) = waitFor(hasTestTag(LogWorkoutTags.sheetPlan(planName)))
 
     fun assertNotListed(planName: String) =
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(hasTestTag(PlanTags.card(planName)), useUnmergedTree = true).fetchSemanticsNodes().isEmpty() }
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(hasTestTag(LogWorkoutTags.sheetPlan(planName)), useUnmergedTree = true).fetchSemanticsNodes().isEmpty() }
 
     fun open(planName: String) {
-        waitFor(hasTestTag(PlanTags.card(planName)))
-        compose.onNode(hasTestTag(PlanTags.card(planName)), useUnmergedTree = true).performClick()
-    }
-
-    fun assertListedUnder(section: String, planName: String) {
-        waitForText(section)
-        assertListed(planName)
+        waitFor(hasTestTag(LogWorkoutTags.sheetPlanDetails(planName)))
+        compose.onNode(hasTestTag(LogWorkoutTags.sheetPlanDetails(planName))).performClick()
     }
 }

@@ -52,7 +52,7 @@ private fun VolumeBar(row: VolumeRow, showTargets: Boolean) {
     val trackColor = MaterialTheme.colorScheme.surfaceVariant
     val bandColor = MaterialTheme.colorScheme.inversePrimary
     val fillColor = if (!showTargets || row.status() == TargetStatus.IN_TARGET) MaterialTheme.colorScheme.primary else extendedColors.warning
-    val scale = maxOf(row.maxSets * SCALE_MARGIN, row.total.toFloat() * 1.05f, 1f)
+    val scale = maxOf(row.maxSets * SCALE_MARGIN, row.done.toFloat() * 1.05f, 1f)
     Row(
         Modifier.fillMaxWidth().heightIn(min = 28.dp).testTag("volume_row:${row.group.key}"),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -68,16 +68,9 @@ private fun VolumeBar(row: VolumeRow, showTargets: Boolean) {
             val barHeight = 6.dp.toPx()
             val doneWidth = size.width * row.done.toFloat() / scale
             drawRoundRect(fillColor, Offset(0f, barTop), Size(doneWidth, barHeight), CornerRadius(barHeight / 2))
-            val plannedWidth = size.width * row.planned.toFloat() / scale
-            val dash = 3.dp.toPx()
-            var x = doneWidth
-            while (x < doneWidth + plannedWidth) {
-                drawRect(fillColor, Offset(x, barTop), Size(minOf(dash, doneWidth + plannedWidth - x), barHeight))
-                x += 2 * dash
-            }
         }
         Row(Modifier.widthIn(min = 100.dp), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
-            Text(valueText(row), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
+            Text(formatWeight(row.done), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium))
             if (showTargets) {
                 Text(
                     stringResource(R.string.volume_target, row.minSets, row.maxSets),
@@ -91,14 +84,10 @@ private fun VolumeBar(row: VolumeRow, showTargets: Boolean) {
 }
 
 @Composable
-private fun valueText(row: VolumeRow): String =
-    if (row.planned > 0) stringResource(R.string.volume_done_plus_planned, formatWeight(row.done), formatWeight(row.planned)) else formatWeight(row.done)
-
-@Composable
-internal fun VolumeLegend(showPlanned: Boolean) {
+internal fun VolumeLegend() {
     Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
         LegendItem(MaterialTheme.colorScheme.inversePrimary, stringResource(R.string.volume_legend_target))
-        LegendItem(MaterialTheme.colorScheme.primary, stringResource(if (showPlanned) R.string.volume_legend_done_and_planned else R.string.volume_legend_sets))
+        LegendItem(MaterialTheme.colorScheme.primary, stringResource(R.string.volume_legend_sets))
         LegendItem(extendedColors.warning, stringResource(R.string.volume_legend_off_target))
     }
 }
@@ -119,13 +108,13 @@ private fun VolumeBarsPreview() {
         Column {
             VolumeBars(
                 rows = listOf(
-                    VolumeRow(group("BACK"), 9.0, 7.5, 12, 18),
-                    VolumeRow(group("CHEST"), 13.0, 0.0, 10, 16),
-                    VolumeRow(group("ABS"), 2.0, 0.0, 6, 10),
+                    VolumeRow(group("BACK"), 16.5, 12, 18),
+                    VolumeRow(group("CHEST"), 13.0, 10, 16),
+                    VolumeRow(group("ABS"), 2.0, 6, 10),
                 ),
                 showTargets = true,
             )
-            VolumeLegend(showPlanned = true)
+            VolumeLegend()
         }
     }
 }

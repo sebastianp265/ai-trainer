@@ -23,9 +23,6 @@ internal class DefaultVolumeService(
     override fun observeWeeklySets(from: LocalDate, toInclusive: LocalDate): Flow<List<WeeklySets>> =
         dao.observeDoneSets(mondayOf(from), toInclusive).map { weeklySets(it) }
 
-    override fun observePlannedSets(from: LocalDate, toInclusive: LocalDate): Flow<Map<String, Double>> =
-        dao.observePlannedSets(from, toInclusive).map { rows -> weeklySets(rows).fold(emptyMap()) { total, week -> total.plusSets(week.setsByGroup) } }
-
     override fun observeTargets(): Flow<List<WeeklyTarget>> = dao.observeTargets().map { stored ->
         val byGroup = stored.associateBy { it.muscleGroupKey }
         MUSCLE_GROUPS_IN_ORDER.map { key -> byGroup[key]?.toModel() ?: defaultTarget(key) }
@@ -45,6 +42,3 @@ private fun defaultTarget(groupKey: String) =
     WeeklyTarget(groupKey, DEFAULT_MIN_WEEKLY_SETS, DEFAULT_MAX_WEEKLY_SETS, TargetSource.DEFAULT, date = null, reason = null)
 
 private fun WeeklyTargetEntity.toModel() = WeeklyTarget(muscleGroupKey, minSets, maxSets, source, setOn, reason)
-
-private fun Map<String, Double>.plusSets(other: Map<String, Double>): Map<String, Double> =
-    (keys + other.keys).associateWith { (this[it] ?: 0.0) + (other[it] ?: 0.0) }

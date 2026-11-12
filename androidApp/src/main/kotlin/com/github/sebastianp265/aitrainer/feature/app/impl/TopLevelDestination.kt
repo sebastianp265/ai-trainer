@@ -24,9 +24,6 @@ internal enum class TopLevelDestination(
 internal object LogRoute
 
 @Serializable
-internal object PlanRoute
-
-@Serializable
 internal object CoachRoute
 
 @Serializable
@@ -91,7 +88,6 @@ internal val fullScreenRoutes = listOf(ActiveWorkoutRoute::class, ExercisePicker
 )
 
 internal val nestedRoutes = listOf(
-    PlanRoute::class,
     CoachAboutRoute::class,
     ProgressMetricRoute::class,
     DayDetailRoute::class,

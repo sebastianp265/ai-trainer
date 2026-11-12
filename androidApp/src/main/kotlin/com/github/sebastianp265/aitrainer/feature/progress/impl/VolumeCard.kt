@@ -50,7 +50,7 @@ internal fun VolumeCard(rows: List<VolumeRow>, showTargets: Boolean, onOpenTarge
                 }
             }
             VolumeBars(rows, showTargets)
-            if (showTargets) VolumeLegend(showPlanned = false)
+            if (showTargets) VolumeLegend()
             if (infoOpen) VolumeInfoBox()
             if (showTargets) Text(volumeSummary(rows), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -78,7 +78,7 @@ internal fun volumeSummary(rows: List<VolumeRow>): String {
             if (row.status() == TargetStatus.BELOW) R.plurals.volume_below else R.plurals.volume_above,
             row.maxSets,
             row.group.displayName(locale),
-            formatWeight(row.total),
+            formatWeight(row.done),
             row.minSets,
             row.maxSets,
         )

@@ -2,9 +2,6 @@ package com.github.sebastianp265.aitrainer.feature.volume.impl
 
 import com.github.sebastianp265.aitrainer.feature.plan.impl.DefaultPlanService
 import com.github.sebastianp265.aitrainer.feature.workout.impl.DefaultWorkoutService
-import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
-import com.github.sebastianp265.aitrainer.integration.plan.PlanDraft
-import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import com.github.sebastianp265.aitrainer.integration.volume.TargetSource
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.shared.database.impl.inMemoryDatabase
@@ -99,20 +96,7 @@ class DefaultVolumeServiceUTest {
     }
 
     @Test
-    fun `a target needs a range from zero upwards`() = runBlocking {
+    fun `a target needs a range from zero upwards`() = runBlocking<Unit> {
         assertFailsWith<IllegalArgumentException> { volume.setTarget("ABS", 12, 8) }
-    }
-
-    @Test
-    fun `sets in dated plans of the week are counted, plans without a date are not`() = runBlocking {
-        val plans = DefaultPlanService(database.planDao(), clock)
-        val sets = listOf(PlannedSet("bench", 8, 80.0, null, false), PlannedSet("bench", 8, 80.0, null, false), PlannedSet("bench", 10, 40.0, null, true))
-        plans.createPlan(PlanDraft("Push", LocalDate(2026, 11, 12), sets), PlanAuthor.USER)
-        plans.createPlan(PlanDraft("Later", LocalDate(2026, 11, 20), sets), PlanAuthor.USER)
-        plans.createPlan(PlanDraft("Undated", null, sets), PlanAuthor.USER)
-
-        val planned = volume.observePlannedSets(week.first, week.second).first()
-
-        assertEquals(mapOf("CHEST" to 2.0, "ARMS" to 1.0, "SHOULDERS" to 1.0), planned)
     }
 }

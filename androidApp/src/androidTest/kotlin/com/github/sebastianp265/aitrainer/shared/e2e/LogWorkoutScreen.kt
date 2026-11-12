@@ -15,16 +15,18 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.github.sebastianp265.aitrainer.feature.workout.impl.ActiveWorkoutTags
+import com.github.sebastianp265.aitrainer.feature.workout.impl.LogWorkoutTags
 
 class LogWorkoutScreen(
     compose: ComposeTestRule,
-    private val startWorkoutText: String = "Empty workout",
     private val addExerciseText: String = "Add exercise",
 ) : Screen(compose) {
 
     fun startWorkout() {
-        waitForText(startWorkoutText)
-        clickText(startWorkoutText)
+        waitFor(hasTestTag(LogWorkoutTags.START_WORKOUT))
+        compose.onNode(hasTestTag(LogWorkoutTags.START_WORKOUT)).performClick()
+        waitFor(hasTestTag(LogWorkoutTags.SHEET_EMPTY))
+        compose.onNode(hasTestTag(LogWorkoutTags.SHEET_EMPTY)).performClick()
         waitForText(addExerciseText)
     }
 
@@ -118,7 +120,7 @@ class LogWorkoutScreen(
     fun assertExerciseShown(name: String) = waitForText(name)
 
     fun assertHistoryEntry(summary: String) {
-        waitForText(startWorkoutText)
+        waitFor(hasTestTag(LogWorkoutTags.START_WORKOUT))
         scrollTo(hasText(summary, substring = true))
     }
 

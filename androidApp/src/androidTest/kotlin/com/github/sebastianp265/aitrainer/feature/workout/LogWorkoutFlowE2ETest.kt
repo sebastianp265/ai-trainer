@@ -70,7 +70,7 @@ class LogWorkoutFlowE2ETest : AbstractE2ETest() {
     fun `discarding a workout from a plan asks first and keeps the plan`() {
         given.plan("Push A", sets(BENCH_PRESS))
         launchApp()
-        training.startNextPlan()
+        training.startPlan("Push A")
 
         workout.askToDiscard()
         workout.keepWorkout()
@@ -78,8 +78,9 @@ class LogWorkoutFlowE2ETest : AbstractE2ETest() {
         workout.askToDiscard()
         workout.confirmDiscard()
 
-        training.assertNextPlan("Push A")
         training.assertNoRecentWorkouts()
+        training.openStartSheet()
+        training.assertSheetOffers("Push A")
     }
 
     private fun addBenchPress() {

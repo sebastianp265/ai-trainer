@@ -1,18 +1,22 @@
 package com.github.sebastianp265.aitrainer.feature.workout
 
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.performClick
 import com.github.sebastianp265.aitrainer.feature.workout.impl.LogWorkoutTags
 import com.github.sebastianp265.aitrainer.shared.e2e.Screen
+import androidx.test.espresso.Espresso
+import kotlin.test.assertEquals
 import com.github.sebastianp265.aitrainer.shared.e2e.TEST_TIMEOUT_MS
 
 class TrainingScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun assertFirstLaunch() {
         waitForText("Get to know your coach")
-        waitForText("Or start on your own")
+        waitFor(hasTestTag(LogWorkoutTags.START_WORKOUT))
         assertNoRecentWorkouts()
     }
 
@@ -21,26 +25,27 @@ class TrainingScreen(compose: ComposeTestRule) : Screen(compose) {
         waitForText("You have no workouts yet")
     }
 
-    fun assertNextPlan(planName: String) {
-        waitFor(hasTestTag(LogWorkoutTags.NEXT_PLAN))
-        waitForText(planName)
+    fun openStartSheet() {
+        waitFor(hasTestTag(LogWorkoutTags.START_WORKOUT))
+        compose.onNode(hasTestTag(LogWorkoutTags.START_WORKOUT)).performClick()
+        waitFor(hasTestTag(LogWorkoutTags.SHEET_EMPTY))
     }
 
-    fun startNextPlan() {
-        waitFor(hasTestTag(LogWorkoutTags.START_NEXT_PLAN))
-        compose.onNode(hasTestTag(LogWorkoutTags.START_NEXT_PLAN), useUnmergedTree = true).performClick()
-    }
-
-    fun openOtherWorkouts() {
-        waitFor(hasTestTag(LogWorkoutTags.OTHER_WORKOUT))
-        compose.onNode(hasTestTag(LogWorkoutTags.OTHER_WORKOUT), useUnmergedTree = true).performClick()
+    fun startPlan(planName: String) {
+        openStartSheet()
+        waitFor(hasTestTag(LogWorkoutTags.sheetPlan(planName)))
+        compose.onNode(hasTestTag(LogWorkoutTags.sheetPlan(planName))).performClick()
     }
 
     fun assertSheetOffers(vararg planNames: String) {
         waitForText("From a plan")
-        planNames.forEach { waitFor(hasTestTag(LogWorkoutTags.sheetPlan(it))) }
+        val shown = compose.onAllNodes(hasTestTagStartingWith(LogWorkoutTags.sheetPlan(""))).fetchSemanticsNodes()
+            .map { it.config[SemanticsProperties.TestTag] }
+        assertEquals(planNames.map(LogWorkoutTags::sheetPlan), shown)
         waitFor(hasTestTag(LogWorkoutTags.SHEET_EMPTY))
     }
+
+    fun closeStartSheet() = Espresso.pressBack()
 
     fun startEmptyFromSheet() {
         compose.onNode(hasTestTag(LogWorkoutTags.SHEET_EMPTY), useUnmergedTree = true).performClick()
@@ -55,7 +60,8 @@ class TrainingScreen(compose: ComposeTestRule) : Screen(compose) {
         scrollTo(hasTestTag(LogWorkoutTags.RECENT_SESSION))
         compose.onAllNodes(hasTestTag(LogWorkoutTags.RECENT_SESSION) and hasText(title), useUnmergedTree = false)[0].performClick()
     }
+}
 
-    fun assertNoNextPlan() =
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(hasTestTag(LogWorkoutTags.NEXT_PLAN)).fetchSemanticsNodes().isEmpty() }
+private fun hasTestTagStartingWith(prefix: String) = SemanticsMatcher("test tag starts with $prefix") { node ->
+    node.config.getOrElseNullable(SemanticsProperties.TestTag) { null }?.startsWith(prefix) == true
 }

@@ -10,9 +10,7 @@ import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanDetailViewModel
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanEditActions
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanEditContent
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanEditViewModel
-import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanListContent
-import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanListViewModel
-import com.github.sebastianp265.aitrainer.feature.plan.impl.TrainingPlansContent
+import com.github.sebastianp265.aitrainer.feature.plan.impl.TrainingWeekViewModel
 import com.github.sebastianp265.aitrainer.feature.plan.impl.TrainingWeekContent
 import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
@@ -21,24 +19,10 @@ import androidx.compose.runtime.getValue
 internal const val NEW_PLAN = NEW_PLAN_ID
 
 @Composable
-internal fun PlanScreen(onOpenPlan: (planId: Long) -> Unit, onNewPlan: () -> Unit) {
-    val viewModel: PlanListViewModel = koinViewModel()
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    PlanListContent(state, onOpenPlan, onNewPlan)
-}
-
-@Composable
 internal fun TrainingWeek() {
-    val viewModel: PlanListViewModel = koinViewModel()
+    val viewModel: TrainingWeekViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     TrainingWeekContent(state)
-}
-
-@Composable
-internal fun TrainingPlans(onOpenPlan: (planId: Long) -> Unit, onNewPlan: () -> Unit, onOpenAllPlans: () -> Unit, onOpenTargets: () -> Unit) {
-    val viewModel: PlanListViewModel = koinViewModel()
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    TrainingPlansContent(state, onOpenPlan, onNewPlan, onOpenAllPlans, onOpenTargets)
 }
 
 @Composable

@@ -31,8 +31,9 @@ internal fun LogWorkoutScreen(
     onOpenWorkout: (Long) -> Unit,
     onOpenProposal: (Long) -> Unit,
     onOpenCoach: () -> Unit,
+    onOpenPlan: (Long) -> Unit,
+    onNewPlan: () -> Unit,
     week: @Composable () -> Unit,
-    plans: @Composable () -> Unit,
 ) {
     val viewModel: LogWorkoutViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -42,9 +43,10 @@ internal fun LogWorkoutScreen(
         onStartFromPlan = viewModel::startWorkoutFromPlan,
         onOpenHistory = onOpenHistory,
         onOpenWorkout = onOpenWorkout,
+        onOpenPlan = onOpenPlan,
+        onNewPlan = onNewPlan,
         week = week,
         banner = { PendingProposalBanner(ProposalScope.PLANS, onOpenProposal, onOpenCoach) },
-        plans = plans,
     )
 }
 

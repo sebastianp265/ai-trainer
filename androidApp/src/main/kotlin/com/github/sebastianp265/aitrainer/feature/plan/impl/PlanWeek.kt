@@ -12,16 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -29,23 +26,24 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.github.sebastianp265.aitrainer.shared.design.CardLabel
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.shared.localization.formatLongWeekdayDate
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeekRange
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeekdayShort
-import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
-import com.github.sebastianp265.aitrainer.shared.volume.TargetStatus
-import com.github.sebastianp265.aitrainer.shared.volume.VolumeBars
-import com.github.sebastianp265.aitrainer.shared.volume.VolumeLegend
-import com.github.sebastianp265.aitrainer.shared.volume.VolumeRow
-import com.github.sebastianp265.aitrainer.shared.volume.status
 import kotlinx.datetime.LocalDate
 
 internal data class WeekDay(val date: LocalDate, val isToday: Boolean, val done: Boolean, val planned: Boolean)
 
 internal data class WeekUi(val days: List<WeekDay>, val doneCount: Int, val plannedCount: Int)
+
+@Composable
+internal fun TrainingWeekContent(state: TrainingWeekUiState) {
+    val week = state.week ?: return
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        WeekHeader(week)
+        WeekStrip(week)
+    }
+}
 
 @Composable
 internal fun WeekHeader(week: WeekUi) {
@@ -134,31 +132,4 @@ private fun LegendMarker(kind: MarkerKind, text: String) {
         Marker(kind)
         Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
-}
-
-@Composable
-internal fun WeekVolumeCard(rows: List<VolumeRow>, showTargets: Boolean, onOpenTargets: () -> Unit) {
-    Card(Modifier.fillMaxWidth().testTag(PlanTags.WEEK_VOLUME)) {
-        Column(Modifier.padding(horizontal = 16.dp, vertical = 14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                CardLabel(stringResource(R.string.week_volume_title), Modifier.weight(1f))
-                TextButton(onClick = onOpenTargets, Modifier.testTag(PlanTags.WEEK_TARGETS_LINK)) { Text(stringResource(R.string.volume_targets_link)) }
-            }
-            VolumeBars(rows, showTargets)
-            if (showTargets) {
-                VolumeLegend(showPlanned = true)
-                val below = rows.filter { it.status() == TargetStatus.BELOW }
-                if (below.isNotEmpty()) Text(belowText(below), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-    }
-}
-
-@Composable
-private fun belowText(rows: List<VolumeRow>): String {
-    val locale = LocalConfiguration.current.locales[0]
-    val items = rows.map { row ->
-        stringResource(R.string.week_volume_below_item, row.group.displayName(locale), formatWeight(row.total), row.minSets, row.maxSets)
-    }
-    return stringResource(R.string.week_volume_below, items.joinToString(", "))
 }

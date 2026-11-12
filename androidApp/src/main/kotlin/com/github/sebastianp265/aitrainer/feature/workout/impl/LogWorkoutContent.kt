@@ -30,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -40,23 +39,23 @@ import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.shared.design.IconCircle
 import com.github.sebastianp265.aitrainer.shared.design.ListRow
+import com.github.sebastianp265.aitrainer.shared.workout.exerciseCount
+import com.github.sebastianp265.aitrainer.shared.workout.workingSetCount
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import com.github.sebastianp265.aitrainer.shared.design.SectionHeader
 import com.github.sebastianp265.aitrainer.shared.design.Tag
-import com.github.sebastianp265.aitrainer.shared.localization.displayName
-import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
-import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.plan.Plan
 import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import com.github.sebastianp265.aitrainer.integration.workout.SessionSummary
-import com.github.sebastianp265.aitrainer.shared.localization.formatLongWeekdayDate
 import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
 import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeekdayDate
 import kotlinx.datetime.LocalDate
 import kotlin.time.Instant
 import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
-import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
 import androidx.compose.runtime.setValue
 
 @Composable
@@ -64,14 +63,16 @@ internal fun LogWorkoutContent(
     state: LogUiState,
     onStartEmpty: () -> Unit,
     onStartFromPlan: (Long) -> Unit,
+    onOpenPlan: (Long) -> Unit,
+    onNewPlan: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenWorkout: (Long) -> Unit,
     modifier: Modifier = Modifier,
     week: @Composable () -> Unit = {},
     banner: @Composable () -> Unit = {},
-    plans: @Composable () -> Unit = {},
 ) {
     var sheetOpen by rememberSaveable { mutableStateOf(false) }
+    val coachEnabled = LocalCoachEnabled.current
     Box(modifier.fillMaxSize()) {
         if (state.isLoading) {
             CircularProgressIndicator(Modifier.align(Alignment.Center))
@@ -81,19 +82,14 @@ internal fun LogWorkoutContent(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                val nextPlan = state.plans.firstOrNull()
                 item { week() }
                 item { banner() }
+                if (coachEnabled && state.plans.isEmpty() && state.recentSessions.isEmpty()) item { MeetCoachCard() }
                 item {
-                    if (nextPlan != null) {
-                        NextPlanCard(nextPlan, state.exercises, onStartFromPlan = { onStartFromPlan(nextPlan.id) }, onOtherWorkout = { sheetOpen = true })
-                    } else {
-                        val coachEnabled = LocalCoachEnabled.current
-                        if (coachEnabled && state.recentSessions.isEmpty()) MeetCoachCard()
-                        StartOnYourOwnCard(onStartEmpty, coachEnabled)
+                    Button(onClick = { sheetOpen = true }, Modifier.fillMaxWidth().height(56.dp).testTag(LogWorkoutTags.START_WORKOUT)) {
+                        Text(stringResource(R.string.start_workout))
                     }
                 }
-                item { plans() }
                 item { RecentHeader(onOpenHistory) }
                 if (state.recentSessions.isEmpty()) {
                     item { NoWorkoutsYet() }
@@ -110,51 +106,14 @@ internal fun LogWorkoutContent(
             plans = state.plans,
             onStartFromPlan = { sheetOpen = false; onStartFromPlan(it) },
             onStartEmpty = { sheetOpen = false; onStartEmpty() },
+            onOpenPlan = { sheetOpen = false; onOpenPlan(it) },
+            onNewPlan = { sheetOpen = false; onNewPlan() },
             onDismiss = { sheetOpen = false },
         )
     }
 }
 
 private const val RECENT_SHOWN = 5
-
-@Composable
-private fun NextPlanCard(plan: Plan, exercises: Map<String, Exercise>, onStartFromPlan: () -> Unit, onOtherWorkout: () -> Unit) {
-    val locale = LocalConfiguration.current.locales[0]
-    val label = plan.date?.let { stringResource(R.string.next_in_plan_dated, formatLongWeekdayDate(it).uppercase(locale)) }
-        ?: stringResource(R.string.next_in_plan)
-    val names = plan.sets.map { it.exerciseKey }.distinct().joinToString(", ") { exercises.getValue(it).displayName(locale) }
-    Card(
-        Modifier.fillMaxWidth().testTag(LogWorkoutTags.NEXT_PLAN),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-    ) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(label, style = MaterialTheme.typography.labelMedium)
-            Text(plan.name, style = MaterialTheme.typography.titleMedium)
-            Text(names, style = MaterialTheme.typography.bodyMedium)
-            Text(planCountsWithAuthor(plan), style = MaterialTheme.typography.bodyMedium)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(onClick = onStartFromPlan, Modifier.testTag(LogWorkoutTags.START_NEXT_PLAN)) { Text(stringResource(R.string.start_next_plan)) }
-                DesignOutlinedButton(onClick = onOtherWorkout, Modifier.testTag(LogWorkoutTags.OTHER_WORKOUT)) { Text(stringResource(R.string.other_workout)) }
-            }
-        }
-    }
-}
-
-@Composable
-private fun planCountsWithAuthor(plan: Plan): String {
-    val exerciseCount = plan.sets.map { it.exerciseKey }.distinct().size
-    val setCount = plan.sets.count { !it.isWarmup }
-    val author = when (plan.author) {
-        PlanAuthor.USER -> stringResource(R.string.plan_written_by_you)
-        PlanAuthor.COACH -> stringResource(R.string.plan_written_by_coach)
-    }
-    return stringResource(
-        R.string.plan_counts_with_author,
-        pluralStringResource(R.plurals.exercise_count, exerciseCount, exerciseCount),
-        pluralStringResource(R.plurals.set_count, setCount, setCount),
-        author,
-    )
-}
 
 @Composable
 private fun MeetCoachCard() {
@@ -164,17 +123,6 @@ private fun MeetCoachCard() {
             Text(stringResource(R.string.training_meet_coach_text), style = MaterialTheme.typography.bodyMedium)
             val openCoach = LocalOpenCoach.current
             Button(onClick = { openCoach(null) }, Modifier.testTag(LogWorkoutTags.MEET_COACH)) { Text(stringResource(R.string.training_meet_coach_button)) }
-        }
-    }
-}
-
-@Composable
-private fun StartOnYourOwnCard(onStartEmpty: () -> Unit, withCoach: Boolean) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(if (withCoach) R.string.start_on_your_own_or else R.string.start_on_your_own), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.start_on_your_own_text), style = MaterialTheme.typography.bodyMedium)
-            Button(onClick = onStartEmpty, Modifier.testTag(LogWorkoutTags.START_EMPTY)) { Text(stringResource(R.string.empty_workout)) }
         }
     }
 }
@@ -223,7 +171,14 @@ private fun sessionLine(session: SessionSummary): String {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun StartSheet(plans: List<Plan>, onStartFromPlan: (Long) -> Unit, onStartEmpty: () -> Unit, onDismiss: () -> Unit) {
+private fun StartSheet(
+    plans: List<Plan>,
+    onStartFromPlan: (Long) -> Unit,
+    onStartEmpty: () -> Unit,
+    onOpenPlan: (Long) -> Unit,
+    onNewPlan: () -> Unit,
+    onDismiss: () -> Unit,
+) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(Modifier.padding(bottom = 24.dp)) {
             Text(stringResource(R.string.start_workout), Modifier.padding(horizontal = 24.dp).padding(bottom = 8.dp), style = MaterialTheme.typography.headlineSmall)
@@ -242,6 +197,11 @@ private fun StartSheet(plans: List<Plan>, onStartFromPlan: (Long) -> Unit, onSta
                         selected = index == 0,
                         icon = DesignIcons.Plan,
                         modifier = Modifier.testTag(LogWorkoutTags.sheetPlan(plan.name)),
+                        trailing = {
+                            IconButton(onClick = { onOpenPlan(plan.id) }, Modifier.testTag(LogWorkoutTags.sheetPlanDetails(plan.name))) {
+                                Icon(DesignIcons.Info, contentDescription = stringResource(R.string.plan_details))
+                            }
+                        },
                     ) { onStartFromPlan(plan.id) }
                 }
                 HorizontalDivider(Modifier.padding(horizontal = 24.dp, vertical = 8.dp))
@@ -255,14 +215,23 @@ private fun StartSheet(plans: List<Plan>, onStartFromPlan: (Long) -> Unit, onSta
                 modifier = Modifier.testTag(LogWorkoutTags.SHEET_EMPTY),
                 onClick = onStartEmpty,
             )
+            SheetOption(
+                title = stringResource(R.string.sheet_new_plan),
+                subtitle = stringResource(R.string.sheet_new_plan_text),
+                badge = null,
+                selected = false,
+                icon = DesignIcons.Edit,
+                modifier = Modifier.testTag(LogWorkoutTags.SHEET_NEW_PLAN),
+                onClick = onNewPlan,
+            )
         }
     }
 }
 
 @Composable
 private fun sheetPlanLine(plan: Plan): String {
-    val exerciseCount = plan.sets.map { it.exerciseKey }.distinct().size
-    val setCount = plan.sets.count { !it.isWarmup }
+    val exerciseCount = exerciseCount(plan.sets)
+    val setCount = workingSetCount(plan.sets)
     val counts = stringResource(
         R.string.session_summary,
         pluralStringResource(R.plurals.exercise_count, exerciseCount, exerciseCount),
@@ -273,7 +242,16 @@ private fun sheetPlanLine(plan: Plan): String {
 }
 
 @Composable
-private fun SheetOption(title: String, subtitle: String, badge: String?, selected: Boolean, icon: ImageVector, modifier: Modifier, onClick: () -> Unit) {
+private fun SheetOption(
+    title: String,
+    subtitle: String,
+    badge: String?,
+    selected: Boolean,
+    icon: ImageVector,
+    modifier: Modifier,
+    trailing: @Composable () -> Unit = {},
+    onClick: () -> Unit,
+) {
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
@@ -292,27 +270,27 @@ private fun SheetOption(title: String, subtitle: String, badge: String?, selecte
             if (badge != null) {
                 Tag(badge, containerColor = if (selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.secondaryContainer)
             }
+            trailing()
         }
     }
 }
 
 internal object LogWorkoutTags {
-    const val NEXT_PLAN = "training_next_plan"
     const val MEET_COACH = "training_meet_coach"
-    const val START_NEXT_PLAN = "training_start_next_plan"
-    const val START_EMPTY = "training_start_empty"
-    const val OTHER_WORKOUT = "training_other_workout"
+    const val START_WORKOUT = "training_start_workout"
     const val SHEET_EMPTY = "training_sheet_empty"
+    const val SHEET_NEW_PLAN = "training_sheet_new_plan"
     const val RECENT_SESSION = "training_recent_session"
 
     fun sheetPlan(name: String) = "training_sheet_plan:$name"
+
+    fun sheetPlanDetails(name: String) = "training_sheet_plan_details:$name"
 }
 
 @PreviewLightDark
 @Composable
 private fun LogWorkoutPreview() {
     val start = Instant.fromEpochMilliseconds(1_767_600_000_000)
-    val bench = Exercise("BENCH", mapOf("en" to "Bench press"), Equipment("BARBELL", mapOf("en" to "Barbell")), emptyList(), emptyList())
     MaterialTheme {
         Surface {
             LogWorkoutContent(
@@ -323,10 +301,11 @@ private fun LogWorkoutPreview() {
                         SessionSummary(1, LocalDate(2026, 1, 5), start, start.plus(kotlin.time.Duration.parse("52m")), 4, 12, 1, "Push A"),
                         SessionSummary(2, LocalDate(2026, 1, 3), start, start.plus(kotlin.time.Duration.parse("48m")), 1, 1, null, null),
                     ),
-                    exercises = mapOf("BENCH" to bench),
                 ),
                 onStartEmpty = {},
                 onStartFromPlan = {},
+                onOpenPlan = {},
+                onNewPlan = {},
                 onOpenHistory = {},
                 onOpenWorkout = {},
             )

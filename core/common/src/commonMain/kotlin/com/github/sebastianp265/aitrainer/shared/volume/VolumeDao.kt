@@ -20,18 +20,6 @@ internal interface VolumeDao {
     )
     fun observeDoneSets(from: LocalDate, toInclusive: LocalDate): Flow<List<MuscleSetRow>>
 
-    @Query(
-        """
-        SELECT p.date AS date, m.muscleGroupKey AS groupKey, m.isPrimary AS isPrimary
-        FROM planned_set ps
-        JOIN plan p ON p.id = ps.planId
-        JOIN exercise_muscle m ON m.exerciseKey = ps.exerciseKey
-        WHERE ps.isWarmup = 0 AND p.date BETWEEN :from AND :toInclusive
-          AND NOT EXISTS (SELECT 1 FROM workout_session s WHERE s.planId = p.id AND s.finishedAt IS NOT NULL)
-        """
-    )
-    fun observePlannedSets(from: LocalDate, toInclusive: LocalDate): Flow<List<MuscleSetRow>>
-
     @Query("SELECT * FROM weekly_target")
     fun observeTargets(): Flow<List<WeeklyTargetEntity>>
 

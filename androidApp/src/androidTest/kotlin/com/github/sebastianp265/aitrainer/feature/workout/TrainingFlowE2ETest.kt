@@ -25,13 +25,12 @@ class TrainingFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `the first plan is the next one and the sheet offers every plan and an empty workout`() {
+    fun `starting a workout offers every plan with the next one first and an empty workout`() {
         given.plan("Push A", sets(BENCH_PRESS))
         given.plan("Legs B", sets(BACK_SQUAT))
         launchApp()
 
-        training.assertNextPlan("Push A")
-        training.openOtherWorkouts()
+        training.openStartSheet()
 
         training.assertSheetOffers("Push A", "Legs B")
     }
@@ -41,7 +40,7 @@ class TrainingFlowE2ETest : AbstractE2ETest() {
         given.plan("Push A", sets(BENCH_PRESS))
         launchApp()
 
-        training.openOtherWorkouts()
+        training.openStartSheet()
         training.startEmptyFromSheet()
 
         workout.assertExerciseShown("Add exercise")
@@ -52,7 +51,7 @@ class TrainingFlowE2ETest : AbstractE2ETest() {
         given.plan("Push A", sets(BENCH_PRESS, count = 3, kg = 80.0))
         launchApp()
 
-        training.startNextPlan()
+        training.startPlan("Push A")
         workout.assertTitle("Push A")
         workout.assertSets(BENCH_PRESS, "80" to "10", "80" to "10", "80" to "10")
         workout.deleteSet(BENCH_PRESS, setIndex = 2)
@@ -60,9 +59,8 @@ class TrainingFlowE2ETest : AbstractE2ETest() {
         workout.assertSets(BENCH_PRESS, "85" to "10", "80" to "10")
         workout.finish()
 
-        training.assertNoNextPlan()
         training.assertRecentWorkout("Push A")
-        plans.openAll()
+        plans.openStartSheet()
         plans.assertNoPlansYet()
     }
 }

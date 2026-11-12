@@ -5,11 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
 import com.github.sebastianp265.aitrainer.integration.plan.Plan
-import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
-import com.github.sebastianp265.aitrainer.integration.volume.VolumeService
 import com.github.sebastianp265.aitrainer.shared.localization.mondayOf
-import com.github.sebastianp265.aitrainer.shared.volume.VolumeRow
-import com.github.sebastianp265.aitrainer.shared.volume.volumeRows
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
@@ -35,21 +31,11 @@ import kotlinx.datetime.LocalDate
 
 internal const val NEW_PLAN_ID = -1L
 
-internal data class PlanListUiState(
-    val isLoading: Boolean = true,
-    val plans: List<Plan> = emptyList(),
-    val exercises: Map<String, Exercise> = emptyMap(),
-    val week: WeekUi? = null,
-    val volumeRows: List<VolumeRow> = emptyList(),
-    val showTargets: Boolean = true,
-)
+internal data class TrainingWeekUiState(val week: WeekUi? = null)
 
-internal class PlanListViewModel(
+internal class TrainingWeekViewModel(
     planService: PlanService,
     workoutService: WorkoutService,
-    volumeService: VolumeService,
-    settingsService: SettingsService,
-    exerciseService: ExerciseService,
     clock: Clock,
 ) : ViewModel() {
 
@@ -58,38 +44,19 @@ internal class PlanListViewModel(
     private val sunday = monday.plus(DatePeriod(days = 6))
     private val today = clock.todayIn(zone)
 
-    private val weekAndPlans = combine(
+    val uiState: StateFlow<TrainingWeekUiState> = combine(
         planService.observeUpcoming(),
         workoutService.observeFinishedSessions(monday, sunday),
     ) { plans, sessions ->
         val doneDays = sessions.map { it.date }.toSet()
         val plannedDays = plans.mapNotNull { it.date }.filter { it in monday..sunday }
-        plans to WeekUi(
-            days = (0..6).map { offset ->
-                val date = monday.plus(DatePeriod(days = offset))
-                WeekDay(date, date == today, date in doneDays, date in plannedDays)
-            },
-            doneCount = sessions.size,
-            plannedCount = plannedDays.size,
-        )
-    }
-
-    private val volume = combine(
-        volumeService.observeWeeklySets(monday, sunday),
-        volumeService.observePlannedSets(monday, sunday),
-        volumeService.observeTargets(),
-        exerciseService.observeMuscleGroups(),
-        settingsService.observeShowTargets(),
-    ) { weeks, planned, targets, groups, showTargets ->
-        VolumeState(volumeRows(groups, targets, weeks.firstOrNull()?.setsByGroup.orEmpty(), planned), showTargets)
-    }
-
-    val uiState: StateFlow<PlanListUiState> = combine(weekAndPlans, volume, exerciseService.observeExercisesByKey()) { (plans, week), volumeState, exercises ->
-        PlanListUiState(false, plans, exercises, week, volumeState.rows, volumeState.showTargets)
-    }.stateIn(viewModelScope, WhileUiSubscribed, PlanListUiState())
+        val days = (0..6).map { offset ->
+            val date = monday.plus(DatePeriod(days = offset))
+            WeekDay(date, date == today, date in doneDays, date in plannedDays)
+        }
+        TrainingWeekUiState(WeekUi(days, doneCount = sessions.size, plannedCount = plannedDays.size))
+    }.stateIn(viewModelScope, WhileUiSubscribed, TrainingWeekUiState())
 }
-
-private class VolumeState(val rows: List<VolumeRow>, val showTargets: Boolean)
 
 internal data class PlanDetailUiState(val isLoading: Boolean = true, val plan: Plan? = null, val exercises: Map<String, Exercise> = emptyMap())
 

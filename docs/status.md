@@ -25,14 +25,12 @@ the app during a workout, it opens on the workout again.
 
 | Screen | State | What you can do |
 |---|---|---|
-| **Training** | ✅ Works | From the top: the week strip (done, planned), a pending coach proposal, the next plan with "Start" and "Other workout" (a sheet with every plan and "Empty workout") or "Start on your own" when you have no plans, the next three plans with "All plans" and "Write your own plan", the sets per muscle group this week against the targets ("Targets"), and recent workouts with "All". There is no separate Plan tab. |
-| **All plans** | ✅ Works | Opened from "All plans" on Training: upcoming plans by date, then plans without a date, "New plan". |
+| **Training** | ✅ Works | From the top: the week strip (done, planned), a pending coach proposal, "Start workout" and recent workouts with "All". "Start workout" opens a sheet with every plan (the next one first; tap to start, the info icon opens the plan), "Empty workout" and "New plan". |
 | **Workout in progress** | ✅ Works | Exercise cards with a "Last time" line (tap for the exercise history). Per set: tap the number to mark a warm-up, tap the weight or the reps to type, − / + for reps, tap RPE to pick 6 to 10, delete. "+ Set", "Same as last time", the microphone (say "80 na 8, RPE 8" and the set is added), remove an exercise, add an exercise. The coach button next to the title opens the coach about this workout. "Discard" asks for confirmation; "Finish" saves and opens the summary. |
 | **Summary** | ✅ Works | Time, working sets, average RPE; new records; comparison with the plan ("on plan", "−1 set", "+2.5 kg", "+1 reps"); the previous workout of the same plan; "See all sets". |
 | **Finished workout** | ✅ Works | All sets with RPE and, for a planned workout, the plan line and the difference. Edit (re-opens it as a running workout) and delete (with confirmation). |
 | **Exercise picker** | ✅ Works | Search, muscle group chips, recently used (with the last time), all exercises, "New exercise" (name, main group, additional groups). |
 | **Exercise history** | ✅ Works | Estimated 1RM, best set, change over 3 months, 1RM chart, average RPE chart, past sessions (tap to open the workout). Opens from the "Last time" line and from the strength card in Progress. |
-| **Plan** | ✅ Works | This week (Monday to Sunday) with done, planned and other-app markers; sets this week against the targets (done + planned); upcoming plans by date, then plans without a date. "New plan". |
 | **Plan details / edit / new** | ✅ Works | Details with warm-ups and grouped sets; "Start workout"; edit (name, optional date, exercises, weight, reps, RPE, warm-up flag); delete with confirmation. |
 | **Progress** | ✅ Works | As before, plus the card "Sets per muscle group · weekly average" with the target band, legend, an info box and a link to the targets. An accepted nutrition target shows under the calorie balance and the macros. |
 | **Weekly set targets** | ✅ Works | Ranges per muscle group (default 10–20), source and date, "Show targets" switch, "Restore defaults". |
@@ -53,7 +51,7 @@ the app during a workout, it opens on the workout again.
   ("Compared to plan") and the finished workout.
 - The "Last time" line with several groups (it should break only at " · " and show "+N" when it does not fit in two lines).
 - A second workout with a heavier set shows a record in the summary.
-- Weekly sets: after a workout the sets on Training and the Progress card move; bench press counts 1 for chest and 0.5 for arms and shoulders.
+- Weekly sets: after a workout the Progress card moves; bench press counts 1 for chest and 0.5 for arms and shoulders.
 - Polish texts of all new screens (they have not been read on a phone).
 - The workout screen after closing and reopening the app in the middle of a workout.
 - With your own key: talk to the coach, accept a plan and a target change, and check the plan on Training and the targets.
