@@ -17,6 +17,10 @@ interface BundledFiles {
     fun read(path: String): String
 }
 
+const val DATABASE_SCHEMA_VERSION = 16
+
+const val OLDEST_MIGRATED_SCHEMA_VERSION = 6
+
 interface DatabaseBackup {
     suspend fun export(destination: String): Boolean
 

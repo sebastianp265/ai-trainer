@@ -9,7 +9,7 @@ import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
 import androidx.room.TypeConverters
 import com.github.sebastianp265.aitrainer.shared.coach.CoachDao
-import com.github.sebastianp265.aitrainer.shared.database.DATABASE_SCHEMA_VERSION
+import com.github.sebastianp265.aitrainer.integration.shared.DATABASE_SCHEMA_VERSION
 import com.github.sebastianp265.aitrainer.shared.coach.CoachMessageEntity
 import com.github.sebastianp265.aitrainer.shared.coach.CoachNoteEntity
 import com.github.sebastianp265.aitrainer.shared.coach.CoachProfileEntity

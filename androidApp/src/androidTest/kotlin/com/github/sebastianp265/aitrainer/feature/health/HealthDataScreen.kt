@@ -6,8 +6,9 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.isOff
 import androidx.compose.ui.test.isOn
 import androidx.compose.ui.test.junit4.ComposeTestRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
-import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollToNode
 import com.github.sebastianp265.aitrainer.feature.health.impl.HealthConnectTags
@@ -18,8 +19,8 @@ import com.github.sebastianp265.aitrainer.shared.e2e.TEST_TIMEOUT_MS
 class HealthDataScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun open() {
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithContentDescription("Settings").fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithContentDescription("Settings").performClick()
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(hasText("Settings") and hasClickAction()).fetchSemanticsNodes().isNotEmpty() }
+        compose.onAllNodes(hasText("Settings") and hasClickAction()).onFirst().performClick()
         waitForText("What your coach can access")
     }
 

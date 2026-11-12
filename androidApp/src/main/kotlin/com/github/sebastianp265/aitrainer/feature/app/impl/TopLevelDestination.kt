@@ -17,6 +17,7 @@ internal enum class TopLevelDestination(
     LOG(LogRoute, LogRoute::class, R.string.nav_log, DesignIcons.Training),
     COACH(CoachRoute, CoachRoute::class, R.string.nav_coach, DesignIcons.Coach),
     PROGRESS(ProgressRoute, ProgressRoute::class, R.string.nav_progress, DesignIcons.Progress),
+    SETTINGS(SettingsRoute, SettingsRoute::class, R.string.nav_settings, DesignIcons.Settings),
 }
 
 @Serializable
@@ -92,7 +93,6 @@ internal val fullScreenRoutes = listOf(ActiveWorkoutRoute::class, ExercisePicker
 internal val nestedRoutes = listOf(
     PlanRoute::class,
     CoachAboutRoute::class,
-    SettingsRoute::class,
     ProgressMetricRoute::class,
     DayDetailRoute::class,
     HistoryRoute::class,

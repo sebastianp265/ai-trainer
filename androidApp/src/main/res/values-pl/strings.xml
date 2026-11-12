@@ -585,4 +585,6 @@
     <string name="training_plans">Kolejne plany</string>
     <string name="plans_all_link">Wszystkie plany</string>
     <string name="plans_all_title">Wszystkie plany</string>
+    <string name="backup_from_newer_app">Ta kopia pochodzi z nowszej wersji aplikacji. Zaktualizuj aplikację i spróbuj ponownie.</string>
+    <string name="backup_too_old">Ta kopia pochodzi ze zbyt starej wersji aplikacji, żeby ją zaimportować.</string>
 </resources>

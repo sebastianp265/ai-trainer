@@ -19,9 +19,8 @@ The emulator needs API 34+ with a *Google Play* image.
 line icons, filled cards with small gray labels, grouped settings rows, colored tags (record, from plan, Health Connect)
 and green/orange text for good and off-target values. Plans written by the coach show the coach's note on the plan details.
 
-The app opens on **Training**. The bottom bar has three tabs: Training · Coach · Progress; with the coach switched off
-in Settings the Coach tab and every coach element disappear. Every tab has a gear icon in the top
-bar that opens **Settings**. While a workout runs, the workout screen covers everything (no bottom bar, no top bar); if you close
+The app opens on **Training**. The bottom bar has four tabs: Training · Coach · Progress · Settings; with the coach switched off
+in Settings the Coach tab and every coach element disappear. The tabs have no top bar; screens opened from them have one with the back arrow. While a workout runs, the workout screen covers everything (no bottom bar, no top bar); if you close
 the app during a workout, it opens on the workout again.
 
 | Screen | State | What you can do |

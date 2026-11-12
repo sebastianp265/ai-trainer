@@ -24,6 +24,8 @@ import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
 import com.github.sebastianp265.aitrainer.integration.shared.BackupContents
+import com.github.sebastianp265.aitrainer.integration.shared.DATABASE_SCHEMA_VERSION
+import com.github.sebastianp265.aitrainer.integration.shared.OLDEST_MIGRATED_SCHEMA_VERSION
 import com.github.sebastianp265.aitrainer.integration.shared.DatabaseBackup
 import com.github.sebastianp265.aitrainer.shared.localization.formatDate
 import com.github.sebastianp265.aitrainer.shared.state.WhileUiSubscribed
@@ -40,7 +42,14 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
 
-internal enum class BackupMessage { EXPORTED, EXPORT_FAILED, INVALID_FILE, IMPORT_FAILED }
+internal enum class BackupMessage { EXPORTED, EXPORT_FAILED, INVALID_FILE, FROM_NEWER_APP, TOO_OLD, IMPORT_FAILED }
+
+internal fun importProblem(contents: BackupContents?): BackupMessage? = when {
+    contents == null -> BackupMessage.INVALID_FILE
+    contents.schemaVersion > DATABASE_SCHEMA_VERSION -> BackupMessage.FROM_NEWER_APP
+    contents.schemaVersion < OLDEST_MIGRATED_SCHEMA_VERSION -> BackupMessage.TOO_OLD
+    else -> null
+}
 
 internal data class BackupUiState(
     val lastExport: Instant? = null,
@@ -77,7 +86,8 @@ internal class BackupViewModel(
     fun chooseFileToImport(source: String) {
         viewModelScope.launch {
             val contents = databaseBackup.inspect(source)
-            if (contents == null) message.value = BackupMessage.INVALID_FILE else pending.value = source to contents
+            val problem = importProblem(contents)
+            if (problem != null) message.value = problem else pending.value = source to checkNotNull(contents)
         }
     }
 
@@ -164,6 +174,8 @@ private fun messageText(message: BackupMessage): Int = when (message) {
     BackupMessage.EXPORTED -> R.string.backup_exported
     BackupMessage.EXPORT_FAILED -> R.string.backup_export_failed
     BackupMessage.INVALID_FILE -> R.string.backup_invalid_file
+    BackupMessage.FROM_NEWER_APP -> R.string.backup_from_newer_app
+    BackupMessage.TOO_OLD -> R.string.backup_too_old
     BackupMessage.IMPORT_FAILED -> R.string.backup_import_failed
 }
 

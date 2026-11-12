@@ -17,11 +17,12 @@ Hard constraints and secrets handling are in [`../CLAUDE.md`](../CLAUDE.md).
 
 ## 2. Navigation
 
-- Bottom bar: **Trening · Trener · Postęp**. Settings open from the gear icon in the top bar.
+- Bottom bar: **Trening · Trener · Postęp · Ustawienia**. The tabs have no top bar; nested screens have one with
+  the back arrow and their title. "Co trener o mnie wie" opens from Settings.
 - Trening shows, from the top: the week strip, a pending proposal, the next plan with "Zacznij",
   the next three plans after it with "Wszystkie plany" and "Napisz własny plan", the sets this week
   against the targets, and the recent workouts. "Wszystkie plany" opens the list of all plans.
-- With the coach switched off the bar has two tabs and no coach elements appear anywhere.
+- With the coach switched off the bar has three tabs and no coach elements appear anywhere.
 - During a workout the bottom bar is hidden; the bottom shows "Odrzuć" and "Zakończ".
 - Until the coach exists (before phase 6) the app behaves as with the coach switched off.
 

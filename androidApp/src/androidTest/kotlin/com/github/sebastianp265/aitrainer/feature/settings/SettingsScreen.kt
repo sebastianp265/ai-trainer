@@ -2,7 +2,9 @@ package com.github.sebastianp265.aitrainer.feature.settings
 
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.ComposeTestRule
-import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
@@ -15,18 +17,13 @@ import com.github.sebastianp265.aitrainer.shared.e2e.TEST_TIMEOUT_MS
 class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun open() {
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithContentDescription("Settings").fetchSemanticsNodes().isNotEmpty() }
-        compose.onNodeWithContentDescription("Settings").performClick()
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(hasText("Settings") and hasClickAction()).fetchSemanticsNodes().isNotEmpty() }
+        compose.onAllNodes(hasText("Settings") and hasClickAction()).onFirst().performClick()
         waitForText("AI trainer")
     }
 
     fun goBack() {
         compose.onNodeWithContentDescription("Back").performClick()
-    }
-
-    fun goBackToTab() {
-        goBack()
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithContentDescription("Settings").fetchSemanticsNodes().isNotEmpty() }
     }
 
     fun switchCoach() {

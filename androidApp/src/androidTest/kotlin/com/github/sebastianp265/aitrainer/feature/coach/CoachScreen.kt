@@ -1,13 +1,17 @@
 package com.github.sebastianp265.aitrainer.feature.coach
 
+import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachMemoryTags
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachTags
+import com.github.sebastianp265.aitrainer.feature.settings.impl.SettingsTags
 import com.github.sebastianp265.aitrainer.shared.e2e.Screen
 
 class CoachScreen(compose: ComposeTestRule) : Screen(compose) {
@@ -100,8 +104,9 @@ class CoachScreen(compose: ComposeTestRule) : Screen(compose) {
     fun assertPendingProposalBanner() = waitForText("THE COACH HAS A PROPOSAL")
 
     fun openMemory() {
-        waitFor(hasContentDescription("What the coach knows about me"))
-        compose.onNode(hasContentDescription("What the coach knows about me")).performClick()
+        compose.onAllNodes(hasText("Settings") and hasClickAction()).onFirst().performClick()
+        waitFor(hasTestTag(SettingsTags.MEMORY_ROW))
+        compose.onNode(hasTestTag(SettingsTags.MEMORY_ROW)).performClick()
         waitForText("Coach notes")
     }
 

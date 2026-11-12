@@ -552,4 +552,6 @@
     <string name="training_plans">Next plans</string>
     <string name="plans_all_link">All plans</string>
     <string name="plans_all_title">All plans</string>
+    <string name="backup_from_newer_app">This backup comes from a newer version of the app. Update the app and try again.</string>
+    <string name="backup_too_old">This backup comes from a version of the app too old to import.</string>
 </resources>

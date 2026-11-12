@@ -20,18 +20,7 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
     fun start() = launchApp(claudeClient = claude)
 
     @Test
-    fun `Settings open from the gear on every tab and return`() {
-        listOf("Coach", "Progress", "Training").forEach { tab ->
-            tabs.open(tab)
-            settings.open()
-            settings.goBackToTab()
-            tabs.assertSelected(tab)
-        }
-    }
-
-    @Test
-    fun `the coach is on at first and switching it off on its tab hides its settings and its tab`() {
-        tabs.open("Coach")
+    fun `the coach is on at first and switching it off hides its settings and its tab`() {
         settings.open()
         settings.assertCoachOn()
 
@@ -39,9 +28,7 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
 
         settings.assertCoachOff()
         settings.assertCoachRowsHidden()
-        settings.goBackToTab()
         tabs.assertTabHidden("Coach")
-        tabs.assertSelected("Training")
     }
 
     @Test

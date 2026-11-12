@@ -1,6 +1,8 @@
 package com.github.sebastianp265.aitrainer.shared.database.impl
 
 import androidx.room.testing.MigrationTestHelper
+import com.github.sebastianp265.aitrainer.integration.shared.DATABASE_SCHEMA_VERSION
+import com.github.sebastianp265.aitrainer.integration.shared.OLDEST_MIGRATED_SCHEMA_VERSION
 import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import androidx.sqlite.execSQL
@@ -155,6 +157,34 @@ class AppDatabaseMigrationUTest {
             assertEquals(0, connection.count("sqlite_master WHERE name IN ('health_day', 'health_workout')"))
             assertEquals(1, connection.count("coach_message WHERE topic_kind IS NULL AND topic_id IS NULL AND topic_label IS NULL"))
             assertEquals(1, connection.count("coach_message WHERE topic_kind = 'PLAN'"))
+        }
+    }
+
+    @Test
+    fun `a backup of schema 12 migrates to the current schema and keeps workouts, plans and the coach`() {
+        helper.createDatabase(12).use { connection ->
+            connection.execSQL("INSERT INTO workout_session (id, date, startedAt, finishedAt, planId, notes) VALUES (1, '2026-11-01', 1000, 2000, NULL, 'felt good')")
+            connection.execSQL("INSERT INTO plan (id, name, date, author, createdAt) VALUES (1, 'Push A', '2026-11-12', 'COACH', 1000)")
+            connection.execSQL("INSERT INTO coach_message (id, role, text, createdAt, checked, review) VALUES (1, 'USER', 'Plan my week', 1000, NULL, NULL)")
+            connection.execSQL("INSERT INTO coach_note (id, text, createdAt) VALUES (1, 'Knee hurts on squats', 1000)")
+        }
+
+        helper.runMigrationsAndValidate(DATABASE_SCHEMA_VERSION).use { connection ->
+            assertEquals(1, connection.count("workout_session WHERE notes = 'felt good'"))
+            assertEquals(1, connection.count("plan WHERE name = 'Push A'"))
+            assertEquals(1, connection.count("coach_message WHERE text = 'Plan my week'"))
+            assertEquals(1, connection.count("coach_note WHERE text = 'Knee hurts on squats'"))
+        }
+    }
+
+    @Test
+    fun `the oldest migrated schema reaches the current schema and keeps workouts`() {
+        helper.createDatabase(OLDEST_MIGRATED_SCHEMA_VERSION).use { connection ->
+            connection.execSQL("INSERT INTO workout_session (id, date, startedAt, finishedAt, planSessionRef, notes) VALUES (1, '2026-11-01', 1000, 2000, NULL, NULL)")
+        }
+
+        helper.runMigrationsAndValidate(DATABASE_SCHEMA_VERSION, listOf(migration7To8)).use { connection ->
+            assertEquals(1, connection.count("workout_session"))
         }
     }
 

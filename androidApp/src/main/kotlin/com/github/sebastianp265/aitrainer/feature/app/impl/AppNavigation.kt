@@ -1,6 +1,23 @@
 package com.github.sebastianp265.aitrainer.feature.app.impl
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.navigation.NavGraphBuilder
+import androidx.compose.animation.AnimatedContentTransitionScope.SlideDirection
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.unit.IntOffset
 import com.github.sebastianp265.aitrainer.integration.coach.TopicKind
 import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
 import androidx.navigation.NavBackStackEntry
@@ -66,6 +83,38 @@ import kotlinx.datetime.LocalDate
 import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 import androidx.compose.runtime.getValue
 
+private val slideSpec = tween<IntOffset>(durationMillis = 300)
+
+private val BOTTOM_BAR_HEIGHT = 80.dp
+
+private const val UNDERLYING_SHIFT = 4
+
+private const val TAB_FADE_OUT_MS = 90
+
+private val tabEnter = fadeIn(tween(durationMillis = 210, delayMillis = TAB_FADE_OUT_MS)) +
+    scaleIn(tween(durationMillis = 210, delayMillis = TAB_FADE_OUT_MS), initialScale = 0.96f)
+
+private val tabExit = fadeOut(tween(durationMillis = TAB_FADE_OUT_MS))
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.isTabSwitch(): Boolean =
+    initialState.isTab() && targetState.isTab()
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.popEnter() =
+    if (isTabSwitch()) tabEnter else slideIntoContainer(SlideDirection.End, slideSpec) { it / UNDERLYING_SHIFT }
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.popExit() =
+    if (isTabSwitch()) tabExit else slideOutOfContainer(SlideDirection.End, slideSpec)
+
+private fun NavBackStackEntry.isTab(): Boolean = TopLevelDestination.entries.any { destination.hasRoute(it.routeClass) }
+
+private inline fun <reified T : Any> NavGraphBuilder.screen(noinline content: @Composable (NavBackStackEntry) -> Unit) =
+    composable<T> { entry ->
+        val isTab = TopLevelDestination.entries.any { it.routeClass == T::class }
+        Box(
+            Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).padding(bottom = if (isTab) BOTTOM_BAR_HEIGHT else 0.dp),
+        ) { content(entry) }
+    }
+
 @Composable
 internal fun AppNavigation() {
     val navController = rememberNavController()
@@ -82,9 +131,7 @@ internal fun AppNavigation() {
     val isNested = isFullScreen || destination != null && nestedRoutes.any { destination.hasRoute(it) }
     val coachEnabledViewModel: CoachEnabledViewModel = koinViewModel()
     val coachEnabled by coachEnabledViewModel.enabled.collectAsStateWithLifecycle()
-    val isCoachTab = destination?.hasRoute(CoachRoute::class) == true
     val title = when {
-        destination?.hasRoute(SettingsRoute::class) == true -> R.string.nav_settings
         destination?.hasRoute(PlanRoute::class) == true -> R.string.plans_all_title
         destination?.hasRoute(CoachMemoryRoute::class) == true -> R.string.memory_title
         destination?.hasRoute(ApiKeyRoute::class) == true -> R.string.settings_claude_api_key
@@ -92,15 +139,15 @@ internal fun AppNavigation() {
         destination?.hasRoute(BackupRoute::class) == true -> R.string.settings_backup
         destination?.hasRoute(HistoryRoute::class) == true -> R.string.history_title
         destination?.hasRoute(CoachAboutRoute::class) == true -> R.string.nav_coach
-        else -> TopLevelDestination.entries.firstOrNull { destination?.hasRoute(it.routeClass) == true }?.label
+        else -> null
     }
+    Box(Modifier.fillMaxSize()) {
     Scaffold(
         topBar = {
-            if (!isFullScreen) {
-                AppTopBar(isNested, title, onOpenSettings = { navController.navigate(SettingsRoute) }, onBack = { backStackEntry?.let(navController::popIfCurrent) }, onOpenMemory = if (isCoachTab) ({ navController.navigate(CoachMemoryRoute) }) else null)
+            if (isNested && !isFullScreen) {
+                AppTopBar(title, onBack = { backStackEntry?.let(navController::popIfCurrent) })
             }
         },
-        bottomBar = { if (!isNested) AppBottomBar(navController, coachEnabled) },
     ) { padding ->
         CompositionLocalProvider(
             LocalCoachEnabled provides coachEnabled,
@@ -116,8 +163,14 @@ internal fun AppNavigation() {
             navController = navController,
             startDestination = LogRoute,
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
+            enterTransition = { if (isTabSwitch()) tabEnter else slideIntoContainer(SlideDirection.Start, slideSpec) },
+            exitTransition = { if (isTabSwitch()) tabExit else slideOutOfContainer(SlideDirection.Start, slideSpec) { it / UNDERLYING_SHIFT } },
+            popEnterTransition = { popEnter() },
+            popExitTransition = { popExit() },
+            predictivePopEnterTransition = { popEnter() },
+            predictivePopExitTransition = { popExit() },
         ) {
-            composable<LogRoute> { LogWorkoutScreen(
+            screen<LogRoute> { LogWorkoutScreen(
                     onOpenHistory = { navController.navigate(HistoryRoute) },
                     onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) },
                     onOpenProposal = { navController.navigate(CoachProposalRoute(it)) },
@@ -132,7 +185,7 @@ internal fun AppNavigation() {
                         )
                     },
                 ) }
-            composable<CoachAboutRoute> { entry ->
+            screen<CoachAboutRoute> { entry ->
                 val route = entry.toRoute<CoachAboutRoute>()
                 CoachScreen(
                     topic = CoachTopic(TopicKind.valueOf(route.topicKind), route.topicId, route.topicLabel),
@@ -141,10 +194,10 @@ internal fun AppNavigation() {
                     onOpenApiKey = { navController.navigate(ApiKeyRoute) },
                 )
             }
-            composable<CoachRoute> {
+            screen<CoachRoute> {
                 if (!coachEnabled) {
                     LaunchedEffect(Unit) { navController.openTab(TopLevelDestination.LOG) }
-                    return@composable
+                    return@screen
                 }
                 CoachScreen(
                     topic = null,
@@ -153,18 +206,18 @@ internal fun AppNavigation() {
                     onOpenApiKey = { navController.navigate(ApiKeyRoute) },
                 )
             }
-            composable<CoachMemoryRoute> { CoachMemoryScreen(onOpenTargets = { navController.navigate(VolumeTargetsRoute) }) }
-            composable<CoachProposalRoute> { entry ->
+            screen<CoachMemoryRoute> { CoachMemoryScreen(onOpenTargets = { navController.navigate(VolumeTargetsRoute) }) }
+            screen<CoachProposalRoute> { entry ->
                 CoachProposalScreen(
                     proposalId = entry.toRoute<CoachProposalRoute>().proposalId,
                     onAccepted = { navController.popIfCurrent(entry) },
                     onReply = { navController.popIfCurrent(entry) },
                 )
             }
-            composable<ApiKeyRoute> { ApiKeyScreen() }
-            composable<ModelRoute> { ModelPickerScreen() }
-            composable<BackupRoute> { BackupScreen() }
-            composable<ActiveWorkoutRoute> { entry ->
+            screen<ApiKeyRoute> { ApiKeyScreen() }
+            screen<ModelRoute> { ModelPickerScreen() }
+            screen<BackupRoute> { BackupScreen() }
+            screen<ActiveWorkoutRoute> { entry ->
                 val picked by entry.savedStateHandle.getStateFlow<String?>(PICKED_EXERCISE_KEY, null).collectAsStateWithLifecycle()
                 ActiveWorkoutScreen(
                     onFinished = { id ->
@@ -176,10 +229,10 @@ internal fun AppNavigation() {
                     onPickedExerciseHandled = { entry.savedStateHandle[PICKED_EXERCISE_KEY] = null },
                 )
             }
-            composable<ExerciseHistoryRoute> { entry ->
+            screen<ExerciseHistoryRoute> { entry ->
                 ExerciseHistoryScreen(entry.toRoute<ExerciseHistoryRoute>().exerciseKey, onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) })
             }
-            composable<WorkoutSummaryRoute> { entry ->
+            screen<WorkoutSummaryRoute> { entry ->
                 val sessionId = entry.toRoute<WorkoutSummaryRoute>().sessionId
                 WorkoutSummaryScreen(
                     sessionId = sessionId,
@@ -187,14 +240,14 @@ internal fun AppNavigation() {
                     onShowAllSets = { navController.navigate(WorkoutDetailRoute(sessionId)) },
                 )
             }
-            composable<WorkoutDetailRoute> { entry ->
+            screen<WorkoutDetailRoute> { entry ->
                 WorkoutDetailScreen(
                     sessionId = entry.toRoute<WorkoutDetailRoute>().sessionId,
                     onBack = { navController.popIfCurrent(entry) },
                     onDeleted = { navController.popIfCurrent(entry) },
                 )
             }
-            composable<ExercisePickerRoute> { entry ->
+            screen<ExercisePickerRoute> { entry ->
                 ExercisePickerScreen(
                     onClose = { navController.popIfCurrent(entry) },
                     onPicked = { key ->
@@ -205,19 +258,19 @@ internal fun AppNavigation() {
                     },
                 )
             }
-            composable<VolumeTargetsRoute> { VolumeTargetsScreen(onOpenCoach = { navController.openTab(TopLevelDestination.COACH) }) }
-            composable<HistoryRoute> {
+            screen<VolumeTargetsRoute> { VolumeTargetsScreen(onOpenCoach = { navController.openTab(TopLevelDestination.COACH) }) }
+            screen<HistoryRoute> {
                 HistoryScreen(
                     onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) },
                 )
             }
-            composable<PlanRoute> {
+            screen<PlanRoute> {
                 PlanScreen(
                     onOpenPlan = { navController.navigate(PlanDetailRoute(it)) },
                     onNewPlan = { navController.navigate(PlanEditRoute(NEW_PLAN)) },
                 )
             }
-            composable<PlanDetailRoute> { entry ->
+            screen<PlanDetailRoute> { entry ->
                 PlanDetailScreen(
                     planId = entry.toRoute<PlanDetailRoute>().planId,
                     onBack = { navController.popIfCurrent(entry) },
@@ -226,7 +279,7 @@ internal fun AppNavigation() {
                     onDeleted = { navController.popIfCurrent(entry) },
                 )
             }
-            composable<PlanEditRoute> { entry ->
+            screen<PlanEditRoute> { entry ->
                 val route = entry.toRoute<PlanEditRoute>()
                 val picked by entry.savedStateHandle.getStateFlow<String?>(PICKED_EXERCISE_KEY, null).collectAsStateWithLifecycle()
                 PlanEditScreen(
@@ -248,23 +301,23 @@ internal fun AppNavigation() {
                     },
                 )
             }
-            composable<ProgressRoute> {
+            screen<ProgressRoute> {
                 ProgressScreen(
                     onOpenMetric = { navController.navigate(ProgressMetricRoute(it)) },
                     onOpenDay = { navController.navigate(DayDetailRoute(it.toString())) },
                     onOpenExercise = { navController.navigate(ExerciseHistoryRoute(it)) },
                     onOpenTargets = { navController.navigate(VolumeTargetsRoute) },
-                    onOpenSettings = { navController.navigate(SettingsRoute) },
+                    onOpenSettings = { navController.openTab(TopLevelDestination.SETTINGS) },
                 )
             }
-            composable<ProgressMetricRoute> { entry ->
+            screen<ProgressMetricRoute> { entry ->
                 ProgressMetricScreen(
                     metric = entry.toRoute<ProgressMetricRoute>().metric,
                     onOpenDay = { navController.navigate(DayDetailRoute(it.toString())) },
                 )
             }
-            composable<DayDetailRoute> { entry -> DayDetailScreen(LocalDate.parse(entry.toRoute<DayDetailRoute>().date)) }
-            composable<SettingsRoute> {
+            screen<DayDetailRoute> { entry -> DayDetailScreen(LocalDate.parse(entry.toRoute<DayDetailRoute>().date)) }
+            screen<SettingsRoute> {
                 SettingsScreen(
                     onOpenApiKey = { navController.navigate(ApiKeyRoute) },
                     onOpenModel = { navController.navigate(ModelRoute) },
@@ -275,30 +328,25 @@ internal fun AppNavigation() {
         }
         }
     }
+    AnimatedVisibility(
+        visible = !isNested,
+        modifier = Modifier.align(Alignment.BottomCenter),
+        enter = slideInVertically(slideSpec) { it },
+        exit = slideOutVertically(slideSpec) { it },
+    ) {
+        AppBottomBar(navController, coachEnabled)
+    }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun AppTopBar(isNested: Boolean, @StringRes title: Int?, onOpenSettings: () -> Unit, onBack: () -> Unit, onOpenMemory: (() -> Unit)? = null) {
+internal fun AppTopBar(@StringRes title: Int?, onBack: () -> Unit) {
     TopAppBar(
         title = { if (title != null) Text(stringResource(title)) },
         navigationIcon = {
-            if (isNested) {
-                IconButton(onClick = onBack) {
-                    Icon(DesignIcons.Back, contentDescription = stringResource(R.string.back))
-                }
-            }
-        },
-        actions = {
-            if (onOpenMemory != null) {
-                IconButton(onClick = onOpenMemory) {
-                    Icon(DesignIcons.Person, contentDescription = stringResource(R.string.memory_title))
-                }
-            }
-            if (!isNested) {
-                IconButton(onClick = onOpenSettings) {
-                    Icon(DesignIcons.Settings, contentDescription = stringResource(R.string.nav_settings))
-                }
+            IconButton(onClick = onBack) {
+                Icon(DesignIcons.Back, contentDescription = stringResource(R.string.back))
             }
         },
     )
