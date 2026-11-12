@@ -88,6 +88,7 @@ Choices made without asking while working through [`plan.md`](plan.md). Date, qu
 - 2026-11-11 · Topic of a message · opening the coach from a plan, workout, exercise or other app's workout attaches that item to the next message (`coach_message.topic_*`) and opens the chat with a back arrow · The coach should not have to guess what the user is looking at.
 - 2026-11-11 · Nutrition target · a daily calorie and protein target set only through a coach proposal, stored in Room (`nutrition_target`) so it is part of the backup · Health Connect stays read-only.
 - 2026-11-11 · Voice entry of a set · the phone's speech recognition screen, then a local parser ("80 na 8, RPE 8"); nothing is sent to Claude · Works offline and costs no tokens.
+- 2026-11-12 · Voice entry of a set removed · not wanted; sets are typed only · Less UI on the exercise card.
 - 2026-11-10 · Debug in the mockups · the mockup `Debug.dc.html` and the Debug row in `Settings.dc.html` and `SettingsNoCoach.dc.html` are deleted · The mockups follow the requirements.
 - 2026-11-12 · No Plan tab · Trening shows the week strip, the next plan, the next three plans with "Wszystkie plany", "Napisz własny plan" and the sets this week; the list of all plans is a screen opened from there · The owner found a separate tab unnecessary; the two tabs repeated the next plan and the proposal card.
 - 2026-11-12 · Mockups removed · `docs/design/` is deleted and the app itself is the reference for the look · The owner is happy with the design and does not want to maintain the mockups.

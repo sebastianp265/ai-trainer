@@ -153,10 +153,6 @@ internal class DefaultWorkoutService(
 
     override suspend fun findSession(sessionId: Long): WorkoutSession? = dao.getSession(sessionId)?.toModel()
 
-    override suspend fun addSetWith(sessionId: Long, set: PlannedSet) {
-        dao.insertSetAtEnd(SetEntryEntity(0, sessionId, set.exerciseKey, 0, set.reps, set.weightKg, set.rpe, set.isWarmup))
-    }
-
     override suspend fun replaceExerciseSets(sessionId: Long, exerciseKeys: List<String>, sets: List<PlannedSet>) {
         val current = dao.getSets(sessionId).sortedBy { it.positionInSession }
         val order = (current.map { it.exerciseKey } + exerciseKeys).distinct()

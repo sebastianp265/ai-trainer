@@ -1,12 +1,5 @@
 package com.github.sebastianp265.aitrainer.feature.workout.impl
 
-import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.compose.rememberLauncherForActivityResult
-import android.speech.RecognizerIntent
-import android.content.Intent
-import android.content.ActivityNotFoundException
-import android.app.Activity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -17,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -59,9 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
-import com.github.sebastianp265.aitrainer.integration.workout.RPE_MAX
-import com.github.sebastianp265.aitrainer.integration.workout.RPE_MIN
-import com.github.sebastianp265.aitrainer.integration.workout.RPE_STEP
+import com.github.sebastianp265.aitrainer.shared.workout.rpeScale
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
@@ -110,7 +102,6 @@ internal fun ExerciseCard(ui: ExerciseBlockUi, actions: ActiveWorkoutActions, on
                 }
                 Row(Modifier.padding(start = 30.dp, top = 4.dp, bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ChipButton(stringResource(R.string.add_set), onClick = { actions.addSet(block) })
-                    SaySetButton(block, actions)
                 }
             }
         }
@@ -147,29 +138,6 @@ private fun LastTimeLabel(ui: ExerciseBlockUi, onOpenHistory: () -> Unit) {
 }
 
 private const val NO_BREAK_SPACE = ' '
-
-@Composable
-private fun SaySetButton(block: ExerciseBlock, actions: ActiveWorkoutActions) {
-    val prompt = stringResource(R.string.voice_prompt)
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        val alternatives = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS).orEmpty()
-        if (result.resultCode == Activity.RESULT_OK && alternatives.isNotEmpty()) actions.addSpokenSet(block, alternatives)
-    }
-    IconButton(
-        onClick = {
-            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-                .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-                .putExtra(RecognizerIntent.EXTRA_PROMPT, prompt)
-                .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-            try {
-                launcher.launch(intent)
-            } catch (_: ActivityNotFoundException) {
-                actions.voiceUnavailable()
-            }
-        },
-        modifier = Modifier.size(36.dp).testTag(ActiveWorkoutTags.SAY_SET),
-    ) { Icon(DesignIcons.Mic, contentDescription = stringResource(R.string.voice_add_set), tint = MaterialTheme.colorScheme.primary) }
-}
 
 @Composable
 internal fun SetRow(workingNumber: Int?, set: SetEntry, actions: ActiveWorkoutActions) {
@@ -212,22 +180,29 @@ internal fun SetRow(workingNumber: Int?, set: SetEntry, actions: ActiveWorkoutAc
                 }
                 StepButton("+", increaseDescription) { actions.changeSet(set, SetChange.Reps(1)) }
             }
-            RpeButton(set.rpe, picking = pickingRpe) { pickingRpe = !pickingRpe }
+            if (set.isWarmup) {
+                Spacer(Modifier.width(RpeButtonWidth))
+            } else {
+                RpeButton(set.rpe, picking = pickingRpe) { pickingRpe = !pickingRpe }
+            }
             IconButton(onClick = { actions.deleteSet(set) }, Modifier.size(32.dp, 44.dp)) {
                 Icon(DesignIcons.Delete, contentDescription = stringResource(R.string.delete_set), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        if (pickingRpe) {
+        if (pickingRpe && !set.isWarmup) {
             val description = stringResource(R.string.set_rpe_description, workingNumber ?: 0)
-            FlowRow(
-                Modifier.fillMaxWidth().padding(start = 30.dp, top = 4.dp, bottom = 8.dp).semantics { contentDescription = description },
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                rpeValues.forEach { value ->
-                    RpeChip(formatWeight(value), selected = set.rpe == value) {
-                        actions.changeSet(set, SetChange.RpeTo(if (set.rpe == value) null else value))
-                        pickingRpe = false
+            Column(Modifier.padding(start = 30.dp, top = 4.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(stringResource(R.string.rpe_hint), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                FlowRow(
+                    Modifier.fillMaxWidth().semantics { contentDescription = description },
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    rpeScale.forEach { value ->
+                        RpeChip(formatWeight(value), selected = set.rpe == value) {
+                            actions.changeSet(set, SetChange.RpeTo(if (set.rpe == value) null else value))
+                            pickingRpe = false
+                        }
                     }
                 }
             }
@@ -288,13 +263,15 @@ private fun StepButton(text: String, description: String, onClick: () -> Unit) {
     }
 }
 
+private val RpeButtonWidth = 64.dp
+
 @Composable
 private fun RpeButton(rpe: Double?, picking: Boolean, onClick: () -> Unit) {
     val colors = MaterialTheme.colorScheme
     val filled = rpe != null && picking
     val outline = colors.outline
     Box(
-        Modifier.width(64.dp).height(44.dp)
+        Modifier.width(RpeButtonWidth).height(44.dp)
             .then(
                 when {
                     filled -> Modifier.background(colors.primary, FieldShape)
@@ -345,4 +322,3 @@ private enum class TypedField { WEIGHT, REPS }
 
 private fun plainNumber(value: Double): String = if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
 
-private val rpeValues: List<Double> = generateSequence(RPE_MIN) { it + RPE_STEP }.takeWhile { it <= RPE_MAX }.toList()

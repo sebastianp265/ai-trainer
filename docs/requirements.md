@@ -41,7 +41,7 @@ Hard constraints and secrets handling are in [`../CLAUDE.md`](../CLAUDE.md).
 |---|---|
 | Weight | kg, typed on the numeric keyboard, decimals allowed. Empty for bodyweight exercises |
 | Reps | integer, changed with − / + or typed |
-| RPE | optional, 6 to 10 in steps of 0.5, picked from a row of chips under the set |
+| RPE | optional, working sets only, 6 to 10 in steps of 0.5, picked from a row of chips under the set |
 | Warm-up | flag, shown as "R". An exercise can have any number of warm-up sets |
 
 Working sets are the sets without the warm-up flag. Statistics, records, volume and the "last

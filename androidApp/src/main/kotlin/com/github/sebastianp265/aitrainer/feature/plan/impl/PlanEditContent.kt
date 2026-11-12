@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -64,9 +65,7 @@ import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
-import com.github.sebastianp265.aitrainer.integration.workout.RPE_MAX
-import com.github.sebastianp265.aitrainer.integration.workout.RPE_MIN
-import com.github.sebastianp265.aitrainer.integration.workout.RPE_STEP
+import com.github.sebastianp265.aitrainer.shared.workout.rpeScale
 import com.github.sebastianp265.aitrainer.shared.localization.formatDate
 import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
 import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
@@ -307,12 +306,22 @@ private fun SetEditor(label: String, workingNumber: Int?, set: EditableSet, acti
             KeyboardType.Number,
             Modifier.weight(1f).semantics { contentDescription = repsDescription }.testTag(PlanTags.SET_REPS),
         )
-        Box(Modifier.weight(1f).height(44.dp).background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.small).clickable { rpeMenuOpen = true }, contentAlignment = Alignment.Center) {
-            Text(set.rpe?.let { formatWeight(it) } ?: "–", style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Medium))
-            DropdownMenu(expanded = rpeMenuOpen, onDismissRequest = { rpeMenuOpen = false }) {
-                DropdownMenuItem(text = { Text("–") }, onClick = { actions.changeRpe(set.id, null); rpeMenuOpen = false })
-                rpeChoices.forEach { value ->
-                    DropdownMenuItem(text = { Text(formatWeight(value)) }, onClick = { actions.changeRpe(set.id, value); rpeMenuOpen = false })
+        if (set.isWarmup) {
+            Spacer(Modifier.weight(1f))
+        } else {
+            Box(Modifier.weight(1f).height(44.dp).background(MaterialTheme.colorScheme.surface, MaterialTheme.shapes.small).clickable { rpeMenuOpen = true }, contentAlignment = Alignment.Center) {
+                Text(set.rpe?.let { formatWeight(it) } ?: "–", style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Medium))
+                DropdownMenu(expanded = rpeMenuOpen, onDismissRequest = { rpeMenuOpen = false }) {
+                    Text(
+                        stringResource(R.string.rpe_hint),
+                        Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    DropdownMenuItem(text = { Text("–") }, onClick = { actions.changeRpe(set.id, null); rpeMenuOpen = false })
+                    rpeScale.forEach { value ->
+                        DropdownMenuItem(text = { Text(formatWeight(value)) }, onClick = { actions.changeRpe(set.id, value); rpeMenuOpen = false })
+                    }
                 }
             }
         }
@@ -322,7 +331,6 @@ private fun SetEditor(label: String, workingNumber: Int?, set: EditableSet, acti
     }
 }
 
-private val rpeChoices: List<Double> = generateSequence(RPE_MIN) { it + RPE_STEP }.takeWhile { it <= RPE_MAX }.toList()
 
 @PreviewLightDark
 @Composable

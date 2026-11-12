@@ -138,6 +138,7 @@
     <string name="last_time_more">+%1$d</string>
     <string name="bodyweight_label">masa ciała</string>
     <string name="rpe_label">RPE</string>
+    <string name="rpe_hint">Skala odczuwanego wysiłku</string>
     <string name="set_weight_description">Ciężar w kg, stuknij, żeby wpisać</string>
     <string name="set_weight_dialog_title">Ciężar (kg)</string>
     <string name="set_reps_dialog_title">Powtórzenia</string>
@@ -361,10 +362,6 @@
     <string name="coach_nutrition_none">brak</string>
     <string name="progress_kcal_target">Cel trenera: %1$s kcal zjedzonych dziennie</string>
     <string name="progress_protein_target">Cel trenera: %1$s g białka dziennie</string>
-    <string name="voice_add_set">Podyktuj serię</string>
-    <string name="voice_prompt">Powiedz np. „80 na 8, RPE 8”</string>
-    <string name="voice_not_understood">Nie zrozumiałem serii: „%1$s”</string>
-    <string name="voice_unavailable">Rozpoznawanie mowy jest niedostępne na tym telefonie</string>
     <string name="coach_undo">Cofnij</string>
     <string name="coach_target_title">Serie na tydzień</string>
     <plurals name="coach_plans_count">

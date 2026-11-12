@@ -51,7 +51,6 @@ interface WorkoutService {
 
     suspend fun findSession(sessionId: Long): WorkoutSession?
 
-    suspend fun addSetWith(sessionId: Long, set: PlannedSet)
 
     suspend fun replaceExerciseSets(sessionId: Long, exerciseKeys: List<String>, sets: List<PlannedSet>)
 }

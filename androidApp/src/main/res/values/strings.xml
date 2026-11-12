@@ -135,6 +135,7 @@
     <string name="last_time_more">+%1$d</string>
     <string name="bodyweight_label">bodyweight</string>
     <string name="rpe_label">RPE</string>
+    <string name="rpe_hint">Rate of perceived exertion</string>
     <string name="set_weight_description">Weight in kg, tap to type</string>
     <string name="set_weight_dialog_title">Weight (kg)</string>
     <string name="set_reps_dialog_title">Repetitions</string>
@@ -344,10 +345,6 @@
     <string name="coach_nutrition_none">none</string>
     <string name="progress_kcal_target">Coach target: %1$s kcal eaten per day</string>
     <string name="progress_protein_target">Coach target: %1$s g protein per day</string>
-    <string name="voice_add_set">Say a set</string>
-    <string name="voice_prompt">Say e.g. “80 for 8, RPE 8”</string>
-    <string name="voice_not_understood">Not understood as a set: “%1$s”</string>
-    <string name="voice_unavailable">Speech recognition is not available on this phone</string>
     <string name="coach_undo">Undo</string>
     <string name="coach_target_title">Sets per week</string>
     <plurals name="coach_plans_count">

@@ -27,7 +27,7 @@ the app during a workout, it opens on the workout again.
 | Screen | State | What you can do |
 |---|---|---|
 | **Training** | ✅ Works | From the top: a pending coach proposal, the card of the next plan ("Next · from the coach" or "Next · your plan": the first upcoming plan, by date, plans without a date last) with "Start workout" and ✎ (edit), then "Workout without a plan" and "New plan" side by side. While a workout runs (or a finished one is being edited), the top card shows it instead ("Workout in progress" with the elapsed time, or "Editing a workout" with its date) with "Back to workout", and every start button (here and in plan details) is hidden. Below them the Plans / History switch, which stays pinned at the top while you scroll. **Plans:** the other plans with the author tag, the exercise names, ✎ (edit) and ▶ (start); tapping a plan opens its details. **History:** every finished workout grouped by month (the year shows only for months of earlier years), each with the day and weekday, the plan name or "Workout", "from plan" / "no plan", the time and the number of sets; tap to open, ✎ to edit. A thin scrollbar shows while scrolling. |
-| **Workout in progress** | ✅ Works | Exercise cards with a "Last time" line (tap for the exercise history). Per set: tap the number to mark a warm-up, tap the weight or the reps to type, − / + for reps, tap RPE to pick 6 to 10, delete. "+ Set", the microphone (say "80 na 8, RPE 8" and the set is added), remove an exercise, add an exercise. The coach button next to the title opens the coach about this workout. "Discard" asks for confirmation; "Finish" saves and opens the summary. |
+| **Workout in progress** | ✅ Works | Exercise cards with a "Last time" line (tap for the exercise history). Per set: tap the number to mark a warm-up, tap the weight or the reps to type, − / + for reps, tap RPE to pick 6 to 10 (working sets only), delete. "+ Set", remove an exercise, add an exercise. The coach button next to the title opens the coach about this workout. "Discard" asks for confirmation; "Finish" saves and opens the summary. |
 | **Summary** | ✅ Works | Time, working sets, average RPE; new records; comparison with the plan ("on plan", "−1 set", "+2.5 kg", "+1 reps"); the previous workout of the same plan; "See all sets". |
 | **Finished workout** | ✅ Works | All sets with RPE and, for a planned workout, the plan line and the difference. Edit opens a copy of it on the workout screen with the date instead of the timer and "Cancel" / "Save": "Save" replaces the workout's sets and keeps its date and times, "Cancel" (asks first) leaves it as it was. Also from ✎ in History. Delete asks for confirmation. |
 | **Exercise picker** | ✅ Works | Search, muscle group chips, recently used (with the last time), all exercises, "New exercise" (name, main group, additional groups). |
@@ -61,7 +61,6 @@ the app during a workout, it opens on the workout again.
 - With your own key: during a workout tap the coach button, ask "Za ciężko", accept the change and check the sets; then tap "Cofnij" on the card.
 - Ask the coach about a finished workout with a typo (e.g. 800 kg) and accept the correction.
 - Ask the coach for a calorie and protein target and check Progress; ask for a new exercise and find it in the exercise picker.
-- Dictate a set with the microphone during a workout ("80 na 8, RPE 8"), in Polish and English.
 - Look through every screen in light and dark mode.
 - Training: scroll a long History and plan list (the Plans / History switch stays on top, the scrollbar shows only while scrolling); check month headers around New Year.
 - Edit an old workout from History, change a weight, "Cancel" (nothing changes), then edit again and "Save" (the date and the time stay the same).
@@ -82,7 +81,6 @@ Nothing planned is missing. See the known gaps below.
 
 - The Polish texts of the new screens have not been read on a phone.
 - When Health Connect cannot be read (for example its read limit is reached), the screens show no Health Connect data instead of an error.
-- Voice entry is tested only through its parser; the system speech screen is never tapped by the tests.
 - Not checked on a phone with a real key: the real Claude calls, the weekly review text, and backup import with a file from another device (the app restarts after an import).
 - The launcher icon and splash screen are still the Android defaults.
 - The IDE shows unresolved references in `jvmTest` files; Gradle compiles them (see `decisions.md`).

@@ -1,5 +1,8 @@
 package com.github.sebastianp265.aitrainer.feature.coach.impl
 
+import com.github.sebastianp265.aitrainer.integration.workout.RPE_MAX
+import com.github.sebastianp265.aitrainer.integration.workout.RPE_MIN
+import com.github.sebastianp265.aitrainer.integration.workout.RPE_STEP
 import com.github.sebastianp265.aitrainer.integration.nutrition.NutritionService
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTool
 import com.github.sebastianp265.aitrainer.integration.coach.CoachService
@@ -188,7 +191,7 @@ internal class CoachToolbox(
         require(exerciseKeys.isNotEmpty()) { "nothing to change" }
         val known = exerciseNames().keys
         exerciseKeys.forEach { require(it in known) { "unknown exerciseKey $it; use find_exercises" } }
-        input.sets.forEach { require(it.reps > 0) { "reps must be positive" } }
+        input.sets.forEach(::validate)
         val id = dao.insertSupersedingProposal(
             CoachProposalEntity(
                 type = ProposalType.WORKOUT_CHANGE, state = ProposalState.PENDING, summary = input.summary,
@@ -307,8 +310,13 @@ internal class CoachToolbox(
         val known = exerciseNames().keys
         plan.sets.forEach {
             require(it.exerciseKey in known) { "unknown exerciseKey ${it.exerciseKey}; use find_exercises" }
-            require(it.reps > 0) { "reps must be positive" }
+            validate(it)
         }
+    }
+
+    private fun validate(set: PlannedSetPayload) {
+        require(set.reps > 0) { "reps must be positive" }
+        set.rpe?.let { require(isOnRpeScale(it)) { "RPE must be $RPE_SCALE" } }
     }
 
     private suspend fun addNote(text: String): ToolRun {
@@ -391,8 +399,12 @@ internal data class ProposeTargetInput(
     val summary: String,
 )
 
+private const val RPE_SCALE = "from $RPE_MIN to $RPE_MAX in steps of $RPE_STEP"
+
+private fun isOnRpeScale(rpe: Double): Boolean = rpe in RPE_MIN..RPE_MAX && (rpe - RPE_MIN) % RPE_STEP == 0.0
+
 private fun setItemSchema() =
-    """{"type":"object","properties":{"exerciseKey":{"type":"string"},"reps":{"type":"integer"},"weightKg":{"type":"number"},"rpe":{"type":"number"},"warmup":{"type":"boolean"}},"required":["exerciseKey","reps"]}"""
+    """{"type":"object","properties":{"exerciseKey":{"type":"string"},"reps":{"type":"integer"},"weightKg":{"type":"number"},"rpe":{"type":"number","description":"$RPE_SCALE"},"warmup":{"type":"boolean"}},"required":["exerciseKey","reps"]}"""
 
 private fun planItemSchema() =
     """{"type":"object","properties":{"planId":{"type":"integer"},"name":{"type":"string"},"date":{"type":"string"},"sets":{"type":"array","items":${setItemSchema()}}},"required":["name","sets"]}"""

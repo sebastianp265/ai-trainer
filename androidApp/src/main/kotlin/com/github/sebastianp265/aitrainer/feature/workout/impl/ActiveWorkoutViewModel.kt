@@ -1,6 +1,5 @@
 package com.github.sebastianp265.aitrainer.feature.workout.impl
 
-import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
@@ -15,7 +14,6 @@ import com.github.sebastianp265.aitrainer.integration.workout.WorkoutService
 import com.github.sebastianp265.aitrainer.integration.workout.WorkoutSession
 import com.github.sebastianp265.aitrainer.shared.state.WhileUiSubscribed
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -28,17 +26,11 @@ import kotlinx.coroutines.launch
 
 internal data class ExerciseBlockUi(val block: ExerciseBlock, val lastTime: List<LastTimeGroup>)
 
-internal sealed interface ActiveWorkoutMessage {
-    data class NotUnderstood(val text: String) : ActiveWorkoutMessage
-    data object VoiceUnavailable : ActiveWorkoutMessage
-}
-
 internal data class ActiveWorkoutUiState(
     val isLoading: Boolean = true,
     val session: WorkoutSession? = null,
     val blocks: List<ExerciseBlockUi> = emptyList(),
     val plan: Plan? = null,
-    val message: ActiveWorkoutMessage? = null,
 )
 
 internal class ActiveWorkoutViewModel(
@@ -48,8 +40,6 @@ internal class ActiveWorkoutViewModel(
 ) : ViewModel() {
 
     private val exercisesByKey = exerciseService.observeExercisesByKey()
-
-    private val message = MutableStateFlow<ActiveWorkoutMessage?>(null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val activeSessionWithSets = workoutService.observeActiveSession().flatMapLatest { session ->
@@ -84,8 +74,7 @@ internal class ActiveWorkoutViewModel(
         exercisesByKey,
         lastTimeByExercise,
         plan,
-        message,
-    ) { active, exercisesByKey, lastTime, plan, msg ->
+    ) { active, exercisesByKey, lastTime, plan ->
         ActiveWorkoutUiState(
             isLoading = false,
             session = active?.first,
@@ -94,7 +83,6 @@ internal class ActiveWorkoutViewModel(
                     .map { ExerciseBlockUi(it, lastTime[it.exercise.key].orEmpty()) }
             }.orEmpty(),
             plan = plan,
-            message = msg,
         )
     }.stateIn(viewModelScope, WhileUiSubscribed, ActiveWorkoutUiState())
 
@@ -113,26 +101,10 @@ internal class ActiveWorkoutViewModel(
 
     fun addSet(block: ExerciseBlock) = withSession { workoutService.addSet(it.id, block) }
 
-    fun addSpokenSet(block: ExerciseBlock, alternatives: List<String>) = withSession { session ->
-        val spoken = alternatives.firstNotNullOfOrNull { parseSpokenSet(it) }
-        if (spoken == null) {
-            message.value = ActiveWorkoutMessage.NotUnderstood(alternatives.firstOrNull().orEmpty())
-        } else {
-            workoutService.addSetWith(session.id, PlannedSet(block.exercise.key, spoken.reps, spoken.weightKg, spoken.rpe, isWarmup = false))
-        }
-    }
-
-    fun voiceUnavailable() {
-        message.value = ActiveWorkoutMessage.VoiceUnavailable
-    }
-
     fun changeSet(set: SetEntry, change: SetChange) = launch { workoutService.changeSet(set.id, change) }
 
     fun deleteSet(set: SetEntry) = launch { workoutService.deleteSet(set.id) }
 
-    fun messageShown() {
-        message.value = null
-    }
 
     private fun launch(block: suspend () -> Unit) {
         viewModelScope.launch { block() }

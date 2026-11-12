@@ -8,7 +8,6 @@ import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
 import com.github.sebastianp265.aitrainer.integration.coach.TopicKind
 import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
-import android.content.res.Resources
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,21 +30,16 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
@@ -71,25 +65,15 @@ import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 internal fun ActiveWorkoutContent(
     state: ActiveWorkoutUiState,
     actions: ActiveWorkoutActions,
-    onMessageShown: () -> Unit,
     onOpenExerciseHistory: (String) -> Unit,
     onOpenExercisePicker: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val resources = LocalResources.current
-    LaunchedEffect(state.message) {
-        state.message?.let {
-            snackbarHostState.showSnackbar(it.text(resources))
-            onMessageShown()
-        }
-    }
     var confirmDiscard by rememberSaveable { mutableStateOf(false) }
     val isEditing = state.session?.editedSessionId != null
 
     Scaffold(
         modifier = modifier,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
                 Row(
@@ -186,11 +170,6 @@ private fun WorkoutHeader(session: WorkoutSession, plan: Plan?) {
     }
 }
 
-private fun ActiveWorkoutMessage.text(resources: Resources): String = when (this) {
-    is ActiveWorkoutMessage.NotUnderstood -> resources.getString(R.string.voice_not_understood, text)
-    ActiveWorkoutMessage.VoiceUnavailable -> resources.getString(R.string.voice_unavailable)
-}
-
 @Composable
 private fun CancelEditDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
@@ -233,15 +212,12 @@ internal interface ActiveWorkoutActions {
     fun addExercise(exerciseKey: String)
     fun removeExercise(exercise: Exercise)
     fun addSet(block: ExerciseBlock)
-    fun addSpokenSet(block: ExerciseBlock, alternatives: List<String>)
-    fun voiceUnavailable()
     fun changeSet(set: SetEntry, change: SetChange)
     fun deleteSet(set: SetEntry)
 }
 
 internal object ActiveWorkoutTags {
     const val ASK_COACH = "workout_ask_coach"
-    const val SAY_SET = "workout_say_set"
     const val WEIGHT = "set_weight"
     const val REPS = "set_reps"
     const val RPE = "set_rpe"
@@ -291,12 +267,9 @@ private fun ActiveWorkoutPreview() {
                     override fun addExercise(exerciseKey: String) = Unit
                     override fun removeExercise(exercise: Exercise) = Unit
                     override fun addSet(block: ExerciseBlock) = Unit
-                    override fun addSpokenSet(block: ExerciseBlock, alternatives: List<String>) = Unit
-                    override fun voiceUnavailable() = Unit
                     override fun changeSet(set: SetEntry, change: SetChange) = Unit
                     override fun deleteSet(set: SetEntry) = Unit
                 },
-                onMessageShown = {},
                 onOpenExerciseHistory = {},
                 onOpenExercisePicker = {},
             )

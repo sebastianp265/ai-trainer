@@ -83,8 +83,6 @@ internal fun ActiveWorkoutScreen(
             override fun addExercise(exerciseKey: String) = viewModel.addExercise(exerciseKey)
             override fun removeExercise(exercise: Exercise) = viewModel.removeExercise(exercise)
             override fun addSet(block: ExerciseBlock) = viewModel.addSet(block)
-            override fun addSpokenSet(block: ExerciseBlock, alternatives: List<String>) = viewModel.addSpokenSet(block, alternatives)
-            override fun voiceUnavailable() = viewModel.voiceUnavailable()
             override fun changeSet(set: SetEntry, change: SetChange) = viewModel.changeSet(set, change)
             override fun deleteSet(set: SetEntry) = viewModel.deleteSet(set)
         }
@@ -92,7 +90,6 @@ internal fun ActiveWorkoutScreen(
     ActiveWorkoutContent(
         state = state,
         actions = actions,
-        onMessageShown = viewModel::messageShown,
         onOpenExerciseHistory = onOpenExerciseHistory,
         onOpenExercisePicker = onOpenExercisePicker,
     )

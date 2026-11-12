@@ -331,6 +331,16 @@ class DefaultCoachServiceUTest {
     }
 
     @Test
+    fun `an RPE off the scale is refused and nothing is saved`() = runBlocking {
+        val offScale = listOf(5.5, 7.25, 10.5).map { rpe ->
+            f.toolbox.run("propose_plan", """{"name":"X","summary":"x","sets":[{"exerciseKey":"bench","reps":8,"rpe":$rpe}]}""")
+        }
+
+        assertTrue(offScale.all { it.isError && "RPE" in it.text })
+        assertEquals(emptyList(), f.coach.observePendingProposals().first())
+    }
+
+    @Test
     fun `proposals created while answering are attached to the answer`() = runBlocking {
         f.claude.callTool("propose_plan", benchPlan)
         f.claude.answer("I wrote a plan.")
