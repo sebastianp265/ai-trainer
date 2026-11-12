@@ -1,6 +1,10 @@
 package com.github.sebastianp265.aitrainer.feature.settings.impl
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeCacheDuration
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeEffort
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeThinking
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
 import com.github.sebastianp265.aitrainer.integration.settings.Secret
 import com.github.sebastianp265.aitrainer.integration.settings.SecretStore
 import kotlinx.coroutines.flow.Flow
@@ -53,6 +57,25 @@ class DefaultSettingsServiceUTest {
         service.setApiKeyCheckedAt(null)
 
         assertEquals(null, service.observeApiKeyCheckedAt().first())
+    }
+
+    @Test
+    fun `the model tuning starts at the defaults and is remembered`() = runBlocking {
+        assertEquals(ClaudeTuning(), service.observeClaudeTuning().first())
+        val tuning = ClaudeTuning(effort = ClaudeEffort.MAX, thinking = ClaudeThinking.ADAPTIVE, maxTokens = 8_000, cacheDuration = ClaudeCacheDuration.FIVE_MINUTES)
+
+        service.setClaudeTuning(tuning)
+
+        assertEquals(tuning, service.observeClaudeTuning().first())
+    }
+
+    @Test
+    fun `back at the default effort no effort is stored`() = runBlocking {
+        service.setClaudeTuning(ClaudeTuning(effort = ClaudeEffort.LOW))
+
+        service.setClaudeTuning(ClaudeTuning())
+
+        assertEquals(ClaudeTuning(), service.observeClaudeTuning().first())
     }
 
     @Test

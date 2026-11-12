@@ -48,6 +48,19 @@ class CoachFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
+    fun `a message held down can be deleted from the chat`() {
+        openCoachWithKey()
+        claude.answerWith("Noted, three times a week.")
+        coach.send("I train three times a week")
+        coach.assertCoachSaid("Noted, three times a week.")
+
+        coach.deleteMessage("I train three times a week")
+
+        coach.assertNotShown("I train three times a week")
+        coach.assertCoachSaid("Noted, three times a week.")
+    }
+
+    @Test
     fun `a proposed plan accepted from its card is offered when starting a workout until it is undone`() {
         openCoachWithKey()
         claude.answerWithToolCall("propose_plan", PUSH_PLAN)

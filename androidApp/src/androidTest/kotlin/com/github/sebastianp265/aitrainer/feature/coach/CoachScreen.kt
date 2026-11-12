@@ -9,6 +9,8 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.longClick
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachMemoryTags
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachTags
 import com.github.sebastianp265.aitrainer.feature.settings.impl.SettingsTags
@@ -46,6 +48,15 @@ class CoachScreen(compose: ComposeTestRule) : Screen(compose) {
     }
 
     fun assertCoachSaid(text: String) = waitForText(text)
+
+    fun deleteMessage(text: String) {
+        waitForText(text)
+        compose.onNode(hasText(text)).performTouchInput { longClick() }
+        waitFor(hasTestTag(CoachTags.DELETE_CONFIRM))
+        compose.onNode(hasTestTag(CoachTags.DELETE_CONFIRM)).performClick()
+    }
+
+    fun assertNotShown(text: String) = waitForTextGone(text)
 
     fun assertYouSaid(text: String) = waitForText(text)
 

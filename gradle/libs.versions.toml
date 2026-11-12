@@ -1,4 +1,6 @@
 [versions]
+anthropic = "3.8.0"
+okhttp = "4.12.0"
 agp = "9.5.1"
 kotlin = "2.4.21"
 ksp = "2.3.12"
@@ -17,7 +19,6 @@ kotlinxDatetime = "0.8.0"
 vico = "3.3.1"
 kotlinxCoroutines = "1.11.0"
 kotlinxSerialization = "1.12.0"
-ktor = "3.6.1"
 junitVersion = "1.3.0"
 testRunner = "1.7.0"
 espresso = "3.7.0"
@@ -26,6 +27,8 @@ konsist = "0.18.1"
 junitBom = "6.1.3"
 
 [libraries]
+anthropic-java = { group = "com.anthropic", name = "anthropic-java", version.ref = "anthropic" }
+okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycle" }
@@ -64,9 +67,6 @@ koin-test-junit4 = { group = "io.insert-koin", name = "koin-test-junit4" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
-ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
-ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
-ktor-client-mock = { group = "io.ktor", name = "ktor-client-mock", version.ref = "ktor" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 
 kotlin-test-junit = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }

@@ -50,7 +50,7 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `a rejected key is reported`() {
+    fun `a rejected key is reported and not saved`() {
         claude.keyCheckResult = ClaudeFailureKind.KEY_REJECTED
         settings.open()
         settings.openApiKey()
@@ -59,6 +59,22 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
         settings.saveAndCheck()
 
         settings.assertKeyRejected()
+        settings.goBack()
+        settings.assertNoClaudeApiKeySaved()
+    }
+
+    @Test
+    fun `a key that cannot be checked is not saved`() {
+        claude.keyCheckResult = ClaudeFailureKind.NO_NETWORK
+        settings.open()
+        settings.openApiKey()
+
+        settings.typeClaudeApiKey("test-key")
+        settings.saveAndCheck()
+
+        settings.assertKeyNotChecked()
+        settings.goBack()
+        settings.assertNoClaudeApiKeySaved()
     }
 
     @Test
@@ -79,5 +95,42 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
         settings.goBack()
 
         settings.assertModelShown("Claude Haiku 5.5")
+    }
+
+    @Test
+    fun `a typed answer limit is kept and one above the highest is not saved`() {
+        settings.open()
+        settings.openModel()
+        settings.openTuning()
+
+        settings.typeMaxTokens("3000")
+        settings.goBack()
+        settings.openModel()
+        settings.openTuning()
+        settings.assertMaxTokens("3000")
+        settings.typeMaxTokens("99999")
+        settings.goBack()
+        settings.openModel()
+        settings.openTuning()
+
+        settings.assertMaxTokens("3000")
+    }
+
+    @Test
+    fun `the chosen tuning is kept and thinking cannot be turned off on Opus`() {
+        settings.open()
+        settings.openModel()
+        settings.openTuning()
+
+        settings.chooseTuning("effort", "LOW")
+        settings.chooseModel("claude-opus-5-5")
+        settings.goBack()
+        settings.openModel()
+        settings.openTuning()
+
+        settings.assertTuningChosen("effort", "LOW")
+        settings.assertMaxTokens("16000")
+        settings.assertTuningUnavailable("thinking", "off")
+        settings.waitForTextOnScreen("This model at this effort always thinks.")
     }
 }

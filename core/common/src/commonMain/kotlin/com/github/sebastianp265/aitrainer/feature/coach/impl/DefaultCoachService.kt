@@ -13,6 +13,7 @@ import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeClient
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeContent
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeMessage
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeResponse
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeResult
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeRole
 import com.github.sebastianp265.aitrainer.integration.coach.CoachActivity
@@ -20,6 +21,7 @@ import com.github.sebastianp265.aitrainer.integration.coach.CoachMessage
 import com.github.sebastianp265.aitrainer.integration.coach.CoachNote
 import com.github.sebastianp265.aitrainer.integration.coach.CoachProposal
 import com.github.sebastianp265.aitrainer.integration.coach.CoachRole
+import com.github.sebastianp265.aitrainer.integration.coach.CoachRun
 import com.github.sebastianp265.aitrainer.integration.coach.CoachService
 import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
 import com.github.sebastianp265.aitrainer.integration.coach.CoachUsage
@@ -57,6 +59,7 @@ import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
+import kotlin.time.Duration
 
 internal class DefaultCoachService(
     private val claudeClient: () -> ClaudeClient,
@@ -80,6 +83,7 @@ internal class DefaultCoachService(
     }
 
     private val activity = MutableStateFlow<CoachActivity>(CoachActivity.Idle)
+    private val lastRun = MutableStateFlow<CoachRun?>(null)
 
     override fun observeActivity(): Flow<CoachActivity> = activity
 
@@ -98,6 +102,8 @@ internal class DefaultCoachService(
     override suspend fun retry() {
         converse()
     }
+
+    override suspend fun deleteMessage(id: Long) = dao.deleteMessage(id)
 
     override suspend fun reviewLastWeekIfDue() {
         val today = clock.todayIn(TimeZone.currentSystemDefault())
@@ -126,6 +132,8 @@ internal class DefaultCoachService(
 
     private suspend fun converse(transient: String? = null, review: WeeklyReviewSummary? = null): Boolean {
         activity.value = CoachActivity.Working(tool = null)
+        val startedAt = clock.now()
+        var run = CoachRun(rounds = 0, inputTokens = 0, cacheReadTokens = 0, cacheWriteTokens = 0, outputTokens = 0, duration = Duration.ZERO, stopReason = null)
         val context = coachContext()
         val request = buildCoachRequest(context, transient)
         val checked = mutableListOf<String>()
@@ -138,7 +146,10 @@ internal class DefaultCoachService(
                     return false
                 }
                 is ClaudeResult.Success -> {
-                    addUsage(result.response.inputTokens, result.response.outputTokens)
+                    val response = result.response
+                    addUsage(response.inputTokens + response.cacheReadTokens + response.cacheWriteTokens, response.outputTokens)
+                    run = run.after(response, clock.now() - startedAt)
+                    lastRun.value = run
                     val toolUses = result.response.content.filterIsInstance<ClaudeContent.ToolUse>()
                     if (toolUses.isEmpty()) {
                         finish(result.response.content.filterIsInstance<ClaudeContent.Text>().joinToString("\n") { it.text }, checked, proposalIds, review)
@@ -176,6 +187,7 @@ internal class DefaultCoachService(
         val sessions = workouts.observeFinishedSessions(today.minus(DatePeriod(days = SUMMARY_DAYS)), today).first().take(SUMMARY_WORKOUTS)
         return CoachContext(
             model = settings.observeClaudeModel().first(),
+            tuning = settings.observeClaudeTuning().first(),
             today = today,
             profile = dao.profile().associate { it.field to it.value },
             notes = dao.notes(),
@@ -326,9 +338,21 @@ internal class DefaultCoachService(
         dao.deleteNote(id)
     }
 
+    override fun observeLastRun(): Flow<CoachRun?> = lastRun
+
     override fun observeUsageThisMonth(): Flow<CoachUsage> =
         dao.observeUsage(currentMonth()).map { it?.let { u -> CoachUsage(u.messages, u.inputTokens, u.outputTokens) } ?: CoachUsage(0, 0, 0) }
 }
+
+private fun CoachRun.after(response: ClaudeResponse, elapsed: Duration) = CoachRun(
+    rounds = rounds + 1,
+    inputTokens = inputTokens + response.inputTokens,
+    cacheReadTokens = cacheReadTokens + response.cacheReadTokens,
+    cacheWriteTokens = cacheWriteTokens + response.cacheWriteTokens,
+    outputTokens = outputTokens + response.outputTokens,
+    duration = elapsed,
+    stopReason = response.stopReason,
+)
 
 private fun CoachMessageEntity.toModel(proposals: List<CoachProposal>) =
     CoachMessage(

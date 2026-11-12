@@ -3,6 +3,8 @@ package com.github.sebastianp265.aitrainer.feature.coach.impl
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
 import androidx.compose.material3.IconButton
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.material3.AlertDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
@@ -85,6 +87,7 @@ internal interface CoachActions {
     fun preview(proposalId: Long)
     fun openTargets()
     fun openApiKey()
+    fun deleteMessage(id: Long)
 }
 
 @Composable
@@ -123,6 +126,7 @@ private fun Conversation(state: CoachUiState, actions: CoachActions, modifier: M
     val working = state.activity is CoachActivity.Working
     val lastIsUser = state.messages.lastOrNull()?.message?.role == CoachRole.USER
     val itemCount = state.messages.size + (if (working) 1 else 0) + (if (failed != null) 1 else 0)
+    var deleting by rememberSaveable { mutableStateOf<Long?>(null) }
     LaunchedEffect(itemCount) {
         if (itemCount > 0) listState.animateScrollToItem(listState.layoutInfo.totalItemsCount.coerceAtLeast(1) - 1)
     }
@@ -142,7 +146,12 @@ private fun Conversation(state: CoachUiState, actions: CoachActions, modifier: M
                     item(key = "day:${item.message.id}") { DayLabel(item.message) }
                 }
                 item(key = "message:${item.message.id}") {
-                    MessageBubble(item.message, state.exercises, unsent = failed?.kind == ClaudeFailureKind.NO_NETWORK && lastIsUser && index == state.messages.lastIndex)
+                    MessageBubble(
+                        item.message,
+                        state.exercises,
+                        unsent = failed?.kind == ClaudeFailureKind.NO_NETWORK && lastIsUser && index == state.messages.lastIndex,
+                        onLongPress = { deleting = item.message.id },
+                    )
                 }
                 items(item.proposals.size, key = { "proposal:${item.proposals[it].proposal.id}" }) { p ->
                     ProposalCard(item.proposals[p], state.exercises, actions)
@@ -167,6 +176,28 @@ private fun Conversation(state: CoachUiState, actions: CoachActions, modifier: M
         }
         InputRow(enabled = !working, onSend = actions::send)
     }
+    deleting?.let { id ->
+        DeleteMessageDialog(
+            onConfirm = {
+                actions.deleteMessage(id)
+                deleting = null
+            },
+            onDismiss = { deleting = null },
+        )
+    }
+}
+
+@Composable
+private fun DeleteMessageDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.coach_delete_message_title)) },
+        text = { Text(stringResource(R.string.coach_delete_message_text)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm, modifier = Modifier.testTag(CoachTags.DELETE_CONFIRM)) { Text(stringResource(R.string.coach_delete_message_confirm)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
 }
 
 @Composable
@@ -211,10 +242,11 @@ private fun DayLabel(message: CoachMessage) {
 private fun dayOf(instant: Instant) = instant.toLocalDateTime(TimeZone.currentSystemDefault()).date
 
 @Composable
-private fun MessageBubble(message: CoachMessage, exercises: Map<String, Exercise>, unsent: Boolean) {
+private fun MessageBubble(message: CoachMessage, exercises: Map<String, Exercise>, unsent: Boolean, onLongPress: () -> Unit) {
+    val deletable = Modifier.combinedClickable(onClickLabel = null, onLongClickLabel = stringResource(R.string.coach_delete_message_title), onLongClick = onLongPress, onClick = {})
     if (message.role == CoachRole.USER) {
         Row(Modifier.fillMaxWidth().alpha(if (unsent) UNSENT_ALPHA else 1f), horizontalArrangement = Arrangement.End) {
-            Surface(shape = RoundedCornerShape(18.dp, 18.dp, 6.dp, 18.dp), color = MaterialTheme.colorScheme.primary) {
+            Surface(shape = RoundedCornerShape(18.dp, 18.dp, 6.dp, 18.dp), color = MaterialTheme.colorScheme.primary, modifier = deletable) {
                 Column(Modifier.padding(horizontal = 14.dp, vertical = 10.dp).widthIn(max = 300.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     message.topic?.let { topic ->
                         Text(
@@ -229,7 +261,7 @@ private fun MessageBubble(message: CoachMessage, exercises: Map<String, Exercise
             }
         }
     } else {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(deletable, verticalArrangement = Arrangement.spacedBy(4.dp)) {
             message.review?.let { ReviewCard(it) }
             if (message.text.isNotBlank()) CoachBubble(message.text)
             if (message.checked.isNotEmpty()) {
@@ -589,6 +621,7 @@ private fun InputRow(enabled: Boolean, onSend: (String) -> Unit) {
 
 internal object CoachTags {
     const val INPUT = "coach_input"
+    const val DELETE_CONFIRM = "coach_delete_confirm"
     const val SEND = "coach_send"
     const val USER_MESSAGE = "coach_user_message"
     const val TOPIC = "coach_topic"
@@ -633,6 +666,7 @@ private fun CoachPreview() {
                 override fun preview(proposalId: Long) = Unit
                 override fun openTargets() = Unit
                 override fun openApiKey() = Unit
+                override fun deleteMessage(id: Long) = Unit
             },
         )
     }

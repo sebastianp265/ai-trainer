@@ -20,7 +20,6 @@ kotlin {
             api(libs.androidx.datastore.preferences.core)
             api(project.dependencies.platform(libs.koin.bom))
             api(libs.koin.core)
-            api(libs.ktor.client.core)
             api(libs.kotlinx.serialization.json)
         }
         jvmTest.dependencies {
@@ -29,7 +28,6 @@ kotlin {
             implementation(libs.androidx.room.testing)
             implementation(libs.androidx.sqlite.bundled)
             implementation(libs.kotlinx.coroutines.test)
-            implementation(libs.ktor.client.mock)
             runtimeOnly(libs.junit.platform.launcher)
         }
     }

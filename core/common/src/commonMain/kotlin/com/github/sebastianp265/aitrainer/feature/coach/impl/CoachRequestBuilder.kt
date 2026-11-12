@@ -6,6 +6,7 @@ import com.github.sebastianp265.aitrainer.integration.coach.ClaudeMessage
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeRequest
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeRole
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTool
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
 import com.github.sebastianp265.aitrainer.integration.coach.CoachRole
 import com.github.sebastianp265.aitrainer.integration.coach.CoachService
 import com.github.sebastianp265.aitrainer.integration.coach.TopicKind
@@ -17,6 +18,7 @@ import kotlinx.datetime.LocalDate
 
 internal class CoachContext(
     val model: String,
+    val tuning: ClaudeTuning,
     val today: LocalDate,
     val profile: Map<String, String>,
     val notes: List<CoachNoteEntity>,
@@ -28,15 +30,13 @@ internal class CoachContext(
     val tools: List<ClaudeTool>,
 )
 
-internal const val COACH_MAX_TOKENS = 4096
-
 internal fun buildCoachRequest(context: CoachContext, transientUserText: String? = null): ClaudeRequest =
     ClaudeRequest(
         model = context.model,
         system = systemPrompt(context),
         messages = conversation(context.history, transientUserText),
         tools = context.tools,
-        maxTokens = COACH_MAX_TOKENS,
+        tuning = context.tuning,
     )
 
 private fun conversation(history: List<CoachMessageEntity>, transientUserText: String?): List<ClaudeMessage> =

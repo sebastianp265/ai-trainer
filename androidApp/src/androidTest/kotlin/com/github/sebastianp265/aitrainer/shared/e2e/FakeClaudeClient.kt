@@ -14,12 +14,12 @@ class FakeClaudeClient : ClaudeClient {
     private val script = ArrayDeque<ClaudeResult>()
 
     fun answerWith(text: String) {
-        script.addLast(ClaudeResult.Success(ClaudeResponse(listOf(ClaudeContent.Text(text)), "end_turn", inputTokens = 100, outputTokens = 20)))
+        script.addLast(ClaudeResult.Success(ClaudeResponse(listOf(ClaudeContent.Text(text)), "end_turn", inputTokens = 100, cacheReadTokens = 0, cacheWriteTokens = 0, outputTokens = 20)))
     }
 
     fun answerWithToolCall(name: String, inputJson: String, id: String = "toolu_${script.size + 1}", text: String = "") {
         val content = listOfNotNull(text.takeIf { it.isNotEmpty() }?.let { ClaudeContent.Text(it) }, ClaudeContent.ToolUse(id, name, inputJson))
-        script.addLast(ClaudeResult.Success(ClaudeResponse(content, "tool_use", inputTokens = 100, outputTokens = 20)))
+        script.addLast(ClaudeResult.Success(ClaudeResponse(content, "tool_use", inputTokens = 100, cacheReadTokens = 0, cacheWriteTokens = 0, outputTokens = 20)))
     }
 
     fun failWith(kind: ClaudeFailureKind, message: String = "failure") {
@@ -28,7 +28,7 @@ class FakeClaudeClient : ClaudeClient {
 
     override suspend fun send(request: ClaudeRequest): ClaudeResult {
         requests += request
-        return script.removeFirstOrNull() ?: ClaudeResult.Success(ClaudeResponse(listOf(ClaudeContent.Text("OK")), "end_turn", 1, 1))
+        return script.removeFirstOrNull() ?: ClaudeResult.Success(ClaudeResponse(listOf(ClaudeContent.Text("OK")), "end_turn", inputTokens = 1, cacheReadTokens = 0, cacheWriteTokens = 0, outputTokens = 1))
     }
 
     fun assertFirstMessageMentions(text: String) {

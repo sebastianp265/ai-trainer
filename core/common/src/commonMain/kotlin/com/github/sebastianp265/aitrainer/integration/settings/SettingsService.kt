@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.integration.settings
 
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
 import kotlinx.coroutines.flow.Flow
 import kotlinx.datetime.LocalDate
 import kotlin.time.Instant
@@ -8,6 +9,10 @@ interface SettingsService {
     fun observeClaudeModel(): Flow<String>
 
     suspend fun setClaudeModel(modelId: String)
+
+    fun observeClaudeTuning(): Flow<ClaudeTuning>
+
+    suspend fun setClaudeTuning(tuning: ClaudeTuning)
 
     fun observeShowTargets(): Flow<Boolean>
 

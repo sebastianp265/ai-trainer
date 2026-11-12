@@ -34,6 +34,8 @@ import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeClient
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeFailureKind
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
+import com.github.sebastianp265.aitrainer.integration.coach.CoachRun
 import com.github.sebastianp265.aitrainer.integration.coach.CoachService
 import com.github.sebastianp265.aitrainer.integration.coach.CoachUsage
 import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
@@ -89,19 +91,16 @@ internal class ApiKeyViewModel(
         viewModelScope.launch {
             withContext(NonCancellable) {
                 val key = apiKey.trim()
-                settingsService.saveClaudeApiKey(key)
                 check.value = KeyCheck.CHECKING
-                when (claude.checkApiKey(key)) {
+                check.value = when (claude.checkApiKey(key)) {
                     null -> {
+                        settingsService.saveClaudeApiKey(key)
                         settingsService.setApiKeyCheckedAt(clock.now())
-                        check.value = KeyCheck.IDLE
+                        KeyCheck.IDLE
                     }
-                    ClaudeFailureKind.KEY_REJECTED -> {
-                        settingsService.setApiKeyCheckedAt(null)
-                        check.value = KeyCheck.REJECTED
-                    }
-                    ClaudeFailureKind.NO_NETWORK -> check.value = KeyCheck.OFFLINE
-                    else -> check.value = KeyCheck.OTHER
+                    ClaudeFailureKind.KEY_REJECTED -> KeyCheck.REJECTED
+                    ClaudeFailureKind.NO_NETWORK -> KeyCheck.OFFLINE
+                    else -> KeyCheck.OTHER
                 }
             }
         }
@@ -188,7 +187,12 @@ internal object CoachApiKeyTags {
     const val STATUS = "api_key_status"
 }
 
-internal data class ModelUiState(val model: String = SettingsService.DEFAULT_CLAUDE_MODEL, val usage: CoachUsage = CoachUsage(0, 0, 0))
+internal data class ModelUiState(
+    val model: String = SettingsService.DEFAULT_CLAUDE_MODEL,
+    val usage: CoachUsage = CoachUsage(0, 0, 0),
+    val tuning: ClaudeTuning = ClaudeTuning(),
+    val lastRun: CoachRun? = null,
+)
 
 internal class ModelPickerViewModel(
     private val settingsService: SettingsService,
@@ -198,16 +202,22 @@ internal class ModelPickerViewModel(
     val uiState: StateFlow<ModelUiState> = combine(
         settingsService.observeClaudeModel(),
         coachService.observeUsageThisMonth(),
-    ) { model, usage -> ModelUiState(model, usage) }
+        settingsService.observeClaudeTuning(),
+        coachService.observeLastRun(),
+    ) { model, usage, tuning, lastRun -> ModelUiState(model, usage, tuning, lastRun) }
         .stateIn(viewModelScope, WhileUiSubscribed, ModelUiState())
 
     fun select(model: String) {
         viewModelScope.launch { withContext(NonCancellable) { settingsService.setClaudeModel(model) } }
     }
+
+    fun tune(tuning: ClaudeTuning) {
+        viewModelScope.launch { withContext(NonCancellable) { settingsService.setClaudeTuning(tuning) } }
+    }
 }
 
 @Composable
-internal fun ModelPickerContent(state: ModelUiState, onSelect: (String) -> Unit) {
+internal fun ModelPickerContent(state: ModelUiState, onSelect: (String) -> Unit, onTune: (ClaudeTuning) -> Unit) {
     Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         GroupCard {
             SettingsService.CLAUDE_MODELS.forEachIndexed { index, model ->
@@ -224,6 +234,8 @@ internal fun ModelPickerContent(state: ModelUiState, onSelect: (String) -> Unit)
             }
         }
         Text(stringResource(R.string.model_change_note), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        ModelTuningSection(state.model, state.tuning, onTune)
+        state.lastRun?.let { LastRunCard(it) }
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 CardLabel(stringResource(R.string.model_usage_title))

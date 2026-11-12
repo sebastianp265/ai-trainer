@@ -12,7 +12,7 @@ import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_COACH
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_COACH
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_COACH
-import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_NETWORK
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_CLAUDE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_SETTINGS
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_VOLUME
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_VOLUME
@@ -55,7 +55,7 @@ enum class GradleModule(
     ),
     CORE_ANDROID(
         directoryName = "core/android",
-        packageModules = setOf(INTEGRATION_MODULE, SHARED_HEALTH, SHARED_SECURITY, SHARED_PLATFORM, SHARED_NETWORK, SHARED_BACKUP),
+        packageModules = setOf(INTEGRATION_MODULE, SHARED_HEALTH, SHARED_SECURITY, SHARED_PLATFORM, SHARED_CLAUDE, SHARED_BACKUP),
         dependencies = { setOf(CORE_COMMON) },
     ),
     ANDROID_APP(

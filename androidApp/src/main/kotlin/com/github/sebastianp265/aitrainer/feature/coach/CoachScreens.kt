@@ -35,6 +35,7 @@ internal fun CoachScreen(topic: CoachTopic?, onOpenPreview: (Long) -> Unit, onOp
             override fun preview(proposalId: Long) = onOpenPreview(proposalId)
             override fun openTargets() = onOpenTargets()
             override fun openApiKey() = onOpenApiKey()
+            override fun deleteMessage(id: Long) = viewModel.deleteMessage(id)
         }
     }
     CoachContent(state, actions)
@@ -74,5 +75,5 @@ internal fun ApiKeyScreen() {
 internal fun ModelPickerScreen() {
     val viewModel: ModelPickerViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    ModelPickerContent(state, onSelect = viewModel::select)
+    ModelPickerContent(state, onSelect = viewModel::select, onTune = viewModel::tune)
 }

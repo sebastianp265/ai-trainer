@@ -93,6 +93,7 @@ Run Gradle from the project root. On this Windows machine the wrapper is `./grad
 | Run the app on a device or emulator                                                                                                                              | Android Studio: pick a device, run the `androidApp` configuration. Terminal: `./gradlew.bat :androidApp:installDebug` |
 | Architecture rules only                                                                                                                                          | `./gradlew.bat :architectureTest:test`                                                                                |
 | Core unit tests (Room, sync, rules) | `./gradlew.bat :core:common:jvmTest` |
+| Android core unit tests (Claude client) | `./gradlew.bat :core:android:testDebugUnitTest` |
 | App unit tests (Koin graph, UI logic) | `./gradlew.bat :androidApp:testDebugUnitTest` |
 | Instrumented tests of the Android core (Keystore, exercise seed); emulator only                                                                                  | `./gradlew.bat :core:android:connectedDebugAndroidTest`                                                               |
 | End-to-end tests; emulator only, they uninstall the app and delete its data                                                                                      | `./gradlew.bat :androidApp:connectedDebugAndroidTest`                                                                 |

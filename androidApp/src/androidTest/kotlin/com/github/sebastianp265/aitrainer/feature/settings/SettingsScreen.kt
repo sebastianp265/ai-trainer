@@ -10,6 +10,11 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachApiKeyTags
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachModelTags
+import com.github.sebastianp265.aitrainer.feature.coach.impl.ModelTuningTags
+import androidx.compose.ui.test.isNotEnabled
+import androidx.compose.ui.test.isSelected
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextReplacement
 import com.github.sebastianp265.aitrainer.feature.settings.impl.SettingsTags
 import com.github.sebastianp265.aitrainer.shared.e2e.Screen
 import com.github.sebastianp265.aitrainer.shared.e2e.TEST_TIMEOUT_MS
@@ -77,6 +82,8 @@ class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun assertKeyRejected() = waitForText("The key was rejected", substring = true)
 
+    fun assertKeyNotChecked() = waitForText("no connection to check it", substring = true)
+
     fun assertApiKeyScreenShown() = waitFor(hasTestTag(CoachApiKeyTags.FIELD))
 
     fun assertNoClaudeApiKeySaved() = waitForText("No API key saved")
@@ -91,4 +98,33 @@ class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
     }
 
     fun assertModelShown(name: String) = waitForText(name)
+
+    fun openTuning() {
+        waitFor(hasTestTag(ModelTuningTags.TOGGLE))
+        compose.onNode(hasTestTag(ModelTuningTags.TOGGLE)).performClick()
+    }
+
+    fun chooseTuning(setting: String, value: String) {
+        waitFor(hasTestTag(ModelTuningTags.option(setting, value)))
+        compose.onNode(hasTestTag(ModelTuningTags.option(setting, value))).performScrollTo().performClick()
+    }
+
+    fun assertTuningChosen(setting: String, value: String) {
+        waitFor(hasTestTag(ModelTuningTags.option(setting, value)) and isSelected())
+    }
+
+    fun assertTuningUnavailable(setting: String, value: String) {
+        waitFor(hasTestTag(ModelTuningTags.option(setting, value)) and isNotEnabled())
+    }
+
+    fun waitForTextOnScreen(text: String) = waitForText(text)
+
+    fun typeMaxTokens(value: String) {
+        waitFor(hasTestTag(ModelTuningTags.MAX_TOKENS))
+        compose.onNode(hasTestTag(ModelTuningTags.MAX_TOKENS)).performScrollTo().performTextReplacement(value)
+    }
+
+    fun assertMaxTokens(value: String) {
+        waitFor(hasTestTag(ModelTuningTags.MAX_TOKENS) and hasText(value))
+    }
 }

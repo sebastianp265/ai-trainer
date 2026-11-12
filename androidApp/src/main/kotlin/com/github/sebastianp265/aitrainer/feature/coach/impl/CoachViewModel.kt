@@ -93,6 +93,10 @@ internal class CoachViewModel(
 
     fun retry() = keepRunning { coachService.retry() }
 
+    fun deleteMessage(id: Long) {
+        viewModelScope.launch { coachService.deleteMessage(id) }
+    }
+
     fun undo(proposalId: Long) {
         viewModelScope.launch { coachService.undo(proposalId) }
     }

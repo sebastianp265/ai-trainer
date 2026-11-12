@@ -22,18 +22,39 @@ data class ClaudeMessage(val role: ClaudeRole, val content: List<ClaudeContent>)
 
 data class ClaudeTool(val name: String, val description: String, val inputSchemaJson: String)
 
+enum class ClaudeEffort { LOW, MEDIUM, HIGH, XHIGH, MAX }
+
+enum class ClaudeThinking { ADAPTIVE, OFF }
+
+enum class ClaudeCacheDuration { FIVE_MINUTES, ONE_HOUR }
+
+data class ClaudeTuning(
+    val effort: ClaudeEffort? = null,
+    val thinking: ClaudeThinking = ClaudeThinking.OFF,
+    val maxTokens: Int = 16_000,
+    val cacheDuration: ClaudeCacheDuration = ClaudeCacheDuration.FIVE_MINUTES,
+) {
+    companion object {
+        const val HIGHEST_MAX_TOKENS = 32_000
+        val MODELS_WITH_THINKING_OFF = listOf("claude-sonnet-5-5", "claude-haiku-5-5")
+        val HIGHEST_EFFORT_WITH_THINKING_OFF = ClaudeEffort.HIGH
+    }
+}
+
 data class ClaudeRequest(
     val model: String,
     val system: String,
     val messages: List<ClaudeMessage>,
     val tools: List<ClaudeTool>,
-    val maxTokens: Int,
+    val tuning: ClaudeTuning,
 )
 
 data class ClaudeResponse(
     val content: List<ClaudeContent>,
     val stopReason: String?,
     val inputTokens: Int,
+    val cacheReadTokens: Int,
+    val cacheWriteTokens: Int,
     val outputTokens: Int,
 )
 

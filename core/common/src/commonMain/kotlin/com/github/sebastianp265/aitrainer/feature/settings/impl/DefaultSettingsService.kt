@@ -4,8 +4,13 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeCacheDuration
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeEffort
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeThinking
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
 import com.github.sebastianp265.aitrainer.integration.settings.Secret
 import com.github.sebastianp265.aitrainer.integration.settings.SecretStore
 import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
@@ -25,6 +30,10 @@ internal class DefaultSettingsService(
     private val lastReviewedWeekKey = stringPreferencesKey("last_reviewed_week")
     private val lastExportKey = longPreferencesKey("last_export")
     private val apiKeyCheckedAtKey = longPreferencesKey("api_key_checked_at")
+    private val effortKey = stringPreferencesKey("claude_effort")
+    private val thinkingKey = stringPreferencesKey("claude_thinking")
+    private val maxTokensKey = intPreferencesKey("claude_max_tokens")
+    private val cacheDurationKey = stringPreferencesKey("claude_cache_duration")
 
     override fun observeShowTargets(): Flow<Boolean> = settings.data.map { it[showTargetsKey] ?: true }
 
@@ -65,6 +74,26 @@ internal class DefaultSettingsService(
 
     override suspend fun setClaudeModel(modelId: String) {
         settings.edit { it[claudeModelKey] = modelId.trim() }
+    }
+
+    override fun observeClaudeTuning(): Flow<ClaudeTuning> = settings.data.map { preferences ->
+        val defaults = ClaudeTuning()
+        ClaudeTuning(
+            effort = preferences[effortKey]?.let(ClaudeEffort::valueOf),
+            thinking = preferences[thinkingKey]?.let(ClaudeThinking::valueOf) ?: defaults.thinking,
+            maxTokens = preferences[maxTokensKey] ?: defaults.maxTokens,
+            cacheDuration = preferences[cacheDurationKey]?.let(ClaudeCacheDuration::valueOf) ?: defaults.cacheDuration,
+        )
+    }
+
+    override suspend fun setClaudeTuning(tuning: ClaudeTuning) {
+        settings.edit { preferences ->
+            val effort = tuning.effort
+            if (effort == null) preferences.remove(effortKey) else preferences[effortKey] = effort.name
+            preferences[thinkingKey] = tuning.thinking.name
+            preferences[maxTokensKey] = tuning.maxTokens
+            preferences[cacheDurationKey] = tuning.cacheDuration.name
+        }
     }
 
     override fun observeIsClaudeApiKeyStored(): Flow<Boolean> = secretStore.observeIsStored(Secret.CLAUDE_API_KEY)

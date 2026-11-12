@@ -28,7 +28,7 @@ enum class PackageModule(val path: String) {
     SHARED_DATABASE("shared.database"),
     SHARED_SECURITY("shared.security"),
     SHARED_PLATFORM("shared.platform"),
-    SHARED_NETWORK("shared.network"),
+    SHARED_CLAUDE("shared.claude"),
     SHARED_BACKUP("shared.backup"),
     SHARED_LOCALIZATION("shared.localization"),
     SHARED_STATE("shared.state"),

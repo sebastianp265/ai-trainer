@@ -29,14 +29,15 @@ import kotlin.time.Instant
 
 internal class ScriptedClaude : ClaudeClient {
     val requests = mutableListOf<ClaudeRequest>()
+    var whileAnswering: () -> Unit = {}
     private val script = ArrayDeque<ClaudeResult>()
 
     fun answer(text: String) {
-        script.addLast(ClaudeResult.Success(ClaudeResponse(listOf(ClaudeContent.Text(text)), "end_turn", 100, 20)))
+        script.addLast(ClaudeResult.Success(ClaudeResponse(listOf(ClaudeContent.Text(text)), "end_turn", inputTokens = 100, cacheReadTokens = 0, cacheWriteTokens = 0, outputTokens = 20)))
     }
 
     fun callTool(name: String, inputJson: String) {
-        script.addLast(ClaudeResult.Success(ClaudeResponse(listOf(ClaudeContent.ToolUse("toolu_${script.size}", name, inputJson)), "tool_use", 100, 20)))
+        script.addLast(ClaudeResult.Success(ClaudeResponse(listOf(ClaudeContent.ToolUse("toolu_${script.size}", name, inputJson)), "tool_use", inputTokens = 100, cacheReadTokens = 0, cacheWriteTokens = 0, outputTokens = 20)))
     }
 
     fun fail(kind: ClaudeFailureKind) {
@@ -45,6 +46,7 @@ internal class ScriptedClaude : ClaudeClient {
 
     override suspend fun send(request: ClaudeRequest): ClaudeResult {
         requests += request
+        whileAnswering()
         return script.removeFirst()
     }
 

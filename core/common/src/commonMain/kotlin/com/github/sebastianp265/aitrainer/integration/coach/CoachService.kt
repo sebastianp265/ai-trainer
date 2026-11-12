@@ -11,6 +11,8 @@ interface CoachService {
 
     suspend fun retry()
 
+    suspend fun deleteMessage(id: Long)
+
     suspend fun reviewLastWeekIfDue()
 
     fun observePendingProposals(): Flow<List<CoachProposal>>
@@ -34,6 +36,8 @@ interface CoachService {
     suspend fun deleteNote(id: Long)
 
     fun observeUsageThisMonth(): Flow<CoachUsage>
+
+    fun observeLastRun(): Flow<CoachRun?>
 
     companion object {
         val PROFILE_FIELDS = listOf("goal", "time", "equipment", "limitations", "preferences")

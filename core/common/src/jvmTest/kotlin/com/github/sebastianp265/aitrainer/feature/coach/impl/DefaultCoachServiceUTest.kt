@@ -1,5 +1,11 @@
 package com.github.sebastianp265.aitrainer.feature.coach.impl
 
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeCacheDuration
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeEffort
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeThinking
+import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
+import com.github.sebastianp265.aitrainer.integration.coach.CoachRun
+import kotlin.time.Duration.Companion.seconds
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeContent
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeFailureKind
 import com.github.sebastianp265.aitrainer.integration.coach.ClaudeRole
@@ -60,6 +66,21 @@ class DefaultCoachServiceUTest {
     }
 
     @Test
+    fun `a deleted message is gone from the chat and from what Claude reads next`() = runBlocking {
+        f.claude.answer("One")
+        f.claude.answer("Two")
+        f.coach.send("forget this")
+        val forgotten = f.coach.observeMessages().first().first()
+
+        f.coach.deleteMessage(forgotten.id)
+        f.coach.send("hello")
+
+        assertEquals(listOf("One", "hello", "Two"), f.coach.observeMessages().first().map { it.text })
+        val sent = f.claude.requests.last().messages.flatMap { it.content }.filterIsInstance<ClaudeContent.Text>().joinToString("\n") { it.text }
+        assertTrue("forget this" !in sent)
+    }
+
+    @Test
     fun `an answer is saved with what the tools read, and the tool result goes back to Claude`() = runBlocking {
         f.finishBenchWorkout()
         f.claude.callTool("get_workouts", "{}")
@@ -102,6 +123,31 @@ class DefaultCoachServiceUTest {
         assertEquals(2, usage.messages)
         assertEquals(200L, usage.inputTokens)
         assertEquals(40L, usage.outputTokens)
+    }
+
+    @Test
+    fun `the chosen tuning is sent with every request`() = runBlocking {
+        val tuning = ClaudeTuning(effort = ClaudeEffort.LOW, thinking = ClaudeThinking.ADAPTIVE, maxTokens = 4_000, cacheDuration = ClaudeCacheDuration.FIVE_MINUTES)
+        f.settings.setClaudeTuning(tuning)
+        f.claude.answer("Sure.")
+
+        f.coach.send("a")
+
+        assertEquals(tuning, f.claude.requests.single().tuning)
+    }
+
+    @Test
+    fun `the last run adds up its rounds, tokens and time`() = runBlocking {
+        f.claude.whileAnswering = { f.now += 2.seconds }
+        f.claude.callTool("get_plans", "{}")
+        f.claude.answer("No plans yet.")
+
+        f.coach.send("a")
+
+        assertEquals(
+            CoachRun(rounds = 2, inputTokens = 200, cacheReadTokens = 0, cacheWriteTokens = 0, outputTokens = 40, duration = 4.seconds, stopReason = "end_turn"),
+            f.coach.observeLastRun().first(),
+        )
     }
 
     @Test
