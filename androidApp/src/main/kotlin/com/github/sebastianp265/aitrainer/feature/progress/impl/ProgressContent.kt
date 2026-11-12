@@ -59,7 +59,7 @@ import kotlinx.datetime.LocalDate
 internal fun ProgressContent(
     state: ProgressUiState,
     onRangeSelected: (ProgressRange) -> Unit,
-    onHealthConnectChanged: () -> Unit,
+    onOpenSettings: () -> Unit,
     onOpenMetric: (ProgressMetric) -> Unit,
     onOpenDay: (LocalDate) -> Unit,
     onOpenExercise: (String) -> Unit,
@@ -89,7 +89,7 @@ internal fun ProgressContent(
         modifier = Modifier.fillMaxSize(),
     ) {
         item { RangeSwitch(state.range, onRangeSelected) }
-        item { HealthConnectCard(onConnectionChanged = onHealthConnectChanged) }
+        item { HealthConnectCard(onOpenSettings) }
         cards.weight?.let { item { WeightCard(it, state.range) { onOpenMetric(ProgressMetric.WEIGHT) } } }
         cards.balance?.let { item { BalanceCard(it, state.nutritionTarget?.kcal) { onOpenMetric(ProgressMetric.CALORIE_BALANCE) } } }
         cards.macros?.let { item { MacrosCard(it, state.nutritionTarget?.proteinG) } }
@@ -394,7 +394,7 @@ private fun ProgressContentPreview() {
             ProgressContent(
                 state = ProgressUiState(cards = ProgressCalculator.calculate(days, 14, ProgressRange.FOUR_WEEKS, today)),
                 onRangeSelected = {},
-                onHealthConnectChanged = {},
+                onOpenSettings = {},
                 onOpenMetric = {},
                 onOpenDay = {},
                 onOpenExercise = {},

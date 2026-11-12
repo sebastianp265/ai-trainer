@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
-import com.github.sebastianp265.aitrainer.integration.health.HealthService
 import com.github.sebastianp265.aitrainer.integration.plan.Plan
 import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
 import com.github.sebastianp265.aitrainer.integration.volume.VolumeService
@@ -15,7 +14,6 @@ import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
-import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.plan.PlanDraft
@@ -49,7 +47,6 @@ internal data class PlanListUiState(
 internal class PlanListViewModel(
     planService: PlanService,
     workoutService: WorkoutService,
-    healthService: HealthService,
     volumeService: VolumeService,
     settingsService: SettingsService,
     exerciseService: ExerciseService,
@@ -64,15 +61,13 @@ internal class PlanListViewModel(
     private val weekAndPlans = combine(
         planService.observeUpcoming(),
         workoutService.observeFinishedSessions(monday, sunday),
-        healthService.observeWorkouts(),
-    ) { plans, sessions, external ->
+    ) { plans, sessions ->
         val doneDays = sessions.map { it.date }.toSet()
         val plannedDays = plans.mapNotNull { it.date }.filter { it in monday..sunday }
-        val externalDays = external.map { it.startedAt.toLocalDateTime(zone).date }.filter { it in monday..sunday }.toSet()
         plans to WeekUi(
             days = (0..6).map { offset ->
                 val date = monday.plus(DatePeriod(days = offset))
-                WeekDay(date, date == today, date in doneDays, date in plannedDays, date in externalDays)
+                WeekDay(date, date == today, date in doneDays, date in plannedDays)
             },
             doneCount = sessions.size,
             plannedCount = plannedDays.size,

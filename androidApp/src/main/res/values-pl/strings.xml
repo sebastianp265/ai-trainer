@@ -2,7 +2,6 @@
 <resources>
 
     <string name="nav_log">Trening</string>
-    <string name="nav_plan">Plan</string>
     <string name="nav_progress">Postęp</string>
     <string name="back">Wstecz</string>
     <string name="nav_settings">Ustawienia</string>
@@ -33,60 +32,15 @@
     <string name="settings_api_key_saved">Zapisany, zaszyfrowany na telefonie</string>
     <string name="settings_api_key_missing">Brak zapisanego klucza API</string>
     <string name="settings_claude_model">Model Claude</string>
-    <string name="health_connect">Health Connect</string>
     <string name="health_connect_not_connected">Połącz, żeby widzieć tu wagę, kalorie, sen i tętno. Wybierasz, które dane udostępnić.</string>
-    <string name="health_connect_connect">Połącz</string>
     <string name="health_connect_unavailable">Health Connect nie jest dostępny na tym urządzeniu.</string>
     <string name="health_connect_update_required">Health Connect wymaga aktualizacji.</string>
     <string name="health_connect_update">Aktualizuj</string>
     <string name="value_kcal">%1$s kcal</string>
     <string name="value_grams">%1$s g</string>
 
-    <plurals name="hc_connected_summary">
-        <item quantity="one">Połączono · %1$d z %2$d typu danych</item>
-        <item quantity="few">Połączono · %1$d z %2$d typów danych</item>
-        <item quantity="many">Połączono · %1$d z %2$d typów danych</item>
-        <item quantity="other">Połączono · %1$d z %2$d typów danych</item>
-    </plurals>
-    <string name="hc_not_connected">Nie połączono</string>
-    <string name="hc_synced_at">Zsynchronizowano %1$s. Synchronizacja uruchamia się sama po otwarciu aplikacji.</string>
-    <string name="hc_never_synced">Jeszcze nie synchronizowano. Synchronizacja uruchamia się sama po otwarciu aplikacji.</string>
-    <string name="hc_sync_now">Synchronizuj teraz</string>
-    <string name="hc_syncing">Synchronizuję…</string>
-    <string name="hc_data_types">Typy danych</string>
-    <string name="hc_access_granted">dostęp</string>
-    <string name="hc_access_missing">brak zgody</string>
     <string name="hc_change_permissions">Zmień uprawnienia w Health Connect</string>
-    <string name="hc_history">Historia</string>
-    <string name="hc_history_granted">Dane starsze niż 30 dni są pobierane, do roku wstecz.</string>
-    <string name="hc_history_missing">Pobierane są tylko ostatnie 30 dni. Zezwól na dostęp do starszych danych, żeby pobrać do roku wstecz.</string>
-    <string name="hc_optional_note">Wszystkie typy są opcjonalne. Dane są kopiowane na telefon i tu zostają, także gdy znikną z Health Connect. Przy każdej synchronizacji ostatnie 14 dni jest czytane ponownie, żeby złapać poprawki.</string>
-    <string name="hc_off_note">Aplikacja działa bez tego, opierając się tylko na Twoich treningach z siłowni.</string>
-    <string name="hc_connect_button">Połącz z Health Connect</string>
     <string name="hc_install">Zainstaluj Health Connect</string>
-    <string name="hc_benefits_title">Co zyskujesz</string>
-    <string name="hc_benefit_balance">Bilans kalorii i makro</string>
-    <string name="hc_benefit_balance_text">zjedzone i spalone, tydzień po tygodniu</string>
-    <string name="hc_benefit_body">Waga, kroki, sen</string>
-    <string name="hc_benefit_body_text">wykresy w zakładce Postęp</string>
-    <string name="hc_benefit_recovery">Tętno spoczynkowe i HRV</string>
-    <string name="hc_benefit_recovery_text">trendy regeneracji</string>
-    <string name="hc_benefit_workouts">Treningi z innych aplikacji</string>
-    <string name="hc_benefit_workouts_text">bieg czy rower obok treningów z siłowni</string>
-    <string name="hc_off_choice">Sam wybierasz, które typy danych udostępnić. Dane zostają na telefonie.</string>
-    <plurals name="hc_row_summary">
-        <item quantity="one">%1$d z %2$d typu danych · zsynchronizowano %3$s</item>
-        <item quantity="few">%1$d z %2$d typów danych · zsynchronizowano %3$s</item>
-        <item quantity="many">%1$d z %2$d typów danych · zsynchronizowano %3$s</item>
-        <item quantity="other">%1$d z %2$d typów danych · zsynchronizowano %3$s</item>
-    </plurals>
-    <plurals name="hc_row_summary_never_synced">
-        <item quantity="one">%1$d z %2$d typu danych · jeszcze nie synchronizowano</item>
-        <item quantity="few">%1$d z %2$d typów danych · jeszcze nie synchronizowano</item>
-        <item quantity="many">%1$d z %2$d typów danych · jeszcze nie synchronizowano</item>
-        <item quantity="other">%1$d z %2$d typów danych · jeszcze nie synchronizowano</item>
-    </plurals>
-    <string name="hc_row_missing">Brakuje: %1$s. Wszystkie dane są opcjonalne.</string>
     <string name="hc_type_nutrition">Odżywianie</string>
     <string name="hc_type_nutrition_text">kalorie zjedzone, makro, błonnik, cukry, sód</string>
     <string name="hc_type_calories_burned">Kalorie spalone</string>
@@ -97,12 +51,9 @@
     <string name="hc_type_steps_text">suma na dzień</string>
     <string name="hc_type_sleep">Sen</string>
     <string name="hc_type_sleep_text">czas snu, przypisany do dnia pobudki</string>
-    <string name="hc_type_workouts">Treningi</string>
-    <string name="hc_type_workouts_text">zapisane przez inne aplikacje</string>
     <string name="hc_type_resting_heart_rate">Tętno spoczynkowe</string>
     <string name="hc_type_hrv">HRV</string>
     <string name="hc_type_daily_average_text">średnia z dnia</string>
-    <string name="settings_data">Dane</string>
 
     <string name="progress_range_4w">4 tyg.</string>
     <string name="progress_range_3m">3 mies.</string>
@@ -153,7 +104,6 @@
     <string name="metric_footnote">Jeśli jednego dnia jest kilka pomiarów, liczy się ostatni. Dni bez pomiaru są pomijane.</string>
     <string name="metric_calorie_balance">Bilans kalorii</string>
     <string name="value_min">%1$s min</string>
-    <string name="value_km">%1$s km</string>
     <string name="value_grams_decimal">%1$s g</string>
     <string name="day_detail_subtitle">wszystko, co wiemy o tym dniu</string>
     <string name="day_section_calories">Kalorie</string>
@@ -166,40 +116,14 @@
     <string name="label_saturated">w tym nasycone</string>
     <string name="label_sodium">Sód</string>
     <string name="day_gym_workout">Trening z siłowni</string>
-    <string name="workout_from_health_connect">%1$s · Health Connect</string>
-    <string name="workout_type_running">Bieg</string>
-    <string name="workout_type_biking">Jazda na rowerze</string>
-    <string name="workout_type_walking">Spacer</string>
-    <string name="workout_type_hiking">Wędrówka</string>
-    <string name="workout_type_swimming">Pływanie</string>
-    <string name="workout_type_rowing">Wioślarstwo</string>
-    <string name="workout_type_elliptical">Orbitrek</string>
-    <string name="workout_type_yoga">Joga</string>
-    <string name="workout_type_pilates">Pilates</string>
-    <string name="workout_type_stretching">Rozciąganie</string>
-    <string name="workout_type_strength">Trening siłowy</string>
-    <string name="workout_type_hiit">Trening interwałowy</string>
-    <string name="workout_type_other">Inna aktywność</string>
 
     <string name="progress_strength_title">Siła · szacowany ciężar maksymalny (1RM)</string>
     <string name="progress_record">rekord</string>
 
     <string name="history_title">Wszystkie treningi</string>
     <string name="history_all">Wszystkie</string>
-    <string name="history_gym">Siłownia</string>
-    <string name="history_other_apps">Z innych aplikacji</string>
     <string name="history_workout">Trening</string>
     <string name="history_empty">Brak treningów.</string>
-    <string name="history_footnote">Treningi z innych aplikacji przychodzą z Health Connect i są tylko do odczytu.</string>
-    <string name="external_from_health_connect">%1$s · %2$s · z Health Connect</string>
-    <string name="stat_duration">czas</string>
-    <string name="stat_distance">dystans</string>
-    <string name="stat_burned">spalone</string>
-    <string name="stat_heart_rate">średnie tętno</string>
-    <string name="external_read_only_title">Tylko do odczytu</string>
-    <string name="external_read_only_text">Ten trening zapisała inna aplikacja. Widać go tutaj, ale nie da się go zmienić.</string>
-    <string name="external_note">Pokazujemy tylko to, co jest w Health Connect. Jeśli brakuje dystansu albo tętna, pole się nie wyświetla.</string>
-    <string name="external_missing">Tego treningu nie ma już w danych aplikacji.</string>
 
     <plurals name="exercise_count">
         <item quantity="one">%d ćwiczenie</item>
@@ -418,7 +342,6 @@
     </plurals>
     <string name="week_legend_done">zrobiony</string>
     <string name="week_legend_planned">zaplanowany</string>
-    <string name="week_legend_external">z innej aplikacji</string>
     <string name="week_today">dziś</string>
     <string name="week_free">wolne</string>
     <string name="week_volume_title">Serie w tym tygodniu · zrobione + w planie</string>
@@ -445,7 +368,6 @@
     <string name="coach_checked">Sprawdzono: %1$s</string>
     <string name="coach_checked_workouts">treningi</string>
     <string name="coach_checked_health">dni z Health Connect</string>
-    <string name="coach_checked_external">treningi z innych aplikacji</string>
     <string name="coach_checked_plans">plany</string>
     <string name="coach_checked_weekly_sets">serie tygodniowe i cele</string>
     <string name="coach_checked_exercise">historia: %1$s</string>
@@ -466,7 +388,6 @@
     <string name="coach_topic_plan">O planie: %1$s</string>
     <string name="coach_topic_workout">O treningu: %1$s</string>
     <string name="coach_topic_exercise">O ćwiczeniu: %1$s</string>
-    <string name="coach_topic_external">O aktywności: %1$s</string>
     <string name="coach_topic_remove">Usuń temat</string>
     <string name="coach_kind_workout_change">PROPOZYCJA · ZMIANA TRENINGU</string>
     <string name="coach_workout_change_title">Serie w treningu</string>
@@ -588,7 +509,6 @@
     <string name="model_usage_cost">Dokładny koszt widać w konsoli Anthropic.</string>
     <string name="model_tokens_million">%1$s mln</string>
     <string name="settings_change">Zmień</string>
-    <string name="settings_manage">Zarządzaj</string>
     <string name="settings_coach_memory">Co trener o mnie wie</string>
     <string name="settings_advanced">Zaawansowane</string>
     <plurals name="settings_notes_count">
@@ -605,12 +525,6 @@
         <item quantity="few">%1$d z %2$d zaplanowanych</item>
         <item quantity="many">%1$d z %2$d zaplanowanych</item>
         <item quantity="other">%1$d z %2$d zaplanowanych</item>
-    </plurals>
-    <plurals name="review_external">
-        <item quantity="one">do tego %1$d z innej aplikacji</item>
-        <item quantity="few">do tego %1$d z innych aplikacji</item>
-        <item quantity="many">do tego %1$d z innych aplikacji</item>
-        <item quantity="other">do tego %1$d z innych aplikacji</item>
     </plurals>
     <string name="review_strength">Siła</string>
     <plurals name="review_records">
@@ -639,13 +553,12 @@
     <string name="backup_import_button">Importuj z pliku</string>
     <string name="backup_footer">Klucz API nie trafia do kopii. Plik zostaje tam, gdzie go zapiszesz: aplikacja nigdzie go nie wysyła.</string>
     <string name="backup_confirm_title">Zastąpić wszystkie dane?</string>
-    <string name="backup_confirm_text">W pliku jest: treningi %1$d, plany %2$d, dni z Health Connect %3$d i notatki trenera %4$d. Import zastępuje wszystko w aplikacji i uruchamia ją od nowa.</string>
+    <string name="backup_confirm_text">W pliku jest: treningi %1$d, plany %2$d i notatki trenera %3$d. Danych z Health Connect nie ma w pliku: zostają w Health Connect. Import zastępuje wszystko w aplikacji i uruchamia ją od nowa.</string>
     <string name="backup_confirm_button">Importuj</string>
     <string name="backup_exported">Kopia została zapisana.</string>
     <string name="backup_export_failed">Nie udało się zapisać kopii.</string>
     <string name="backup_invalid_file">Tego pliku nie można zaimportować. To nie jest kopia tej aplikacji albo pochodzi z nowszej wersji.</string>
     <string name="backup_import_failed">Nie udało się zaimportować pliku.</string>
-    <string name="hc_sync_failed">Synchronizacja się nie udała. Spróbuj za chwilę.</string>
     <string name="exercise_history_empty">Nie ma jeszcze zapisanych treningów z tym ćwiczeniem. Historia pojawi się po pierwszym.</string>
     <string name="training_meet_coach_title">Poznaj swojego trenera</string>
     <string name="training_meet_coach_text">Opowiedz mu o celu, czasie i sprzęcie. Ułoży pierwsze treningi, a Ty zatwierdzisz je w czacie.</string>
@@ -661,4 +574,15 @@
     <string name="summary_discuss_with_coach">Omów z trenerem</string>
     <string name="detail_ask_coach">Zapytaj trenera o ten trening</string>
     <string name="history_ask_coach">Zapytaj trenera o to ćwiczenie</string>
+    <string name="hc_switches_note">Włączenie prosi Health Connect o dostęp. Dane są czytane z Health Connect wtedy, gdy są potrzebne, i nie są zapisywane w aplikacji; wyłączenie ukrywa je przed aplikacją i trenerem. Zgoda w Health Connect zostaje, dopóki jej tam nie odbierzesz.</string>
+    <string name="settings_coach_data_access">Do czego trener ma dostęp</string>
+    <string name="settings_health_data">Dane z Health Connect</string>
+    <string name="health_connect_choose_data">Wybierz dane w Ustawieniach</string>
+    <string name="hc_history_access">Dane sprzed 30 dni</string>
+    <string name="hc_history_access_text">wszystko, co przechowuje Health Connect, bez limitu czasu</string>
+    <string name="hc_history_allow">Zezwól</string>
+    <string name="hc_history_allowed">dostęp jest</string>
+    <string name="training_plans">Kolejne plany</string>
+    <string name="plans_all_link">Wszystkie plany</string>
+    <string name="plans_all_title">Wszystkie plany</string>
 </resources>

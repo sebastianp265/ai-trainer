@@ -22,7 +22,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
@@ -95,10 +94,6 @@ internal class ProgressViewModel(
 
     fun selectRange(selected: ProgressRange) {
         range.value = selected
-    }
-
-    fun syncAfterConnecting() {
-        viewModelScope.launch { healthService.sync() }
     }
 
     private companion object {

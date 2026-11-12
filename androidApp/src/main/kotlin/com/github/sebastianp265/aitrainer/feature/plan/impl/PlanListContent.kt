@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,9 +59,7 @@ internal fun PlanListContent(
     state: PlanListUiState,
     onOpenPlan: (Long) -> Unit,
     onNewPlan: () -> Unit,
-    onOpenTargets: () -> Unit,
     modifier: Modifier = Modifier,
-    banner: @Composable () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier,
@@ -79,7 +78,7 @@ internal fun PlanListContent(
             when {
                 state.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 state.plans.isEmpty() -> EmptyPlans(onNewPlan)
-                else -> PlanList(state, onOpenPlan, onOpenTargets, banner)
+                else -> PlanList(state, onOpenPlan)
             }
         }
     }
@@ -111,7 +110,7 @@ private fun EmptyPlans(onNewPlan: () -> Unit) {
 }
 
 @Composable
-private fun PlanList(state: PlanListUiState, onOpenPlan: (Long) -> Unit, onOpenTargets: () -> Unit, banner: @Composable () -> Unit) {
+private fun PlanList(state: PlanListUiState, onOpenPlan: (Long) -> Unit) {
     val dated = state.plans.filter { it.date != null }
     val undated = state.plans.filter { it.date == null }
     LazyColumn(
@@ -119,12 +118,6 @@ private fun PlanList(state: PlanListUiState, onOpenPlan: (Long) -> Unit, onOpenT
         contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        state.week?.let { week ->
-            item { WeekHeader(week) }
-            item { WeekStrip(week) }
-        }
-        item { banner() }
-        if (state.volumeRows.isNotEmpty()) item { WeekVolumeCard(state.volumeRows, state.showTargets, onOpenTargets) }
         if (dated.isNotEmpty()) {
             item { SectionHeader(stringResource(R.string.plan_upcoming)) }
             items(dated, key = { it.id }) { PlanCard(it, state.exercises, isNext = it == dated.first()) { onOpenPlan(it.id) } }
@@ -135,6 +128,40 @@ private fun PlanList(state: PlanListUiState, onOpenPlan: (Long) -> Unit, onOpenT
         }
     }
 }
+
+@Composable
+internal fun TrainingWeekContent(state: PlanListUiState) {
+    val week = state.week ?: return
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        WeekHeader(week)
+        WeekStrip(week)
+    }
+}
+
+@Composable
+internal fun TrainingPlansContent(
+    state: PlanListUiState,
+    onOpenPlan: (Long) -> Unit,
+    onNewPlan: () -> Unit,
+    onOpenAllPlans: () -> Unit,
+    onOpenTargets: () -> Unit,
+) {
+    if (state.isLoading) return
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SectionHeader(stringResource(R.string.training_plans)) {
+            TextButton(onClick = onOpenAllPlans, modifier = Modifier.testTag(PlanTags.ALL_PLANS)) { Text(stringResource(R.string.plans_all_link)) }
+        }
+        state.plans.drop(1).take(TRAINING_PLANS_SHOWN).forEach { plan ->
+            PlanCard(plan, state.exercises, isNext = false) { onOpenPlan(plan.id) }
+        }
+        DesignOutlinedButton(onClick = onNewPlan, Modifier.fillMaxWidth().height(48.dp).testTag(PlanTags.TRAINING_NEW_PLAN)) {
+            Text(stringResource(R.string.plan_write_own))
+        }
+        if (state.volumeRows.isNotEmpty()) WeekVolumeCard(state.volumeRows, state.showTargets, onOpenTargets)
+    }
+}
+
+private const val TRAINING_PLANS_SHOWN = 3
 
 @Composable
 private fun PlanCard(plan: Plan, exercises: Map<String, Exercise>, isNext: Boolean, onClick: () -> Unit) {
@@ -202,6 +229,8 @@ private const val SUMMARY_EXERCISES = 3
 
 internal object PlanTags {
     const val NEW_PLAN = "plan_new"
+    const val TRAINING_NEW_PLAN = "training_new_plan"
+    const val ALL_PLANS = "training_all_plans"
     const val NAME_FIELD = "plan_name"
     const val DATE_FIELD = "plan_date"
     const val SAVE = "plan_save"
@@ -235,7 +264,6 @@ private fun PlanListPreview() {
             ),
             onOpenPlan = {},
             onNewPlan = {},
-            onOpenTargets = {},
         )
     }
 }

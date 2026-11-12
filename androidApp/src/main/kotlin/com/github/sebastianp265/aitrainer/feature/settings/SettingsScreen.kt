@@ -1,10 +1,9 @@
 package com.github.sebastianp265.aitrainer.feature.settings
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.github.sebastianp265.aitrainer.feature.health.HealthConnectSettingsRow
+import com.github.sebastianp265.aitrainer.feature.health.HealthDataSection
 import com.github.sebastianp265.aitrainer.feature.settings.impl.BackupContent
 import com.github.sebastianp265.aitrainer.feature.settings.impl.BackupViewModel
 import com.github.sebastianp265.aitrainer.feature.settings.impl.SettingsActions
@@ -12,10 +11,10 @@ import com.github.sebastianp265.aitrainer.feature.settings.impl.SettingsContent
 import com.github.sebastianp265.aitrainer.feature.settings.impl.SettingsViewModel
 import com.github.sebastianp265.aitrainer.feature.settings.impl.backupFileName
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.runtime.getValue
 
 @Composable
 internal fun SettingsScreen(
-    onOpenHealthConnect: () -> Unit,
     onOpenApiKey: () -> Unit,
     onOpenModel: () -> Unit,
     onOpenMemory: () -> Unit,
@@ -32,7 +31,7 @@ internal fun SettingsScreen(
             override fun openBackup() = onOpenBackup()
         }
     }
-    SettingsContent(state, actions, healthConnectRow = { HealthConnectSettingsRow(onOpenHealthConnect) })
+    SettingsContent(state, actions, healthDataSection = { HealthDataSection() })
 }
 
 @Composable

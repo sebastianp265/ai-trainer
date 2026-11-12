@@ -91,8 +91,6 @@ abstract class AbstractE2ETest {
             database.execSQL("DELETE FROM planned_set")
             database.execSQL("DELETE FROM plan")
             listOf("coach_message", "coach_proposal", "coach_note", "coach_profile", "coach_usage", "weekly_target").forEach { database.execSQL("DELETE FROM $it") }
-            database.execSQL("DELETE FROM health_day")
-            database.execSQL("DELETE FROM health_workout")
         }
     }
 

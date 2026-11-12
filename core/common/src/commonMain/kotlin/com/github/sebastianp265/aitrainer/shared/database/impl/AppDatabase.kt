@@ -23,9 +23,6 @@ import com.github.sebastianp265.aitrainer.shared.exercise.ExerciseTranslationEnt
 import com.github.sebastianp265.aitrainer.shared.exercise.MuscleGroupEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.MuscleGroupTranslationEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.ExerciseDao
-import com.github.sebastianp265.aitrainer.shared.health.HealthDao
-import com.github.sebastianp265.aitrainer.shared.health.HealthDayEntity
-import com.github.sebastianp265.aitrainer.shared.health.HealthWorkoutEntity
 import com.github.sebastianp265.aitrainer.shared.plan.PlanDao
 import com.github.sebastianp265.aitrainer.shared.plan.PlanEntity
 import com.github.sebastianp265.aitrainer.shared.plan.PlannedSetEntity
@@ -46,8 +43,6 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
         ExerciseMuscleEntity::class,
         WorkoutSessionEntity::class,
         SetEntryEntity::class,
-        HealthDayEntity::class,
-        HealthWorkoutEntity::class,
         PlanEntity::class,
         PlannedSetEntity::class,
         WeeklyTargetEntity::class,
@@ -68,6 +63,7 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
         AutoMigration(from = 12, to = 13, spec = Migration12To13::class),
         AutoMigration(from = 13, to = 14),
         AutoMigration(from = 14, to = 15),
+        AutoMigration(from = 15, to = 16, spec = Migration15To16::class),
     ],
     exportSchema = true,
 )
@@ -76,7 +72,6 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
 internal abstract class AppDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
     abstract fun workoutDao(): WorkoutDao
-    abstract fun healthDao(): HealthDao
     abstract fun planDao(): PlanDao
     abstract fun volumeDao(): VolumeDao
     abstract fun coachDao(): CoachDao

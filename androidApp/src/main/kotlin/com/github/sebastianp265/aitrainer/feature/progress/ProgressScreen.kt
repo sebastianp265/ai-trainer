@@ -2,7 +2,6 @@ package com.github.sebastianp265.aitrainer.feature.progress
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.sebastianp265.aitrainer.feature.progress.impl.DayDetailContent
 import com.github.sebastianp265.aitrainer.feature.progress.impl.DayDetailViewModel
@@ -12,15 +11,16 @@ import com.github.sebastianp265.aitrainer.feature.progress.impl.ProgressContent
 import com.github.sebastianp265.aitrainer.feature.progress.impl.ProgressViewModel
 import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.runtime.getValue
 
 @Composable
-internal fun ProgressScreen(onOpenMetric: (ProgressMetric) -> Unit, onOpenDay: (LocalDate) -> Unit, onOpenExercise: (String) -> Unit, onOpenTargets: () -> Unit) {
+internal fun ProgressScreen(onOpenMetric: (ProgressMetric) -> Unit, onOpenDay: (LocalDate) -> Unit, onOpenExercise: (String) -> Unit, onOpenTargets: () -> Unit, onOpenSettings: () -> Unit) {
     val viewModel: ProgressViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     ProgressContent(
         state = state,
         onRangeSelected = viewModel::selectRange,
-        onHealthConnectChanged = viewModel::syncAfterConnecting,
+        onOpenSettings = onOpenSettings,
         onOpenMetric = onOpenMetric,
         onOpenDay = onOpenDay,
         onOpenExercise = onOpenExercise,

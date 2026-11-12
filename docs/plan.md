@@ -20,9 +20,7 @@ current phase in `CLAUDE.md`, then summarize what was done and what to check by 
 
 | Situation | Do |
 |---|---|
-| Requirements and a mockup disagree | Follow the requirements |
-| Both are silent on a detail | Pick the simplest option consistent with the rest, add one line to `decisions.md`, continue |
-| A mockup detail is awkward in Compose | Use the standard Material 3 component, continue |
+| The requirements are silent on a detail | Pick the simplest option consistent with the rest, add one line to `decisions.md`, continue |
 | A task turns out to need a later task | Do the needed part now, note it under that task |
 | A test can't run without an emulator | Compile it, note it in `status.md`, continue |
 | A build or test fails after three different attempts to fix it | Note what was tried in `decisions.md`, skip to the next independent task |
@@ -46,7 +44,7 @@ the phase, one commit per ticked task, never push.
 
 ### Every task also means
 
-- Strings in both `values/strings.xml` (English) and `values-pl/strings.xml` (Polish, from the mockups).
+- Strings in both `values/strings.xml` (English) and `values-pl/strings.xml` (Polish).
 - Every schema change has a migration and a migration test; the schema JSON is committed.
 - New logic has a unit test. Each new screen is reached by at least one end-to-end test that
   uses fakes at the `integration` seam.

@@ -1,11 +1,8 @@
 package com.github.sebastianp265.aitrainer.feature.health
 
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.sebastianp265.aitrainer.feature.health.impl.HealthConnectCardActions
@@ -14,28 +11,25 @@ import com.github.sebastianp265.aitrainer.feature.health.impl.HealthConnectViewM
 import com.github.sebastianp265.aitrainer.feature.health.impl.openHealthConnectInPlayStore
 import com.github.sebastianp265.aitrainer.integration.health.HealthConnectAccess
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.runtime.getValue
 
 @Composable
-internal fun HealthConnectCard(onConnectionChanged: () -> Unit) {
+internal fun HealthConnectCard(onOpenSettings: () -> Unit) {
     val viewModel: HealthConnectViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val permissionLauncher = rememberLauncherForActivityResult(PermissionController.createRequestPermissionResultContract()) {
-        viewModel.refresh()
-        onConnectionChanged()
-    }
     LifecycleResumeEffect(viewModel) {
         viewModel.refresh()
         onPauseOrDispose {}
     }
-    val actions = remember(context, permissionLauncher) {
+    val actions = remember(context, onOpenSettings) {
         object : HealthConnectCardActions {
-            override fun connect(permissions: Set<String>) = permissionLauncher.launch(permissions)
+            override fun chooseData() = onOpenSettings()
             override fun update() = context.openHealthConnectInPlayStore()
         }
     }
     val access = state.access
     if (access != null && access != HealthConnectAccess.CONNECTED) {
-        HealthConnectCardContent(access, state.requiredPermissions, actions)
+        HealthConnectCardContent(access, actions)
     }
 }

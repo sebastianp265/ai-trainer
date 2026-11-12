@@ -5,13 +5,13 @@ import kotlinx.datetime.LocalDate
 enum class HealthConnectAvailability { AVAILABLE, UPDATE_REQUIRED, UNAVAILABLE }
 
 interface HealthDataSource {
-    val permissionsToRequest: Set<String>
-
     fun availability(): HealthConnectAvailability
 
     suspend fun grantedTypes(): Set<HealthDataType>
 
-    suspend fun hasHistoryPermission(): Boolean
+    suspend fun missingPermissions(type: HealthDataType): Set<String>
+
+    suspend fun missingHistoryPermissions(): Set<String>
 
     suspend fun readNutrition(from: LocalDate, toInclusive: LocalDate): List<NutritionTotals>
 
@@ -26,6 +26,4 @@ interface HealthDataSource {
     suspend fun readRestingHeartRates(from: LocalDate, toInclusive: LocalDate): List<TimedValue>
 
     suspend fun readHeartRateVariabilities(from: LocalDate, toInclusive: LocalDate): List<TimedValue>
-
-    suspend fun readWorkouts(from: LocalDate, toInclusive: LocalDate): List<ExternalWorkoutReading>
 }

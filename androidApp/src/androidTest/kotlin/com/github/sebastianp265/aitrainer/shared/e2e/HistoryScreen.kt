@@ -1,31 +1,19 @@
 package com.github.sebastianp265.aitrainer.shared.e2e
 
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.ComposeTestRule
 
 class HistoryScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun open() {
-        waitForText("All")
+        scrollTo(hasText("All"))
         clickText("All")
         waitForText("All workouts")
     }
 
     fun assertShown() = waitForText("All workouts")
 
-    fun filterOtherApps() = clickText("From other apps")
-
-    fun filterGym() = clickText("Gym")
-
-    fun assertWorkoutListed(title: String) = waitForText(title)
-
-    fun assertWorkoutNotListed(title: String) = assertTextNotShown(title)
-
     fun assertWorkoutGone(title: String) = waitForTextGone(title)
 
     fun openWorkout(title: String) = clickText(title)
-
-    fun assertReadOnlyDetails(vararg values: String) {
-        waitForText("Read only")
-        values.forEach { waitForText(it) }
-    }
 }

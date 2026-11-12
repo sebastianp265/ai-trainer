@@ -61,7 +61,7 @@ internal fun ReviewCard(review: WeeklyReviewSummary) {
 @Composable
 private fun workoutsText(review: WeeklyReviewSummary): String {
     val base = review.plannedWorkouts?.let { pluralStringResource(R.plurals.review_workouts_of_planned, it, review.workouts, it) } ?: review.workouts.toString()
-    return if (review.externalWorkouts > 0) base + ", " + pluralStringResource(R.plurals.review_external, review.externalWorkouts, review.externalWorkouts) else base
+    return base
 }
 
 @Composable

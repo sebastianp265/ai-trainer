@@ -31,12 +31,10 @@ class AndroidDatabaseBackupITest {
         SQLiteDatabase.openOrCreateDatabase(databaseFile, null).use { database ->
             database.execSQL("CREATE TABLE workout_session (id INTEGER PRIMARY KEY, finishedAt INTEGER)")
             database.execSQL("CREATE TABLE plan (id INTEGER PRIMARY KEY)")
-            database.execSQL("CREATE TABLE health_day (date TEXT PRIMARY KEY)")
             database.execSQL("CREATE TABLE coach_note (id INTEGER PRIMARY KEY)")
             database.execSQL("CREATE TABLE coach_message (id INTEGER PRIMARY KEY)")
             database.execSQL("INSERT INTO workout_session (id, finishedAt) VALUES (1, 2000), (2, 3000), (3, NULL)")
             database.execSQL("INSERT INTO plan (id) VALUES (1)")
-            database.execSQL("INSERT INTO health_day (date) VALUES ('2026-11-01'), ('2026-11-02')")
             database.execSQL("INSERT INTO coach_note (id) VALUES (1)")
             database.version = 12
         }
@@ -58,7 +56,6 @@ class AndroidDatabaseBackupITest {
         assertEquals(12, contents.schemaVersion)
         assertEquals(2, contents.workouts)
         assertEquals(1, contents.plans)
-        assertEquals(2, contents.healthDays)
         assertEquals(1, contents.coachNotes)
         assertEquals(0, contents.coachMessages)
     }

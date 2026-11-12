@@ -153,7 +153,7 @@ internal fun BackupContent(
         AlertDialog(
             onDismissRequest = onCancelImport,
             title = { Text(stringResource(R.string.backup_confirm_title)) },
-            text = { Text(stringResource(R.string.backup_confirm_text, contents.workouts, contents.plans, contents.healthDays, contents.coachNotes)) },
+            text = { Text(stringResource(R.string.backup_confirm_text, contents.workouts, contents.plans, contents.coachNotes)) },
             confirmButton = { TextButton(onClick = onConfirmImport, Modifier.testTag(BackupTags.CONFIRM)) { Text(stringResource(R.string.backup_confirm_button)) } },
             dismissButton = { TextButton(onClick = onCancelImport) { Text(stringResource(R.string.cancel)) } },
         )

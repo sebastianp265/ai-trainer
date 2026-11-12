@@ -15,18 +15,19 @@ The emulator needs API 34+ with a *Google Play* image.
 
 ## What to expect, screen by screen
 
-**Look.** Every screen follows the mockups in `docs/design/screens`: the green design palette (light and dark, no wallpaper colors),
-the mockups' line icons, filled cards with small gray labels, grouped settings rows, colored tags (record, from plan, Health Connect)
+**Look.** Every screen uses the app's green palette (light and dark, no wallpaper colors),
+line icons, filled cards with small gray labels, grouped settings rows, colored tags (record, from plan, Health Connect)
 and green/orange text for good and off-target values. Plans written by the coach show the coach's note on the plan details.
 
-The app opens on **Training**. The bottom bar has four tabs: Training · Plan · Coach · Progress; with the coach switched off
+The app opens on **Training**. The bottom bar has three tabs: Training · Coach · Progress; with the coach switched off
 in Settings the Coach tab and every coach element disappear. Every tab has a gear icon in the top
 bar that opens **Settings**. While a workout runs, the workout screen covers everything (no bottom bar, no top bar); if you close
 the app during a workout, it opens on the workout again.
 
 | Screen | State | What you can do |
 |---|---|---|
-| **Training** | ✅ Works | Shows the next plan with "Start" and "Other workout" (a sheet with every plan and "Empty workout"), or "Start on your own" when you have no plans. Below: recent workouts (tap one to see it) and "All". |
+| **Training** | ✅ Works | From the top: the week strip (done, planned), a pending coach proposal, the next plan with "Start" and "Other workout" (a sheet with every plan and "Empty workout") or "Start on your own" when you have no plans, the next three plans with "All plans" and "Write your own plan", the sets per muscle group this week against the targets ("Targets"), and recent workouts with "All". There is no separate Plan tab. |
+| **All plans** | ✅ Works | Opened from "All plans" on Training: upcoming plans by date, then plans without a date, "New plan". |
 | **Workout in progress** | ✅ Works | Exercise cards with a "Last time" line (tap for the exercise history). Per set: tap the number to mark a warm-up, tap the weight or the reps to type, − / + for reps, tap RPE to pick 6 to 10, delete. "+ Set", "Same as last time", the microphone (say "80 na 8, RPE 8" and the set is added), remove an exercise, add an exercise. The coach button next to the title opens the coach about this workout. "Discard" asks for confirmation; "Finish" saves and opens the summary. |
 | **Summary** | ✅ Works | Time, working sets, average RPE; new records; comparison with the plan ("on plan", "−1 set", "+2.5 kg", "+1 reps"); the previous workout of the same plan; "See all sets". |
 | **Finished workout** | ✅ Works | All sets with RPE and, for a planned workout, the plan line and the difference. Edit (re-opens it as a running workout) and delete (with confirmation). |
@@ -36,16 +37,16 @@ the app during a workout, it opens on the workout again.
 | **Plan details / edit / new** | ✅ Works | Details with warm-ups and grouped sets; "Start workout"; edit (name, optional date, exercises, weight, reps, RPE, warm-up flag); delete with confirmation. |
 | **Progress** | ✅ Works | As before, plus the card "Sets per muscle group · weekly average" with the target band, legend, an info box and a link to the targets. An accepted nutrition target shows under the calorie balance and the macros. |
 | **Weekly set targets** | ✅ Works | Ranges per muscle group (default 10–20), source and date, "Show targets" switch, "Restore defaults". |
-| **All workouts** | ✅ Works | Gym workouts (tap to open) and workouts from other apps. |
+| **All workouts** | ✅ Works | Gym workouts by month; tap one to open it. |
 | **Coach** | ✅ Works, not tried with a real key | Chat with the coach: starter suggestions in the first conversation, a "Checked: …" line under an answer, "The coach is checking/writing" while it works. Proposal cards (new plan, plan change, several plans or a block of weeks, target change, change of the sets of a running or finished workout, new exercise, daily calorie and protein target) with "Accept", "Preview" for plans and, for several plans, "Accept all". An accepted card has "Undo" while nothing used it since. Opened from a plan, workout, exercise or activity, the chat shows that topic above the input ("About plan: Push A") and sends it with the next message; opened from a running workout it also offers quick questions. Without a key the tab leads to the key screen; no network, a rejected key and no answer each show their own message with "Try again". |
-| **Proposal preview** | ✅ Works | The proposed plan with the changes marked (added, removed, sets, weight); "Accept" or "Reply to the coach". A pending proposal also shows as a card on Training, Plan and the targets screen. |
+| **Proposal preview** | ✅ Works | The proposed plan with the changes marked (added, removed, sets, weight); "Accept" or "Reply to the coach". A pending proposal also shows as a card on Training and the targets screen. |
 | **Weekly review** | ✅ Works, not tried with a real key | When the app comes to the foreground after a finished Monday-to-Sunday week with data, the coach posts a card with the week's numbers and its review in the chat. |
 | **What the coach knows about me** | ✅ Works | Profile (goal, time, equipment, limitations, preferences), weekly set targets, coach notes; everything can be edited or deleted. |
-| **Settings** | ✅ Works | Coach switch (on at first). With it on: Claude API key, model, coach memory. Health Connect row. "Data backup". |
+| **Settings** | ✅ Works | Coach switch (on at first). With it on: Claude API key, model, coach memory. Section "What your coach can access" (with the coach off: "Health Connect data") with a switch per Health Connect data type and "Data older than 30 days" with "Allow". "Data backup". |
 | **API key** | ✅ Works, not tried with a real key | Paste a key, "Save and check" (one call that spends no tokens), remove the key. |
 | **Coach model** | ✅ Works | Opus, Sonnet or Haiku; messages and tokens used this month, counted on the phone. |
 | **Data backup** | ✅ Works, not tried between two devices | Export everything except the API key to one file. Import shows what the file contains, asks, replaces all data and restarts the app. |
-| **Health Connect** | ✅ Works | Unchanged from phase 4. |
+| **Health Connect** | ✅ Works | Nothing is copied into the app: Progress, the day detail and the coach read Health Connect when they open and again whenever the app comes back to the foreground. No separate screen and no sync buttons; everything is in the Settings section. Switching on asks Health Connect for that one item; switching off hides that data from the app and the coach (the permission in Health Connect stays; "Change permissions in Health Connect" opens it). "Allow" next to "Data older than 30 days" asks for access to past data, with no time limit. Workouts recorded by other apps are not read. The Progress card without data opens Settings. |
 
 ### Things to check by hand on the phone
 
@@ -53,19 +54,19 @@ the app during a workout, it opens on the workout again.
   ("Compared to plan") and the finished workout.
 - The "Last time" line with several groups (it should break only at " · " and show "+N" when it does not fit in two lines).
 - A second workout with a heavier set shows a record in the summary.
-- Weekly sets: after a workout the Plan tab and the Progress card move; bench press counts 1 for chest and 0.5 for arms and shoulders.
-- Polish texts of all new screens (they were written from the mockups and have not been read on a phone).
+- Weekly sets: after a workout the sets on Training and the Progress card move; bench press counts 1 for chest and 0.5 for arms and shoulders.
+- Polish texts of all new screens (they have not been read on a phone).
 - The workout screen after closing and reopening the app in the middle of a workout.
-- With your own key: talk to the coach, accept a plan and a target change, and check the plan on the Plan tab and the targets.
+- With your own key: talk to the coach, accept a plan and a target change, and check the plan on Training and the targets.
 - Open the app after a full week of data and read the weekly review.
 - Export a backup, import it (best on a second device), and check that the data is back. The API key is not in the file.
 - With your own key: during a workout tap the coach button, ask "Za ciężko", accept the change and check the sets; then tap "Cofnij" on the card.
 - Ask the coach about a finished workout with a typo (e.g. 800 kg) and accept the correction.
 - Ask the coach for a calorie and protein target and check Progress; ask for a new exercise and find it in the exercise picker.
 - Dictate a set with the microphone during a workout ("80 na 8, RPE 8"), in Polish and English.
-- Look through every screen in light and dark mode and compare it with the mockups in `docs/design/screens`.
+- Look through every screen in light and dark mode.
 - Switch the coach off and check that the Coach tab and the coach shortcuts are gone.
-- Connect Health Connect from Progress: the system permission screen opens, and after allowing, the "Connect" card is gone (no automated test taps that system screen).
+- Switch on a Health Connect type in Settings that has no permission yet: the system permission screen opens for that type only, and after allowing, the switch is on and its data appears in Progress (no automated test taps that system screen).
 
 ### Database
 
@@ -79,14 +80,11 @@ Nothing planned is missing. See the known gaps below.
 
 ## Known gaps
 
-- The Polish texts of the new screens were written from the mockups and have not been read on a phone.
-- Only the strings of Health Connect workout types listed in `ExternalWorkoutText.kt` have their own names; other types show "Other activity".
-- A first sync made without the "past data" permission is not extended to a year when the permission is granted later.
-- Sync errors show one line on the Health Connect screen only.
+- The Polish texts of the new screens have not been read on a phone.
+- When Health Connect cannot be read (for example its read limit is reached), the screens show no Health Connect data instead of an error.
 - Voice entry is tested only through its parser; the system speech screen is never tapped by the tests.
 - Not checked on a phone with a real key: the real Claude calls, the weekly review text, and backup import with a file from another device (the app restarts after an import).
-- Differences from the mockups: the launcher icon and splash screen are still the Android defaults; the proposal card has no
-  duration estimate ("about 45 min"); the Progress tiles (steps, sleep, heart rate, HRV) and strength rows have no small trend lines.
+- The launcher icon and splash screen are still the Android defaults.
 - The IDE shows unresolved references in `jvmTest` files; Gradle compiles them (see `decisions.md`).
 - The end-to-end tests depend on the emulator. With 2 GB of RAM the emulator showed "System UI isn't responding" and tests failed because of that window; give it 4 GB.
 

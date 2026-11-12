@@ -36,10 +36,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -75,6 +73,8 @@ import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
 import com.github.sebastianp265.aitrainer.shared.design.DesignFilterChip
 import com.github.sebastianp265.aitrainer.shared.design.extendedColors
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
 internal interface CoachActions {
     fun send(text: String)
@@ -264,7 +264,6 @@ private fun checkedPhrases(tokens: List<String>, exercises: Map<String, Exercise
         when {
             token == "workouts" -> stringResource(R.string.coach_checked_workouts)
             token == "health_days" -> stringResource(R.string.coach_checked_health)
-            token == "external_workouts" -> stringResource(R.string.coach_checked_external)
             token == "plans" -> stringResource(R.string.coach_checked_plans)
             token == "weekly_sets" -> stringResource(R.string.coach_checked_weekly_sets)
             token == "workout" -> stringResource(R.string.coach_checked_workout)
@@ -463,7 +462,6 @@ private fun toolPhrase(tool: String): String = when (tool) {
     "get_workouts" -> stringResource(R.string.coach_checked_workouts)
     "get_exercise_history" -> stringResource(R.string.coach_tool_exercise_history)
     "get_health_days" -> stringResource(R.string.coach_checked_health)
-    "get_external_workouts" -> stringResource(R.string.coach_checked_external)
     "get_plans" -> stringResource(R.string.coach_checked_plans)
     "get_weekly_sets" -> stringResource(R.string.coach_checked_weekly_sets)
     "get_workout" -> stringResource(R.string.coach_checked_workout)
@@ -548,7 +546,6 @@ private fun topicText(topic: CoachTopic): String = stringResource(
         TopicKind.WORKOUT -> R.string.coach_topic_workout
         TopicKind.ACTIVE_WORKOUT -> R.string.coach_topic_active_workout
         TopicKind.EXERCISE -> R.string.coach_topic_exercise
-        TopicKind.EXTERNAL_WORKOUT -> R.string.coach_topic_external
     },
     topic.label,
 )

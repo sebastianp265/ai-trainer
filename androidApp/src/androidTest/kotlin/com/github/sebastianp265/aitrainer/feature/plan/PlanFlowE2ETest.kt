@@ -3,7 +3,6 @@ package com.github.sebastianp265.aitrainer.feature.plan
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.sebastianp265.aitrainer.shared.e2e.AbstractE2ETest
 import com.github.sebastianp265.aitrainer.shared.e2e.BENCH_PRESS
-import com.github.sebastianp265.aitrainer.shared.e2e.BottomBarScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.ExercisePickerScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.PlanScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.sets
@@ -13,20 +12,19 @@ import kotlin.test.Test
 @RunWith(AndroidJUnit4::class)
 class PlanFlowE2ETest : AbstractE2ETest() {
 
-    private val bottomBar = BottomBarScreen(compose)
     private val plans = PlanScreen(compose)
     private val picker = ExercisePickerScreen(compose)
 
     @Test
-    fun `without plans the Plan tab invites to write one`() {
-        openPlanTab()
+    fun `without plans the list of all plans invites to write one`() {
+        openAllPlans()
 
         plans.assertNoPlansYet()
     }
 
     @Test
     fun `a plan needs a name and an exercise and is then shown in detail and in the list`() {
-        openPlanTab()
+        openAllPlans()
 
         plans.startWritingOwnPlan()
         plans.assertCannotSave()
@@ -46,7 +44,7 @@ class PlanFlowE2ETest : AbstractE2ETest() {
     @Test
     fun `an edited plan shows its new numbers`() {
         given.plan("Push A", sets(BENCH_PRESS, kg = 80.0))
-        openPlanTab()
+        openAllPlans()
         plans.open("Push A")
 
         plans.edit()
@@ -59,7 +57,7 @@ class PlanFlowE2ETest : AbstractE2ETest() {
     @Test
     fun `a deleted plan disappears after confirmation`() {
         given.plan("Push A", sets(BENCH_PRESS))
-        openPlanTab()
+        openAllPlans()
         plans.open("Push A")
 
         plans.delete()
@@ -68,8 +66,8 @@ class PlanFlowE2ETest : AbstractE2ETest() {
         plans.assertNoPlansYet()
     }
 
-    private fun openPlanTab() {
+    private fun openAllPlans() {
         launchApp()
-        bottomBar.open("Plan")
+        plans.openAll()
     }
 }

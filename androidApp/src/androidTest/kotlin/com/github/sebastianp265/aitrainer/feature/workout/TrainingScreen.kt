@@ -16,7 +16,10 @@ class TrainingScreen(compose: ComposeTestRule) : Screen(compose) {
         assertNoRecentWorkouts()
     }
 
-    fun assertNoRecentWorkouts() = waitForText("You have no workouts yet")
+    fun assertNoRecentWorkouts() {
+        scrollTo(hasText("You have no workouts yet"))
+        waitForText("You have no workouts yet")
+    }
 
     fun assertNextPlan(planName: String) {
         waitFor(hasTestTag(LogWorkoutTags.NEXT_PLAN))
@@ -44,12 +47,12 @@ class TrainingScreen(compose: ComposeTestRule) : Screen(compose) {
     }
 
     fun assertRecentWorkout(title: String) {
-        waitFor(hasTestTag(LogWorkoutTags.RECENT_SESSION))
+        scrollTo(hasTestTag(LogWorkoutTags.RECENT_SESSION))
         waitForText(title)
     }
 
     fun openRecentWorkout(title: String) {
-        waitFor(hasTestTag(LogWorkoutTags.RECENT_SESSION))
+        scrollTo(hasTestTag(LogWorkoutTags.RECENT_SESSION))
         compose.onAllNodes(hasTestTag(LogWorkoutTags.RECENT_SESSION) and hasText(title), useUnmergedTree = false)[0].performClick()
     }
 

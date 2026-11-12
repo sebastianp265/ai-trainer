@@ -44,7 +44,7 @@ class DefaultCoachServiceUTest {
         assertTrue("1 exercises, 1 working sets" in request.system)
         assertEquals(listOf(ClaudeRole.USER), request.messages.map { it.role })
         assertEquals(ClaudeContent.Text("How am I doing?"), request.messages.single().content.single())
-        assertEquals(19, request.tools.size)
+        assertEquals(18, request.tools.size)
     }
 
     @Test

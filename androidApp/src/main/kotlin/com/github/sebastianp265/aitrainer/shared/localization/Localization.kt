@@ -26,13 +26,6 @@ internal fun formatDate(date: LocalDate): String {
 }
 
 @Composable
-internal fun formatDateTime(instant: Instant): String {
-    val locale = LocalConfiguration.current.locales[0]
-    val format = remember(locale) { DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withLocale(locale) }
-    return format.format(instant.toLocalDateTime(TimeZone.currentSystemDefault()).toJavaLocalDateTime())
-}
-
-@Composable
 internal fun formatNumber(value: Double, fractionDigits: Int = 0, signed: Boolean = false): String {
     val locale = LocalConfiguration.current.locales[0]
     val format = remember(locale, fractionDigits, signed) {

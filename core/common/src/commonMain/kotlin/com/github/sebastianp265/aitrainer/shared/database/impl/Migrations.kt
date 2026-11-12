@@ -61,3 +61,11 @@ internal class Migration8To9 : AutoMigrationSpec
 
 @DeleteTable(tableName = "coach_log")
 internal class Migration12To13 : AutoMigrationSpec
+
+@DeleteTable(tableName = "health_day")
+@DeleteTable(tableName = "health_workout")
+internal class Migration15To16 : AutoMigrationSpec {
+    override fun onPostMigrate(connection: SQLiteConnection) {
+        connection.execSQL("UPDATE coach_message SET topic_kind = NULL, topic_id = NULL, topic_label = NULL WHERE topic_kind = 'EXTERNAL_WORKOUT'")
+    }
+}

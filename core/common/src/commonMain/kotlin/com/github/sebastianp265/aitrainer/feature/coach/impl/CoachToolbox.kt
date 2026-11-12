@@ -20,7 +20,6 @@ import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
@@ -58,7 +57,6 @@ internal class CoachToolbox(
         tool("get_exercise_history", "History of one exercise: per session the working sets, estimated 1RM and average RPE.", """{"type":"object","properties":{"exerciseKey":{"type":"string"}},"required":["exerciseKey"]}"""),
         tool("find_exercises", "Finds exercise keys by a name fragment. Use it before proposing exercises.", """{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}"""),
         tool("get_health_days", "Daily values from Health Connect (calories, macros, weight, steps, sleep, resting heart rate, HRV) between two dates (YYYY-MM-DD). Missing values are left out.", """{"type":"object","properties":{"from":{"type":"string"},"to":{"type":"string"}},"required":["from","to"]}"""),
-        tool("get_external_workouts", "Workouts recorded by other apps (Health Connect) between two dates.", """{"type":"object","properties":{"from":{"type":"string"},"to":{"type":"string"}},"required":["from","to"]}"""),
         tool("get_plans", "Upcoming plans (not done yet) with all their sets.", """{"type":"object","properties":{}}"""),
         tool("get_weekly_sets", "Working sets per muscle group per week (primary 1, secondary 0.5) for the last N weeks, with the weekly targets.", """{"type":"object","properties":{"weeks":{"type":"integer"}}}"""),
         tool("get_workout", "All sets of one gym workout. Without sessionId: the workout running right now.", """{"type":"object","properties":{"sessionId":{"type":"integer"}}}"""),
@@ -95,7 +93,6 @@ internal class CoachToolbox(
             "get_exercise_history" -> getExerciseHistory(input.string("exerciseKey"))
             "find_exercises" -> findExercises(input.string("query"))
             "get_health_days" -> getHealthDays(input.date("from"), input.date("to"))
-            "get_external_workouts" -> getExternalWorkouts(input.date("from"), input.date("to"))
             "get_plans" -> getPlans()
             "get_weekly_sets" -> getWeeklySets(input.int("weeks") ?: 4)
             "get_workout" -> getWorkout(input.int("sessionId")?.toLong())
@@ -156,13 +153,6 @@ internal class CoachToolbox(
             ).joinToString(", ", prefix = "${d.date}: ")
         }
         return ToolRun(text.ifEmpty { "No Health Connect data between $from and $to." }, checked = "health_days")
-    }
-
-    private suspend fun getExternalWorkouts(from: LocalDate, to: LocalDate): ToolRun {
-        val zone = TimeZone.currentSystemDefault()
-        val list = health.observeWorkouts().first().filter { it.startedAt.toLocalDateTime(zone).date in from..to }
-        val text = list.joinToString("\n") { "${it.startedAt.toLocalDateTime(zone).date} ${it.type} ${it.durationMinutes} min" + (it.distanceM?.let { d -> ", ${roundKg(d / 1000)} km" } ?: "") }
-        return ToolRun(text.ifEmpty { "No workouts from other apps between $from and $to." }, checked = "external_workouts")
     }
 
     private suspend fun getPlans(): ToolRun {

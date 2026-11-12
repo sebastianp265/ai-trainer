@@ -41,7 +41,6 @@ internal class AndroidDatabaseBackup(private val context: Context) : DatabaseBac
                         schemaVersion = database.version,
                         workouts = database.count("workout_session WHERE finishedAt IS NOT NULL"),
                         plans = database.count("plan"),
-                        healthDays = database.count("health_day"),
                         coachNotes = database.count("coach_note"),
                         coachMessages = database.count("coach_message"),
                     )

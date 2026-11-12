@@ -42,7 +42,8 @@ class WeeklyReviewFlowE2ETest : AbstractE2ETest() {
         coach.assertCoachSaid("Here is next week.")
         coach.acceptAll()
         coach.assertProposalState("ACCEPTED")
-        tabs.open("Plan")
+        tabs.open("Training")
+        plans.openAll()
         plans.assertListed("Push A")
         plans.assertListed("Legs B")
     }

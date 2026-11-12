@@ -15,7 +15,6 @@ internal enum class TopLevelDestination(
     val icon: ImageVector,
 ) {
     LOG(LogRoute, LogRoute::class, R.string.nav_log, DesignIcons.Training),
-    PLAN(PlanRoute, PlanRoute::class, R.string.nav_plan, DesignIcons.Plan),
     COACH(CoachRoute, CoachRoute::class, R.string.nav_coach, DesignIcons.Coach),
     PROGRESS(ProgressRoute, ProgressRoute::class, R.string.nav_progress, DesignIcons.Progress),
 }
@@ -34,9 +33,6 @@ internal object ProgressRoute
 
 @Serializable
 internal object SettingsRoute
-
-@Serializable
-internal object HealthConnectRoute
 
 @Serializable
 internal data class ProgressMetricRoute(val metric: ProgressMetric)
@@ -89,17 +85,14 @@ internal object HistoryRoute
 @Serializable
 internal data class CoachAboutRoute(val topicKind: String, val topicId: String, val topicLabel: String)
 
-@Serializable
-internal data class ExternalWorkoutRoute(val startedAtMillis: Long)
-
 internal val fullScreenRoutes = listOf(ActiveWorkoutRoute::class, ExercisePickerRoute::class, PlanDetailRoute::class, PlanEditRoute::class,
     WorkoutSummaryRoute::class, WorkoutDetailRoute::class, CoachProposalRoute::class,
 )
 
 internal val nestedRoutes = listOf(
+    PlanRoute::class,
     CoachAboutRoute::class,
     SettingsRoute::class,
-    HealthConnectRoute::class,
     ProgressMetricRoute::class,
     DayDetailRoute::class,
     HistoryRoute::class,
@@ -109,5 +102,4 @@ internal val nestedRoutes = listOf(
     ModelRoute::class,
     BackupRoute::class,
     ExerciseHistoryRoute::class,
-    ExternalWorkoutRoute::class,
 )

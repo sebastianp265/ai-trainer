@@ -36,7 +36,7 @@ import androidx.compose.material3.Icon
 internal fun SettingsContent(
     state: SettingsUiState,
     actions: SettingsActions,
-    healthConnectRow: @Composable () -> Unit,
+    healthDataSection: @Composable () -> Unit,
 ) {
     if (state.isLoading) {
         Box(Modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
@@ -93,8 +93,8 @@ internal fun SettingsContent(
                 )
             }
         }
-        item { SectionHeader(stringResource(R.string.settings_data)) }
-        item { healthConnectRow() }
+        item { SectionHeader(stringResource(if (state.isCoachEnabled) R.string.settings_coach_data_access else R.string.settings_health_data)) }
+        item { healthDataSection() }
         item { SectionHeader(stringResource(R.string.settings_advanced)) }
         item {
             GroupCard {
@@ -191,7 +191,7 @@ private fun SettingsPreview() {
                     override fun openMemory() = Unit
                     override fun openBackup() = Unit
                 },
-                healthConnectRow = {},
+                healthDataSection = {},
             )
         }
     }

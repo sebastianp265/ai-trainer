@@ -43,7 +43,7 @@ import com.github.sebastianp265.aitrainer.shared.volume.VolumeRow
 import com.github.sebastianp265.aitrainer.shared.volume.status
 import kotlinx.datetime.LocalDate
 
-internal data class WeekDay(val date: LocalDate, val isToday: Boolean, val done: Boolean, val planned: Boolean, val external: Boolean)
+internal data class WeekDay(val date: LocalDate, val isToday: Boolean, val done: Boolean, val planned: Boolean)
 
 internal data class WeekUi(val days: List<WeekDay>, val doneCount: Int, val plannedCount: Int)
 
@@ -75,12 +75,11 @@ internal fun WeekStrip(week: WeekUi) {
         Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             LegendMarker(MarkerKind.DONE, stringResource(R.string.week_legend_done))
             LegendMarker(MarkerKind.PLANNED, stringResource(R.string.week_legend_planned))
-            LegendMarker(MarkerKind.EXTERNAL, stringResource(R.string.week_legend_external))
         }
     }
 }
 
-private enum class MarkerKind { DONE, PLANNED, EXTERNAL }
+private enum class MarkerKind { DONE, PLANNED }
 
 @Composable
 private fun DayCell(day: WeekDay, modifier: Modifier) {
@@ -96,7 +95,6 @@ private fun DayCell(day: WeekDay, modifier: Modifier) {
             Row(horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterHorizontally), modifier = Modifier.height(10.dp)) {
                 if (day.done) Marker(MarkerKind.DONE)
                 if (day.planned) Marker(MarkerKind.PLANNED)
-                if (day.external) Marker(MarkerKind.EXTERNAL)
             }
         }
     }
@@ -109,8 +107,7 @@ private fun dayDescription(day: WeekDay): String {
         if (day.isToday) add(stringResource(R.string.week_today))
         if (day.done) add(stringResource(R.string.week_legend_done))
         if (day.planned) add(stringResource(R.string.week_legend_planned))
-        if (day.external) add(stringResource(R.string.week_legend_external))
-        if (!day.done && !day.planned && !day.external) add(stringResource(R.string.week_free))
+        if (!day.done && !day.planned) add(stringResource(R.string.week_free))
     }
     return parts.joinToString(", ")
 }
@@ -120,7 +117,7 @@ private fun Marker(kind: MarkerKind) {
     val color = markerColor(kind)
     val modifier = Modifier.size(10.dp)
     when (kind) {
-        MarkerKind.DONE, MarkerKind.EXTERNAL -> Box(modifier.background(color, CircleShape))
+        MarkerKind.DONE -> Box(modifier.background(color, CircleShape))
         MarkerKind.PLANNED -> Box(modifier.border(2.dp, color, CircleShape))
     }
 }
@@ -129,7 +126,6 @@ private fun Marker(kind: MarkerKind) {
 private fun markerColor(kind: MarkerKind): Color = when (kind) {
     MarkerKind.DONE -> MaterialTheme.colorScheme.primary
     MarkerKind.PLANNED -> MaterialTheme.colorScheme.primary
-    MarkerKind.EXTERNAL -> MaterialTheme.colorScheme.tertiary
 }
 
 @Composable

@@ -113,7 +113,6 @@ internal class DefaultCoachService(
             weekStart = weekStart,
             workouts = sessions.size,
             plannedWorkouts = (fromPlans + plannedUndone).takeIf { it > 0 },
-            externalWorkouts = health.observeWorkouts().first().count { it.startedAt.toLocalDateTime(TimeZone.currentSystemDefault()).date in weekStart..weekEnd },
             records = reports.sumOf { it.records.size },
             thisWeek = health.observeDays(weekStart, weekEnd).first(),
             weekBefore = health.observeDays(weekStart.minus(DatePeriod(days = 7)), weekStart.minus(DatePeriod(days = 1))).first(),

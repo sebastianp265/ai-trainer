@@ -16,7 +16,6 @@ internal fun reviewSummary(
     weekStart: LocalDate,
     workouts: Int,
     plannedWorkouts: Int?,
-    externalWorkouts: Int,
     records: Int,
     thisWeek: List<HealthDay>,
     weekBefore: List<HealthDay>,
@@ -31,7 +30,6 @@ internal fun reviewSummary(
         weekEnd = weekStart.plus(DatePeriod(days = DAYS_IN_WEEK - 1)),
         workouts = workouts,
         plannedWorkouts = plannedWorkouts,
-        externalWorkouts = externalWorkouts,
         records = records,
         weightFromKg = weights.firstOrNull(),
         weightToKg = weights.lastOrNull()?.takeIf { weights.size > 1 },
@@ -43,12 +41,12 @@ internal fun reviewSummary(
 }
 
 internal fun WeeklyReviewSummary.hasAnything(): Boolean =
-    workouts > 0 || externalWorkouts > 0 || weightFromKg != null || averageBalanceKcal != null || averageSleepMinutes != null
+    workouts > 0 || weightFromKg != null || averageBalanceKcal != null || averageSleepMinutes != null
 
 internal fun WeeklyReviewSummary.asPrompt(): String = buildString {
     appendLine("WEEKLY REVIEW of $weekStart to $weekEnd. Write a short review of the week for the user, then, if it makes sense, propose next week's plans with propose_plans (dated plans). Mention what you checked.")
     appendLine("Numbers already shown to the user as a card:")
-    appendLine("- gym workouts: $workouts" + (plannedWorkouts?.let { " (planned: $it)" } ?: "") + ", workouts from other apps: $externalWorkouts, records: $records")
+    appendLine("- gym workouts: $workouts" + (plannedWorkouts?.let { " (planned: $it)" } ?: "") + ", records: $records")
     weightFromKg?.let { appendLine("- weight: $it" + (weightToKg?.let { to -> " -> $to" } ?: "") + " kg") }
     averageBalanceKcal?.let { appendLine("- average calorie balance per day: $it kcal") }
     averageProteinG?.let { appendLine("- average protein: $it g") }
@@ -61,7 +59,6 @@ internal data class ReviewPayload(
     val weekEnd: String,
     val workouts: Int,
     val plannedWorkouts: Int? = null,
-    val externalWorkouts: Int,
     val records: Int,
     val weightFromKg: Double? = null,
     val weightToKg: Double? = null,
@@ -72,12 +69,12 @@ internal data class ReviewPayload(
 )
 
 internal fun WeeklyReviewSummary.toPayload() = ReviewPayload(
-    weekStart.toString(), weekEnd.toString(), workouts, plannedWorkouts, externalWorkouts, records,
+    weekStart.toString(), weekEnd.toString(), workouts, plannedWorkouts, records,
     weightFromKg, weightToKg, averageBalanceKcal, averageProteinG, averageSleepMinutes, sleepChangeMinutes,
 )
 
 internal fun ReviewPayload.toSummary() = WeeklyReviewSummary(
-    LocalDate.parse(weekStart), LocalDate.parse(weekEnd), workouts, plannedWorkouts, externalWorkouts, records,
+    LocalDate.parse(weekStart), LocalDate.parse(weekEnd), workouts, plannedWorkouts, records,
     weightFromKg, weightToKg, averageBalanceKcal, averageProteinG, averageSleepMinutes, sleepChangeMinutes,
 )
 

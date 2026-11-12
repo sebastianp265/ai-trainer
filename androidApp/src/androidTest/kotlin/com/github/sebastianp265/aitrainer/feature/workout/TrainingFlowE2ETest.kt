@@ -4,7 +4,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.sebastianp265.aitrainer.shared.e2e.AbstractE2ETest
 import com.github.sebastianp265.aitrainer.shared.e2e.BACK_SQUAT
 import com.github.sebastianp265.aitrainer.shared.e2e.BENCH_PRESS
-import com.github.sebastianp265.aitrainer.shared.e2e.BottomBarScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.LogWorkoutScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.PlanScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.sets
@@ -14,7 +13,6 @@ import kotlin.test.Test
 @RunWith(AndroidJUnit4::class)
 class TrainingFlowE2ETest : AbstractE2ETest() {
 
-    private val bottomBar = BottomBarScreen(compose)
     private val training = TrainingScreen(compose)
     private val plans = PlanScreen(compose)
     private val workout = LogWorkoutScreen(compose)
@@ -64,7 +62,7 @@ class TrainingFlowE2ETest : AbstractE2ETest() {
 
         training.assertNoNextPlan()
         training.assertRecentWorkout("Push A")
-        bottomBar.open("Plan")
+        plans.openAll()
         plans.assertNoPlansYet()
     }
 }

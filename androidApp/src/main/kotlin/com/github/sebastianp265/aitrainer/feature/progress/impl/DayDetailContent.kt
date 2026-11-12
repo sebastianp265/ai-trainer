@@ -28,14 +28,10 @@ import androidx.compose.material3.Card
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.integration.health.HealthDay
-import com.github.sebastianp265.aitrainer.integration.health.HealthWorkout
 import com.github.sebastianp265.aitrainer.integration.workout.SessionSummary
-import com.github.sebastianp265.aitrainer.shared.health.externalWorkoutDetails
-import com.github.sebastianp265.aitrainer.shared.health.externalWorkoutTitle
 import com.github.sebastianp265.aitrainer.shared.localization.formatDateLong
 import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
 import kotlinx.datetime.LocalDate
-import kotlin.time.Instant
 
 @Composable
 internal fun DayDetailContent(state: DayDetailUiState?) {
@@ -62,12 +58,11 @@ internal fun DayDetailContent(state: DayDetailUiState?) {
         val body = day?.bodyRows().orEmpty()
         if (body.isNotEmpty()) section(R.string.day_section_body, body)
         val activity = day?.stepsRow().orEmpty()
-        if (activity.isNotEmpty() || state.externalWorkouts.isNotEmpty() || state.gymSessions.isNotEmpty()) {
+        if (activity.isNotEmpty() || state.gymSessions.isNotEmpty()) {
             item {
                 DetailCard(R.string.day_section_activity) {
                     activity.forEach { DetailRow(it) }
                     state.gymSessions.forEach { session -> GymRow(session) }
-                    state.externalWorkouts.forEach { workout -> ExternalRow(workout) }
                 }
             }
         }
@@ -154,18 +149,6 @@ private fun GymRow(session: SessionSummary) {
     }
 }
 
-@Composable
-private fun ExternalRow(workout: HealthWorkout) {
-    Column {
-        Text(externalWorkoutTitle(workout), style = MaterialTheme.typography.bodyMedium)
-        Text(
-            stringResource(R.string.workout_from_health_connect, externalWorkoutDetails(workout)),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
 internal object DayDetailTags {
     const val DAY = "day_detail"
 }
@@ -184,7 +167,6 @@ private fun DayDetailContentPreview() {
                         LocalDate(2026, 11, 8), 2410, 172.0, 240.0, 58.0, 72.0, 21.0, 26.0, 2100.0,
                         2580, 82.5, 9120, 460, 53.0, 64.0,
                     ),
-                    externalWorkouts = listOf(HealthWorkout("running", Instant.parse("2026-11-08T07:40:00Z"), 42, 6800.0, 480, 148)),
                     gymSessions = emptyList(),
                 ),
             )

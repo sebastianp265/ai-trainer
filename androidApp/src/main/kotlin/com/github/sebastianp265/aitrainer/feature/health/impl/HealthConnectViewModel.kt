@@ -3,22 +3,18 @@ package com.github.sebastianp265.aitrainer.feature.health.impl
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.health.HealthConnectAccess
+import com.github.sebastianp265.aitrainer.integration.health.HealthDataType
 import com.github.sebastianp265.aitrainer.integration.health.HealthService
 import com.github.sebastianp265.aitrainer.integration.health.HealthStatus
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Instant
 
 internal data class HealthConnectUiState(
     val status: HealthStatus? = null,
-    val lastSync: Instant? = null,
-    val isSyncing: Boolean = false,
-    val syncFailed: Boolean = false,
-    val requiredPermissions: Set<String> = emptySet(),
+    val permissionsToRequest: Set<String> = emptySet(),
 ) {
     val access: HealthConnectAccess? get() = status?.access
 }
@@ -27,14 +23,8 @@ internal class HealthConnectViewModel(
     private val healthService: HealthService,
 ) : ViewModel() {
 
-    private val state = MutableStateFlow(HealthConnectUiState(requiredPermissions = healthService.permissionsToRequest))
+    private val state = MutableStateFlow(HealthConnectUiState())
     val uiState: StateFlow<HealthConnectUiState> = state.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            healthService.observeLastSync().collect { lastSync -> state.update { it.copy(lastSync = lastSync) } }
-        }
-    }
 
     fun refresh() {
         viewModelScope.launch {
@@ -43,20 +33,31 @@ internal class HealthConnectViewModel(
         }
     }
 
-    fun syncNow() {
-        if (state.value.isSyncing) return
-        state.update { it.copy(isSyncing = true, syncFailed = false) }
+    fun turnOn(type: HealthDataType) {
+        viewModelScope.launch { requestOrRefresh(healthService.enable(type)) }
+    }
+
+    fun turnOff(type: HealthDataType) {
         viewModelScope.launch {
-            val failed = try {
-                healthService.sync()
-                false
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                true
-            }
-            state.update { it.copy(isSyncing = false, syncFailed = failed) }
+            healthService.disable(type)
             refresh()
         }
+    }
+
+    fun allowHistory() {
+        viewModelScope.launch { requestOrRefresh(healthService.missingHistoryPermissions()) }
+    }
+
+    fun permissionsRequested() {
+        state.update { it.copy(permissionsToRequest = emptySet()) }
+    }
+
+    fun permissionsAnswered() {
+        healthService.reload()
+        refresh()
+    }
+
+    private fun requestOrRefresh(missing: Set<String>) {
+        if (missing.isEmpty()) refresh() else state.update { it.copy(permissionsToRequest = missing) }
     }
 }

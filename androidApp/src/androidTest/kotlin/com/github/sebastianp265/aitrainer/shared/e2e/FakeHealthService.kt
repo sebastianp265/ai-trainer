@@ -1,7 +1,6 @@
 package com.github.sebastianp265.aitrainer.shared.e2e
 
 import com.github.sebastianp265.aitrainer.integration.health.DailyAmount
-import com.github.sebastianp265.aitrainer.integration.health.ExternalWorkoutReading
 import com.github.sebastianp265.aitrainer.integration.health.HealthConnectAvailability
 import com.github.sebastianp265.aitrainer.integration.health.HealthDataSource
 import com.github.sebastianp265.aitrainer.integration.health.HealthDataType
@@ -22,12 +21,11 @@ class FakeHealthService(
     var sleep: List<SleepSession> = emptyList()
     var restingHeartRates: List<TimedValue> = emptyList()
     var heartRateVariabilities: List<TimedValue> = emptyList()
-    var workouts: List<ExternalWorkoutReading> = emptyList()
 
-    override val permissionsToRequest: Set<String> = emptySet()
     override fun availability() = availability
     override suspend fun grantedTypes() = granted
-    override suspend fun hasHistoryPermission() = historyGranted
+    override suspend fun missingPermissions(type: HealthDataType) = if (type in granted) emptySet() else setOf("read:$type")
+    override suspend fun missingHistoryPermissions() = if (historyGranted) emptySet() else setOf("read:history")
     override suspend fun readNutrition(from: LocalDate, toInclusive: LocalDate) = nutrition
     override suspend fun readCaloriesBurned(from: LocalDate, toInclusive: LocalDate) = caloriesBurned
     override suspend fun readSteps(from: LocalDate, toInclusive: LocalDate) = steps
@@ -35,5 +33,4 @@ class FakeHealthService(
     override suspend fun readSleep(from: LocalDate, toInclusive: LocalDate) = sleep
     override suspend fun readRestingHeartRates(from: LocalDate, toInclusive: LocalDate) = restingHeartRates
     override suspend fun readHeartRateVariabilities(from: LocalDate, toInclusive: LocalDate) = heartRateVariabilities
-    override suspend fun readWorkouts(from: LocalDate, toInclusive: LocalDate) = workouts
 }

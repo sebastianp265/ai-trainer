@@ -21,7 +21,6 @@ import com.github.sebastianp265.aitrainer.integration.health.HealthConnectAccess
 @Composable
 internal fun HealthConnectCardContent(
     access: HealthConnectAccess,
-    permissions: Set<String>,
     actions: HealthConnectCardActions,
 ) {
     Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer, contentColor = MaterialTheme.colorScheme.onTertiaryContainer)) {
@@ -36,7 +35,7 @@ internal fun HealthConnectCardContent(
             description?.let { Text(stringResource(it), style = MaterialTheme.typography.bodyMedium) }
             when (access) {
                 HealthConnectAccess.NOT_CONNECTED ->
-                    Button(onClick = { actions.connect(permissions) }) { Text(stringResource(R.string.health_connect_connect)) }
+                    Button(onClick = actions::chooseData) { Text(stringResource(R.string.health_connect_choose_data)) }
                 HealthConnectAccess.UPDATE_REQUIRED ->
                     Button(onClick = actions::update) { Text(stringResource(R.string.health_connect_update)) }
                 HealthConnectAccess.UNAVAILABLE, HealthConnectAccess.CONNECTED -> Unit
@@ -46,7 +45,7 @@ internal fun HealthConnectCardContent(
 }
 
 internal interface HealthConnectCardActions {
-    fun connect(permissions: Set<String>)
+    fun chooseData()
     fun update()
 }
 
@@ -57,9 +56,8 @@ private fun HealthConnectCardNotConnectedPreview() {
         Surface {
             HealthConnectCardContent(
                 access = HealthConnectAccess.NOT_CONNECTED,
-                permissions = emptySet(),
                 actions = object : HealthConnectCardActions {
-                    override fun connect(permissions: Set<String>) = Unit
+                    override fun chooseData() = Unit
                     override fun update() = Unit
                 },
             )

@@ -26,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -58,6 +57,7 @@ import kotlinx.datetime.LocalDate
 import kotlin.time.Instant
 import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
+import androidx.compose.runtime.setValue
 
 @Composable
 internal fun LogWorkoutContent(
@@ -67,7 +67,9 @@ internal fun LogWorkoutContent(
     onOpenHistory: () -> Unit,
     onOpenWorkout: (Long) -> Unit,
     modifier: Modifier = Modifier,
+    week: @Composable () -> Unit = {},
     banner: @Composable () -> Unit = {},
+    plans: @Composable () -> Unit = {},
 ) {
     var sheetOpen by rememberSaveable { mutableStateOf(false) }
     Box(modifier.fillMaxSize()) {
@@ -80,6 +82,7 @@ internal fun LogWorkoutContent(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 val nextPlan = state.plans.firstOrNull()
+                item { week() }
                 item { banner() }
                 item {
                     if (nextPlan != null) {
@@ -90,6 +93,7 @@ internal fun LogWorkoutContent(
                         StartOnYourOwnCard(onStartEmpty, coachEnabled)
                     }
                 }
+                item { plans() }
                 item { RecentHeader(onOpenHistory) }
                 if (state.recentSessions.isEmpty()) {
                     item { NoWorkoutsYet() }

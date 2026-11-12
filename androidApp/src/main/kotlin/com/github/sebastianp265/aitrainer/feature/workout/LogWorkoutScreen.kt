@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.sebastianp265.aitrainer.feature.workout.impl.ActiveSessionState
@@ -24,9 +23,17 @@ import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.runtime.getValue
 
 @Composable
-internal fun LogWorkoutScreen(onOpenHistory: () -> Unit, onOpenWorkout: (Long) -> Unit, onOpenProposal: (Long) -> Unit, onOpenCoach: () -> Unit) {
+internal fun LogWorkoutScreen(
+    onOpenHistory: () -> Unit,
+    onOpenWorkout: (Long) -> Unit,
+    onOpenProposal: (Long) -> Unit,
+    onOpenCoach: () -> Unit,
+    week: @Composable () -> Unit,
+    plans: @Composable () -> Unit,
+) {
     val viewModel: LogWorkoutViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     LogWorkoutContent(
@@ -35,7 +42,9 @@ internal fun LogWorkoutScreen(onOpenHistory: () -> Unit, onOpenWorkout: (Long) -
         onStartFromPlan = viewModel::startWorkoutFromPlan,
         onOpenHistory = onOpenHistory,
         onOpenWorkout = onOpenWorkout,
+        week = week,
         banner = { PendingProposalBanner(ProposalScope.PLANS, onOpenProposal, onOpenCoach) },
+        plans = plans,
     )
 }
 

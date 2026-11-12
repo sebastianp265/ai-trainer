@@ -60,7 +60,6 @@ private fun CoachMessageEntity.textForClaude(): String {
         TopicKind.WORKOUT -> "finished gym workout id ${topic.id}"
         TopicKind.ACTIVE_WORKOUT -> "gym workout running right now, id ${topic.id}"
         TopicKind.EXERCISE -> "exercise key ${topic.id}"
-        TopicKind.EXTERNAL_WORKOUT -> "workout from another app that started at ${topic.id}"
     }
     return "[The user asks about this $subject: \"${topic.label}\"]\n$text"
 }

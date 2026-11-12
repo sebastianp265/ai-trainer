@@ -21,7 +21,7 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
 
     @Test
     fun `Settings open from the gear on every tab and return`() {
-        listOf("Plan", "Coach", "Progress", "Training").forEach { tab ->
+        listOf("Coach", "Progress", "Training").forEach { tab ->
             tabs.open(tab)
             settings.open()
             settings.goBackToTab()

@@ -119,7 +119,7 @@ class LogWorkoutScreen(
 
     fun assertHistoryEntry(summary: String) {
         waitForText(startWorkoutText)
-        waitForText(summary, substring = true)
+        scrollTo(hasText(summary, substring = true))
     }
 
     private fun typeIntoNumberDialog(text: String) {

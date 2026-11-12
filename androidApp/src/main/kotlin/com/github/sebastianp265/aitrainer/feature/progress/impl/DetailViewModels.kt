@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.health.HealthDay
 import com.github.sebastianp265.aitrainer.integration.health.HealthService
-import com.github.sebastianp265.aitrainer.integration.health.HealthWorkout
 import com.github.sebastianp265.aitrainer.integration.workout.SessionSummary
 import com.github.sebastianp265.aitrainer.integration.workout.WorkoutService
 import com.github.sebastianp265.aitrainer.shared.state.WhileUiSubscribed
@@ -21,7 +20,6 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.todayIn
-import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
 internal class MetricViewModel(
@@ -40,7 +38,6 @@ internal class MetricViewModel(
 internal data class DayDetailUiState(
     val date: LocalDate,
     val day: HealthDay?,
-    val externalWorkouts: List<HealthWorkout>,
     val gymSessions: List<SessionSummary>,
 )
 
@@ -55,14 +52,11 @@ internal class DayDetailViewModel(
     val uiState: StateFlow<DayDetailUiState?> = shownDate.filterNotNull().flatMapLatest { date ->
         combine(
             healthService.observeDays(date, date),
-            healthService.observeWorkouts(),
             workoutService.observeFinishedSessions(date, date),
-        ) { days, workouts, sessions ->
-            val zone = TimeZone.currentSystemDefault()
+        ) { days, sessions ->
             DayDetailUiState(
                 date = date,
                 day = days.singleOrNull(),
-                externalWorkouts = workouts.filter { it.startedAt.toLocalDateTime(zone).date == date },
                 gymSessions = sessions,
             )
         }

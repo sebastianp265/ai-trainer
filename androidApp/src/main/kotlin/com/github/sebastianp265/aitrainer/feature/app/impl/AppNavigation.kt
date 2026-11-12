@@ -18,7 +18,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -44,11 +43,11 @@ import com.github.sebastianp265.aitrainer.feature.coach.WeeklyReviewOnForeground
 import com.github.sebastianp265.aitrainer.feature.exercise.ExerciseHistoryScreen
 import com.github.sebastianp265.aitrainer.feature.exercise.ExercisePickerScreen
 import com.github.sebastianp265.aitrainer.feature.exercise.PICKED_EXERCISE_KEY
-import com.github.sebastianp265.aitrainer.feature.health.HealthConnectScreen
-import com.github.sebastianp265.aitrainer.feature.health.SyncHealthOnForeground
-import com.github.sebastianp265.aitrainer.feature.history.ExternalWorkoutScreen
+import com.github.sebastianp265.aitrainer.feature.health.ReloadHealthOnForeground
 import com.github.sebastianp265.aitrainer.feature.history.HistoryScreen
 import com.github.sebastianp265.aitrainer.feature.plan.NEW_PLAN
+import com.github.sebastianp265.aitrainer.feature.plan.TrainingPlans
+import com.github.sebastianp265.aitrainer.feature.plan.TrainingWeek
 import com.github.sebastianp265.aitrainer.feature.plan.PlanDetailScreen
 import com.github.sebastianp265.aitrainer.feature.plan.PlanEditScreen
 import com.github.sebastianp265.aitrainer.feature.plan.PlanScreen
@@ -65,11 +64,12 @@ import com.github.sebastianp265.aitrainer.feature.workout.WorkoutDetailScreen
 import com.github.sebastianp265.aitrainer.feature.workout.WorkoutSummaryScreen
 import kotlinx.datetime.LocalDate
 import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
+import androidx.compose.runtime.getValue
 
 @Composable
 internal fun AppNavigation() {
     val navController = rememberNavController()
-    SyncHealthOnForeground()
+    ReloadHealthOnForeground()
     WeeklyReviewOnForeground()
     ActiveWorkoutRedirect(
         isActiveWorkoutOpen = { runCatching { navController.getBackStackEntry<ActiveWorkoutRoute>() }.isSuccess },
@@ -85,7 +85,7 @@ internal fun AppNavigation() {
     val isCoachTab = destination?.hasRoute(CoachRoute::class) == true
     val title = when {
         destination?.hasRoute(SettingsRoute::class) == true -> R.string.nav_settings
-        destination?.hasRoute(HealthConnectRoute::class) == true -> R.string.health_connect
+        destination?.hasRoute(PlanRoute::class) == true -> R.string.plans_all_title
         destination?.hasRoute(CoachMemoryRoute::class) == true -> R.string.memory_title
         destination?.hasRoute(ApiKeyRoute::class) == true -> R.string.settings_claude_api_key
         destination?.hasRoute(ModelRoute::class) == true -> R.string.model_title
@@ -122,6 +122,15 @@ internal fun AppNavigation() {
                     onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) },
                     onOpenProposal = { navController.navigate(CoachProposalRoute(it)) },
                     onOpenCoach = { navController.openTab(TopLevelDestination.COACH) },
+                    week = { TrainingWeek() },
+                    plans = {
+                        TrainingPlans(
+                            onOpenPlan = { navController.navigate(PlanDetailRoute(it)) },
+                            onNewPlan = { navController.navigate(PlanEditRoute(NEW_PLAN)) },
+                            onOpenAllPlans = { navController.navigate(PlanRoute) },
+                            onOpenTargets = { navController.navigate(VolumeTargetsRoute) },
+                        )
+                    },
                 ) }
             composable<CoachAboutRoute> { entry ->
                 val route = entry.toRoute<CoachAboutRoute>()
@@ -200,17 +209,12 @@ internal fun AppNavigation() {
             composable<HistoryRoute> {
                 HistoryScreen(
                     onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) },
-                    onOpenExternalWorkout = { navController.navigate(ExternalWorkoutRoute(it)) },
                 )
             }
-            composable<ExternalWorkoutRoute> { entry -> ExternalWorkoutScreen(entry.toRoute<ExternalWorkoutRoute>().startedAtMillis) }
             composable<PlanRoute> {
                 PlanScreen(
                     onOpenPlan = { navController.navigate(PlanDetailRoute(it)) },
                     onNewPlan = { navController.navigate(PlanEditRoute(NEW_PLAN)) },
-                    onOpenTargets = { navController.navigate(VolumeTargetsRoute) },
-                    onOpenProposal = { navController.navigate(CoachProposalRoute(it)) },
-                    onOpenCoach = { navController.openTab(TopLevelDestination.COACH) },
                 )
             }
             composable<PlanDetailRoute> { entry ->
@@ -239,7 +243,9 @@ internal fun AppNavigation() {
                             navController.popBackStack()
                         }
                     },
-                    onDeleted = { navController.popBackStack<PlanRoute>(inclusive = false) },
+                    onDeleted = {
+                        if (!navController.popBackStack<PlanRoute>(inclusive = false)) navController.popBackStack<LogRoute>(inclusive = false)
+                    },
                 )
             }
             composable<ProgressRoute> {
@@ -248,6 +254,7 @@ internal fun AppNavigation() {
                     onOpenDay = { navController.navigate(DayDetailRoute(it.toString())) },
                     onOpenExercise = { navController.navigate(ExerciseHistoryRoute(it)) },
                     onOpenTargets = { navController.navigate(VolumeTargetsRoute) },
+                    onOpenSettings = { navController.navigate(SettingsRoute) },
                 )
             }
             composable<ProgressMetricRoute> { entry ->
@@ -259,14 +266,12 @@ internal fun AppNavigation() {
             composable<DayDetailRoute> { entry -> DayDetailScreen(LocalDate.parse(entry.toRoute<DayDetailRoute>().date)) }
             composable<SettingsRoute> {
                 SettingsScreen(
-                    onOpenHealthConnect = { navController.navigate(HealthConnectRoute) },
                     onOpenApiKey = { navController.navigate(ApiKeyRoute) },
                     onOpenModel = { navController.navigate(ModelRoute) },
                     onOpenMemory = { navController.navigate(CoachMemoryRoute) },
                     onOpenBackup = { navController.navigate(BackupRoute) },
                 )
             }
-            composable<HealthConnectRoute> { HealthConnectScreen() }
         }
         }
     }

@@ -7,7 +7,7 @@ import kotlin.time.Instant
 
 enum class CoachRole { USER, COACH }
 
-enum class TopicKind { PLAN, WORKOUT, ACTIVE_WORKOUT, EXERCISE, EXTERNAL_WORKOUT }
+enum class TopicKind { PLAN, WORKOUT, ACTIVE_WORKOUT, EXERCISE }
 
 data class CoachTopic(val kind: TopicKind, val id: String, val label: String)
 
@@ -54,7 +54,6 @@ data class WeeklyReviewSummary(
     val weekEnd: LocalDate,
     val workouts: Int,
     val plannedWorkouts: Int?,
-    val externalWorkouts: Int,
     val records: Int,
     val weightFromKg: Double?,
     val weightToKg: Double?,

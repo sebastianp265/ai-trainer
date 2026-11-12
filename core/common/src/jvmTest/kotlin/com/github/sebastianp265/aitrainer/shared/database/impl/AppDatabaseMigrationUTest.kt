@@ -142,6 +142,22 @@ class AppDatabaseMigrationUTest {
         }
     }
 
+    @Test
+    fun `migration from 15 to 16 drops the copied Health Connect data and topics about workouts from other apps`() {
+        helper.createDatabase(15).use { connection ->
+            connection.execSQL("INSERT INTO workout_session (id, date, startedAt, finishedAt, planId, notes) VALUES (1, '2026-11-01', 1000, 2000, NULL, NULL)")
+            connection.execSQL("INSERT INTO health_day (date) VALUES ('2026-11-01')")
+            connection.execSQL("INSERT INTO coach_message (id, role, text, createdAt, topic_kind, topic_id, topic_label) VALUES (1, 'USER', 'a', 1000, 'EXTERNAL_WORKOUT', 'x', 'Run'), (2, 'USER', 'b', 2000, 'PLAN', '1', 'Push A')")
+        }
+
+        helper.runMigrationsAndValidate(16).use { connection ->
+            assertEquals(1, connection.count("workout_session"))
+            assertEquals(0, connection.count("sqlite_master WHERE name IN ('health_day', 'health_workout')"))
+            assertEquals(1, connection.count("coach_message WHERE topic_kind IS NULL AND topic_id IS NULL AND topic_label IS NULL"))
+            assertEquals(1, connection.count("coach_message WHERE topic_kind = 'PLAN'"))
+        }
+    }
+
     private fun migratedSeedOfVersion7(): MuscleSnapshot {
         helper.createDatabase(7).use { runSeed(it, "/seed-v7.sql") }
         return helper.runMigrationsAndValidate(8, listOf(migration7To8)).use { it.snapshotOfMuscles() }

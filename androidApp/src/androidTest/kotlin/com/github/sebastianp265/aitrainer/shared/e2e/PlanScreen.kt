@@ -5,9 +5,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.performClick
@@ -16,6 +14,12 @@ import androidx.compose.ui.test.performTextInput
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanTags
 
 class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
+
+    fun openAll() {
+        scrollTo(hasTestTag(PlanTags.ALL_PLANS))
+        compose.onNode(hasTestTag(PlanTags.ALL_PLANS)).performClick()
+        waitForText("All plans")
+    }
 
     fun assertNoPlansYet() = waitForText("You have no plans yet")
 
@@ -73,9 +77,7 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
     fun back() = compose.onNode(hasContentDescription("Back")).performClick()
 
     fun assertListed(planName: String) {
-        waitFor(hasScrollAction())
-        compose.onNode(hasScrollAction()).performScrollToNode(hasTestTag(PlanTags.card(planName)))
-        waitFor(hasTestTag(PlanTags.card(planName)))
+        scrollTo(hasTestTag(PlanTags.card(planName)))
     }
 
     fun assertNotListed(planName: String) =

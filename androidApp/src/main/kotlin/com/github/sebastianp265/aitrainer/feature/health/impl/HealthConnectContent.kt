@@ -3,150 +3,104 @@ package com.github.sebastianp265.aitrainer.feature.health.impl
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.shared.design.GroupCard
-import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
-import com.github.sebastianp265.aitrainer.shared.design.SectionHeader
-import com.github.sebastianp265.aitrainer.shared.design.extendedColors
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
-import androidx.compose.ui.Alignment
-import com.github.sebastianp265.aitrainer.shared.design.GroupRow
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.LinearProgressIndicator
 import com.github.sebastianp265.aitrainer.integration.health.HealthConnectAccess
 import com.github.sebastianp265.aitrainer.integration.health.HealthDataType
 import com.github.sebastianp265.aitrainer.integration.health.HealthStatus
-import com.github.sebastianp265.aitrainer.shared.localization.formatDateTime
-import kotlin.time.Instant
-import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
+import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
+import com.github.sebastianp265.aitrainer.shared.design.GroupCard
+import com.github.sebastianp265.aitrainer.shared.design.GroupRow
+import com.github.sebastianp265.aitrainer.shared.design.extendedColors
 
 internal interface HealthConnectActions {
-    fun connect(permissions: Set<String>)
+    fun turnOn(type: HealthDataType)
+    fun turnOff(type: HealthDataType)
+    fun allowHistory()
     fun update()
-    fun syncNow()
     fun managePermissions()
 }
 
 @Composable
-internal fun HealthConnectContent(state: HealthConnectUiState, actions: HealthConnectActions) {
+internal fun HealthDataSectionContent(state: HealthConnectUiState, actions: HealthConnectActions) {
     val status = state.status ?: return
-    LazyColumn(
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        if (status.access == HealthConnectAccess.CONNECTED) {
-            connectedItems(state, status, actions)
-        } else {
-            disconnectedItems(status.access, state.requiredPermissions, actions)
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        when (status.access) {
+            HealthConnectAccess.UNAVAILABLE -> MissingHealthConnect(R.string.health_connect_unavailable, R.string.hc_install, actions::update)
+            HealthConnectAccess.UPDATE_REQUIRED -> MissingHealthConnect(R.string.health_connect_update_required, R.string.health_connect_update, actions::update)
+            HealthConnectAccess.NOT_CONNECTED, HealthConnectAccess.CONNECTED -> Switches(status, actions)
         }
     }
-}
-
-private fun androidx.compose.foundation.lazy.LazyListScope.connectedItems(
-    state: HealthConnectUiState,
-    status: HealthStatus,
-    actions: HealthConnectActions,
-) {
-    item {
-        Card(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    pluralStringResource(R.plurals.hc_connected_summary, HealthDataType.entries.size, status.grantedTypes.size, HealthDataType.entries.size),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                Text(lastSyncText(state.lastSync), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Button(onClick = actions::syncNow, enabled = !state.isSyncing, modifier = Modifier.height(40.dp).testTag(HealthConnectTags.SYNC_NOW)) {
-                    Text(stringResource(if (state.isSyncing) R.string.hc_syncing else R.string.hc_sync_now))
-                }
-                if (state.syncFailed) {
-                    Text(stringResource(R.string.hc_sync_failed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-                }
-            }
-        }
-    }
-    item { SectionHeader(stringResource(R.string.hc_data_types)) }
-    item {
-        GroupCard {
-            HealthDataType.entries.forEachIndexed { index, type ->
-                HealthTypeRow(type, isGranted = type in status.grantedTypes, divider = index < HealthDataType.entries.lastIndex)
-            }
-        }
-    }
-    item {
-        DesignOutlinedButton(onClick = actions::managePermissions, Modifier.fillMaxWidth().height(48.dp)) { Text(stringResource(R.string.hc_change_permissions)) }
-    }
-    item { SectionHeader(stringResource(R.string.hc_history)) }
-    item {
-        Text(
-            stringResource(if (status.hasHistoryPermission) R.string.hc_history_granted else R.string.hc_history_missing),
-            style = MaterialTheme.typography.bodyMedium,
-        )
-    }
-    item { Text(stringResource(R.string.hc_optional_note), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-}
-
-private fun androidx.compose.foundation.lazy.LazyListScope.disconnectedItems(
-    access: HealthConnectAccess,
-    permissions: Set<String>,
-    actions: HealthConnectActions,
-) {
-    item {
-        val title = when (access) {
-            HealthConnectAccess.UNAVAILABLE -> R.string.health_connect_unavailable
-            HealthConnectAccess.UPDATE_REQUIRED -> R.string.health_connect_update_required
-            else -> R.string.hc_not_connected
-        }
-        Text(stringResource(title), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.titleMedium)
-    }
-    item { Text(stringResource(R.string.hc_off_note), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-    item {
-        when (access) {
-            HealthConnectAccess.NOT_CONNECTED -> Button(
-                onClick = { actions.connect(permissions) },
-                modifier = Modifier.testTag(HealthConnectTags.CONNECT),
-            ) { Text(stringResource(R.string.hc_connect_button)) }
-            HealthConnectAccess.UPDATE_REQUIRED -> Button(onClick = actions::update) { Text(stringResource(R.string.health_connect_update)) }
-            HealthConnectAccess.UNAVAILABLE -> Button(onClick = actions::update) { Text(stringResource(R.string.hc_install)) }
-            HealthConnectAccess.CONNECTED -> Unit
-        }
-    }
-    item { SectionHeader(stringResource(R.string.hc_benefits_title)) }
-    item {
-        GroupCard {
-            Benefit(R.string.hc_benefit_balance, R.string.hc_benefit_balance_text, divider = true)
-            Benefit(R.string.hc_benefit_body, R.string.hc_benefit_body_text, divider = true)
-            Benefit(R.string.hc_benefit_recovery, R.string.hc_benefit_recovery_text, divider = true)
-            Benefit(R.string.hc_benefit_workouts, R.string.hc_benefit_workouts_text, divider = false)
-        }
-    }
-    item { Text(stringResource(R.string.hc_off_choice), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
 }
 
 @Composable
-private fun Benefit(@StringRes title: Int, @StringRes text: Int, divider: Boolean) {
-    GroupRow(divider = divider) {
-        RowTexts(stringResource(title), stringResource(text))
+private fun Switches(status: HealthStatus, actions: HealthConnectActions) {
+    GroupCard {
+        HealthDataType.entries.forEach { type ->
+            SwitchRow(type, type in status.enabledTypes, actions)
+        }
+        HistoryRow(status.hasHistoryAccess, actions)
+    }
+    Text(stringResource(R.string.hc_switches_note), Modifier.padding(horizontal = 4.dp), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    TextButton(onClick = actions::managePermissions) { Text(stringResource(R.string.hc_change_permissions)) }
+}
+
+@Composable
+private fun SwitchRow(type: HealthDataType, isOn: Boolean, actions: HealthConnectActions) {
+    val title = stringResource(type.labelRes())
+    GroupRow {
+        RowTexts(title, stringResource(type.descriptionRes()))
+        Switch(
+            checked = isOn,
+            onCheckedChange = { if (it) actions.turnOn(type) else actions.turnOff(type) },
+            modifier = Modifier.padding(end = 12.dp).semantics { contentDescription = title }.testTag(HealthConnectTags.switch(type)),
+        )
+    }
+}
+
+@Composable
+private fun HistoryRow(hasAccess: Boolean, actions: HealthConnectActions) {
+    GroupRow(divider = false) {
+        RowTexts(stringResource(R.string.hc_history_access), stringResource(R.string.hc_history_access_text))
+        if (hasAccess) {
+            Row(Modifier.padding(end = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(DesignIcons.Check, contentDescription = null, Modifier.size(16.dp), tint = extendedColors.success)
+                Text(stringResource(R.string.hc_history_allowed), style = MaterialTheme.typography.bodyMedium, color = extendedColors.success)
+            }
+        } else {
+            TextButton(onClick = actions::allowHistory, modifier = Modifier.testTag(HealthConnectTags.ALLOW_HISTORY)) {
+                Text(stringResource(R.string.hc_history_allow))
+            }
+        }
+    }
+}
+
+@Composable
+private fun MissingHealthConnect(@StringRes text: Int, @StringRes action: Int, onClick: () -> Unit) {
+    GroupCard {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(text), style = MaterialTheme.typography.bodyMedium)
+            Button(onClick = onClick) { Text(stringResource(action)) }
+        }
     }
 }
 
@@ -158,79 +112,10 @@ private fun RowScope.RowTexts(title: String, detail: String) {
     }
 }
 
-@Composable
-private fun HealthTypeRow(type: HealthDataType, isGranted: Boolean, divider: Boolean) {
-    GroupRow(Modifier.testTag(HealthConnectTags.typeRow(type)), divider = divider) {
-        RowTexts(stringResource(type.labelRes()), stringResource(type.descriptionRes()))
-        val color = if (isGranted) extendedColors.success else extendedColors.warning
-        Row(Modifier.padding(end = 12.dp), horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (isGranted) Icon(DesignIcons.Check, contentDescription = null, Modifier.size(16.dp), tint = color)
-            Text(stringResource(if (isGranted) R.string.hc_access_granted else R.string.hc_access_missing), style = MaterialTheme.typography.bodyMedium, color = color)
-        }
-    }
-}
-
-@Composable
-private fun lastSyncText(lastSync: Instant?): String =
-    if (lastSync == null) {
-        stringResource(R.string.hc_never_synced)
-    } else {
-        stringResource(R.string.hc_synced_at, formatDateTime(lastSync))
-    }
-
-@Composable
-internal fun HealthConnectSettingsRowContent(state: HealthConnectUiState, onOpen: () -> Unit) {
-    val status = state.status ?: return
-    val granted = status.grantedTypes
-    val total = HealthDataType.entries.size
-    val connected = status.access == HealthConnectAccess.CONNECTED
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        GroupCard {
-            GroupRow(Modifier.testTag(HealthConnectTags.SETTINGS_ROW), onClick = onOpen, divider = false) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(stringResource(R.string.health_connect), style = MaterialTheme.typography.bodyLarge)
-                    Text(
-                        when {
-                            !connected -> stringResource(R.string.hc_not_connected)
-                            state.lastSync == null -> pluralStringResource(R.plurals.hc_row_summary_never_synced, total, granted.size, total)
-                            else -> pluralStringResource(R.plurals.hc_row_summary, total, granted.size, total, formatDateTime(state.lastSync))
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    if (connected) {
-                        LinearProgressIndicator(
-                            progress = { granted.size.toFloat() / total },
-                            modifier = Modifier.fillMaxWidth().padding(top = 6.dp).height(4.dp),
-                            drawStopIndicator = {},
-                        )
-                    }
-                }
-                Text(
-                    stringResource(R.string.settings_manage),
-                    Modifier.padding(end = 12.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
-        }
-        val missing = HealthDataType.entries.filterNot { it in granted }
-        if (connected && missing.isNotEmpty()) {
-            Text(
-                stringResource(R.string.hc_row_missing, missing.map { stringResource(it.labelRes()) }.joinToString()),
-                Modifier.padding(horizontal = 4.dp),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
 internal object HealthConnectTags {
-    const val SYNC_NOW = "health_connect_sync_now"
-    const val CONNECT = "health_connect_connect"
-    const val SETTINGS_ROW = "health_connect_settings_row"
-    fun typeRow(type: HealthDataType) = "health_connect_type:${type.name}"
+    const val ALLOW_HISTORY = "health_connect_allow_history"
+
+    fun switch(type: HealthDataType) = "health_connect_switch:${type.name}"
 }
 
 @StringRes
@@ -242,7 +127,6 @@ internal fun HealthDataType.labelRes(): Int = when (this) {
     HealthDataType.SLEEP -> R.string.hc_type_sleep
     HealthDataType.RESTING_HEART_RATE -> R.string.hc_type_resting_heart_rate
     HealthDataType.HEART_RATE_VARIABILITY -> R.string.hc_type_hrv
-    HealthDataType.WORKOUTS -> R.string.hc_type_workouts
 }
 
 @StringRes
@@ -254,27 +138,26 @@ private fun HealthDataType.descriptionRes(): Int = when (this) {
     HealthDataType.SLEEP -> R.string.hc_type_sleep_text
     HealthDataType.RESTING_HEART_RATE -> R.string.hc_type_daily_average_text
     HealthDataType.HEART_RATE_VARIABILITY -> R.string.hc_type_daily_average_text
-    HealthDataType.WORKOUTS -> R.string.hc_type_workouts_text
 }
 
 @PreviewLightDark
 @Composable
-private fun HealthConnectContentPreview() {
+private fun HealthDataSectionPreview() {
     MaterialTheme {
         Surface {
-            HealthConnectContent(
+            HealthDataSectionContent(
                 state = HealthConnectUiState(
                     status = HealthStatus(
                         access = HealthConnectAccess.CONNECTED,
-                        grantedTypes = HealthDataType.entries.toSet() - HealthDataType.HEART_RATE_VARIABILITY,
-                        hasHistoryPermission = true,
+                        enabledTypes = HealthDataType.entries.toSet() - HealthDataType.HEART_RATE_VARIABILITY,
+                        hasHistoryAccess = false,
                     ),
-                    lastSync = Instant.parse("2026-11-10T08:12:00Z"),
                 ),
                 actions = object : HealthConnectActions {
-                    override fun connect(permissions: Set<String>) = Unit
+                    override fun turnOn(type: HealthDataType) = Unit
+                    override fun turnOff(type: HealthDataType) = Unit
+                    override fun allowHistory() = Unit
                     override fun update() = Unit
-                    override fun syncNow() = Unit
                     override fun managePermissions() = Unit
                 },
             )

@@ -4,7 +4,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.AbstractE2ETest
 import com.github.sebastianp265.aitrainer.shared.e2e.BENCH_PRESS
-import com.github.sebastianp265.aitrainer.shared.e2e.BottomBarScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.PlanScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.sets
 import kotlinx.datetime.TimeZone
@@ -16,7 +15,6 @@ import kotlin.time.Clock
 @RunWith(AndroidJUnit4::class)
 class VolumeFlowE2ETest : AbstractE2ETest() {
 
-    private val bottomBar = BottomBarScreen(compose)
     private val progress = ProgressScreen(compose)
     private val targets = VolumeTargetsScreen(compose)
     private val plans = PlanScreen(compose)
@@ -52,11 +50,9 @@ class VolumeFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `the Plan tab shows the current week`() {
+    fun `the Training tab shows the current week`() {
         given.plan("Push A", sets(BENCH_PRESS), date = Clock.System.todayIn(TimeZone.currentSystemDefault()))
         launchApp()
-
-        bottomBar.open("Plan")
 
         plans.assertWeekShown()
     }

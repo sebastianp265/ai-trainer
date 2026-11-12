@@ -1,7 +1,6 @@
 # Requirements
 
-What the app does, as decided in phase 3. The mockups in [`design/`](design/README.md) show the
-screens; this file holds the rules the mockups can't show. Where they disagree, this file wins.
+What the app does, as decided in phase 3 and changed since.
 Hard constraints and secrets handling are in [`../CLAUDE.md`](../CLAUDE.md).
 
 ## 1. Principles
@@ -18,8 +17,11 @@ Hard constraints and secrets handling are in [`../CLAUDE.md`](../CLAUDE.md).
 
 ## 2. Navigation
 
-- Bottom bar: **Trening · Plan · Trener · Postęp**. Settings open from the gear icon in the top bar.
-- With the coach switched off the bar has three tabs and no coach elements appear anywhere.
+- Bottom bar: **Trening · Trener · Postęp**. Settings open from the gear icon in the top bar.
+- Trening shows, from the top: the week strip, a pending proposal, the next plan with "Zacznij",
+  the next three plans after it with "Wszystkie plany" and "Napisz własny plan", the sets this week
+  against the targets, and the recent workouts. "Wszystkie plany" opens the list of all plans.
+- With the coach switched off the bar has two tabs and no coach elements appear anywhere.
 - During a workout the bottom bar is hidden; the bottom shows "Odrzuć" and "Zakończ".
 - Until the coach exists (before phase 6) the app behaves as with the coach switched off.
 
@@ -87,8 +89,8 @@ The same format is used in the exercise history and the workout summary.
   reps, optional target RPE and the warm-up flag.
 - A plan has an author: the coach or the user. Both kinds are edited the same way.
 - Lists: upcoming plans by date, then plans without a date. Done plans are not listed.
-- The week strip shows Monday to Sunday of the current week: finished workouts, planned
-  workouts, workouts from other apps.
+- The week strip shows Monday to Sunday of the current week: finished workouts and planned
+  workouts.
 - "Zapisz" on a new plan needs a name and at least one exercise.
 
 ## 6. Weekly sets per muscle group
@@ -101,14 +103,14 @@ The same format is used in the exercise history and the workout summary.
   range only through an accepted proposal. Accepting a target change does not touch existing plans.
 - "Pokazuj cele" switches the target bands off; the counts stay.
 - Progress shows the weekly average over the selected range against the target.
-- Plan shows the current week: sets done plus sets in this week's plans, against the target.
+- Trening shows the current week: sets done plus sets in this week's plans, against the target.
 
 ## 7. Health Connect
 
 - Read only. The app never writes to Health Connect and never names a source app.
 - Data types, each with its own permission, each optional:
 
-| Type | Stored per day as |
+| Type | Shown per day as |
 |---|---|
 | Nutrition | totals: kcal, protein, carbs, sugar, fat, saturated fat, fiber, sodium |
 | Calories burned | total for the day |
@@ -117,16 +119,25 @@ The same format is used in the exercise history and the workout summary.
 | Sleep | duration, assigned to the day of waking up |
 | Resting heart rate | daily average |
 | HRV | daily average |
-| Workouts from other apps | one row per session: type, start, duration, and distance, kcal, average heart rate when present |
 
-- Data is copied into Room and stays there even when it disappears from Health Connect.
-- First sync reads one year back, when the history permission is granted; otherwise 30 days.
-- Every sync reads the last 14 days again and overwrites them, which picks up edits and deletions.
-- Sync runs when the app comes to the foreground and from "Synchronizuj teraz". No background work.
-- A type without permission is skipped; the others still sync. Workouts written by this app's
-  own package are ignored.
-- The Health Connect screen shows the state per type, the last sync time and the history state.
-  When Health Connect is missing or outdated, it offers install or update instead of "Połącz".
+- Nothing from Health Connect is stored in the app. Screens and the coach read it from Health
+  Connect when they need it, so edits, deletions and removed permissions show at once. The history
+  is as long as Health Connect keeps it.
+- Data is read again whenever the app comes to the foreground and after a switch changes. No
+  background work.
+- Data older than 30 days needs Health Connect's history permission; with it there is no time
+  limit.
+- A type without permission is not read; the others still are.
+- Workouts recorded by other apps are not read: only gym workouts logged in the app count.
+- Settings has a section "Do czego trener ma dostęp" (with the coach off: "Dane z Health Connect")
+  with one switch per type and a row "Dane sprzed 30 dni" with "Zezwól" while the history
+  permission is missing. There is no separate Health Connect screen, no sync button and no
+  "connect everything" button.
+- Switching on asks Health Connect for the missing permission of that one type. Switching off makes the app and the coach stop reading that type.
+  The app cannot revoke a single Health Connect permission, so the permission stays until the user
+  removes it in Health Connect.
+- When Health Connect is missing or outdated, the section offers install or update instead of the
+  switches. The Progress card without data links to this section.
 
 ## 8. Progress
 
@@ -149,7 +160,7 @@ The same format is used in the exercise history and the workout summary.
 
 | Tool group | Tools |
 |---|---|
-| Read | workouts, one workout with all its sets (the running one by default), one exercise's history, days from Health Connect, workouts from other apps, plans, weekly sets and targets |
+| Read | workouts, one workout with all its sets (the running one by default), one exercise's history, days from Health Connect, plans, weekly sets and targets |
 | Propose | new plan, change of a plan, several plans at once (also a block of several weeks), change of a weekly target, change of the sets of the running or a finished workout, new exercise, daily calorie and protein target |
 | Memory | add, change and delete its own notes; fill in the profile |
 
@@ -159,13 +170,13 @@ The same format is used in the exercise history and the workout summary.
 - "Cofnij" on an accepted proposal restores what was there before, as long as nothing used it since:
   no workout was started from its plans, its weekly or nutrition target was not changed again, and
   for a change of the running workout the workout is still running. A new exercise cannot be undone.
-- Asking the coach from a plan, a workout, an exercise's history or a workout from another app
+- Asking the coach from a plan, a workout, or an exercise's history
   opens the chat with that topic attached to the next message, so the coach knows what it is about.
 - During a workout a button opens the coach about the running workout, with quick questions
   ("Za ciężko", "Coś mnie boli", "Mam mniej czasu"). An accepted change replaces the sets of the
   exercises it names.
 - The accepted nutrition target is shown in Progress (calorie balance and macros cards).
-- A pending proposal is also shown as a card on Trening and Plan, and on the targets screen when
+- A pending proposal is also shown as a card on Trening, and on the targets screen when
   it concerns a target.
 - Under a coach message, "Sprawdzono: …" lists what the tools read for that answer.
 - Memory screen: profile (goal, time, equipment, limitations, preferences), weekly targets,
@@ -180,7 +191,7 @@ The same format is used in the exercise history and the workout summary.
 ## 10. Settings
 
 - Coach switch, API key, model, memory screen; Health Connect; backup.
-- Backup: export everything except the API key to one file; import replaces all data after
+- Backup: export everything except the API key and Health Connect data (it stays in Health Connect) to one file; import replaces all data after
   showing what the file contains and asking for confirmation.
 - No debug mode: the app contains only production code. Fakes of Health Connect and Claude live
   in the tests.
@@ -192,10 +203,8 @@ Build these as written; they are the first candidates to change after the owner 
 1. Custom exercises exist.
 2. Finished workouts can be edited and deleted.
 3. Records use the Epley formula and the two record kinds in section 4.
-4. The filter "Siłownia / Z innych aplikacji" on the list of all workouts.
-5. The monthly usage counter on the model screen.
-6. The weekly review can propose several plans with "Akceptuj wszystkie".
-7. Import replaces data instead of merging.
-8. Default target 10–20 for every muscle group, including abs and arms.
-9. First Health Connect sync reads one year.
-10. A plan started and saved is done; a discarded workout leaves its plan untouched.
+4. The monthly usage counter on the model screen.
+5. The weekly review can propose several plans with "Akceptuj wszystkie".
+6. Import replaces data instead of merging.
+7. Default target 10–20 for every muscle group, including abs and arms.
+8. A plan started and saved is done; a discarded workout leaves its plan untouched.

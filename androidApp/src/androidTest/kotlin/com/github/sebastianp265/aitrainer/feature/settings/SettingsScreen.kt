@@ -1,14 +1,10 @@
 package com.github.sebastianp265.aitrainer.feature.settings
 
-import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.SemanticsNodeInteraction
-import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.performTextInput
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachApiKeyTags
 import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachModelTags
@@ -59,7 +55,8 @@ class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
     }
 
     fun openBackup() {
-        scrollTo(hasTestTag(SettingsTags.BACKUP_ROW)).performClick()
+        scrollTo(hasTestTag(SettingsTags.BACKUP_ROW))
+        compose.onNode(hasTestTag(SettingsTags.BACKUP_ROW)).performClick()
     }
 
     fun assertBackupShown() {
@@ -74,7 +71,10 @@ class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun saveAndCheck() = compose.onNode(hasTestTag(CoachApiKeyTags.SAVE)).performClick()
 
-    fun removeClaudeApiKey() = scrollTo(hasTestTag(CoachApiKeyTags.REMOVE)).performClick()
+    fun removeClaudeApiKey() {
+        scrollTo(hasTestTag(CoachApiKeyTags.REMOVE))
+        compose.onNode(hasTestTag(CoachApiKeyTags.REMOVE)).performClick()
+    }
 
     fun assertKeyWorks() = waitForText("The key works", substring = true)
 
@@ -94,10 +94,4 @@ class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
     }
 
     fun assertModelShown(name: String) = waitForText(name)
-
-    private fun scrollTo(matcher: SemanticsMatcher): SemanticsNodeInteraction {
-        waitFor(hasScrollAction())
-        compose.onNode(hasScrollAction()).performScrollToNode(matcher)
-        return compose.onNode(matcher)
-    }
 }

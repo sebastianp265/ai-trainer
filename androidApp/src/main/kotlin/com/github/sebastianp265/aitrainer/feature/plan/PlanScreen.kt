@@ -2,7 +2,6 @@ package com.github.sebastianp265.aitrainer.feature.plan
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.sebastianp265.aitrainer.feature.plan.impl.NEW_PLAN_ID
@@ -13,18 +12,33 @@ import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanEditContent
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanEditViewModel
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanListContent
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanListViewModel
-import com.github.sebastianp265.aitrainer.shared.coach.PendingProposalBanner
-import com.github.sebastianp265.aitrainer.shared.coach.ProposalScope
+import com.github.sebastianp265.aitrainer.feature.plan.impl.TrainingPlansContent
+import com.github.sebastianp265.aitrainer.feature.plan.impl.TrainingWeekContent
 import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.runtime.getValue
 
 internal const val NEW_PLAN = NEW_PLAN_ID
 
 @Composable
-internal fun PlanScreen(onOpenPlan: (planId: Long) -> Unit, onNewPlan: () -> Unit, onOpenTargets: () -> Unit, onOpenProposal: (Long) -> Unit, onOpenCoach: () -> Unit) {
+internal fun PlanScreen(onOpenPlan: (planId: Long) -> Unit, onNewPlan: () -> Unit) {
     val viewModel: PlanListViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    PlanListContent(state, onOpenPlan, onNewPlan, onOpenTargets, banner = { PendingProposalBanner(ProposalScope.PLANS, onOpenProposal, onOpenCoach) })
+    PlanListContent(state, onOpenPlan, onNewPlan)
+}
+
+@Composable
+internal fun TrainingWeek() {
+    val viewModel: PlanListViewModel = koinViewModel()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    TrainingWeekContent(state)
+}
+
+@Composable
+internal fun TrainingPlans(onOpenPlan: (planId: Long) -> Unit, onNewPlan: () -> Unit, onOpenAllPlans: () -> Unit, onOpenTargets: () -> Unit) {
+    val viewModel: PlanListViewModel = koinViewModel()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    TrainingPlansContent(state, onOpenPlan, onNewPlan, onOpenAllPlans, onOpenTargets)
 }
 
 @Composable

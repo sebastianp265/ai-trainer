@@ -29,7 +29,6 @@ data class BackupContents(
     val schemaVersion: Int,
     val workouts: Int,
     val plans: Int,
-    val healthDays: Int,
     val coachNotes: Int,
     val coachMessages: Int,
 )

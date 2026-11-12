@@ -71,7 +71,7 @@ internal class CoachFixture {
     val nutrition = com.github.sebastianp265.aitrainer.feature.nutrition.impl.DefaultNutritionService(database.nutritionDao(), clock)
     val healthSource = FakeHealthDataSource()
     private val dataStore = { name: String -> PreferenceDataStoreFactory.create(produceFile = { Files.createTempDirectory(name).resolve("$name.preferences_pb").toFile() }) }
-    val health = DefaultHealthService(healthSource, database.healthDao(), dataStore("health"), clock, kotlinx.datetime.TimeZone.UTC)
+    val health = DefaultHealthService(healthSource, dataStore("health"), com.github.sebastianp265.aitrainer.feature.health.impl.HealthReloads(), kotlinx.datetime.TimeZone.UTC)
     val settings = DefaultSettingsService(
         dataStore("settings"),
         object : SecretStore {
