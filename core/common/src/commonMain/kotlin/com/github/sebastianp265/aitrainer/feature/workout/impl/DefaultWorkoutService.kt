@@ -6,7 +6,6 @@ import com.github.sebastianp265.aitrainer.shared.workout.SetEntryEntity
 import com.github.sebastianp265.aitrainer.shared.workout.WorkoutDao
 import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
-import com.github.sebastianp265.aitrainer.integration.workout.CopyResult
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.integration.plan.PlanService
@@ -108,12 +107,19 @@ internal class DefaultWorkoutService(
 
     override suspend fun discardSession(sessionId: Long) = dao.deleteSession(sessionId)
 
-    override suspend fun reopenSession(sessionId: Long): Boolean {
+    override suspend fun startEditing(sessionId: Long): Boolean {
         val session = dao.getSession(sessionId) ?: return false
-        val finishedAt = session.finishedAt ?: return false
-        if (dao.getActiveSession() != null) return false
-        dao.updateSession(session.copy(startedAt = clock.now() - (finishedAt - session.startedAt), finishedAt = null))
+        if (session.finishedAt == null || dao.getActiveSession() != null) return false
+        dao.insertSessionWithSets(
+            session.copy(id = 0, finishedAt = null, editedSessionId = session.id),
+            dao.getSets(sessionId).map { it.copy(id = 0) },
+        )
         return true
+    }
+
+    override suspend fun saveEditing(sessionId: Long) {
+        val copy = checkNotNull(dao.getSession(sessionId))
+        dao.moveSetsAndDeleteSession(fromSessionId = copy.id, toSessionId = checkNotNull(copy.editedSessionId))
     }
 
     override suspend fun addExercise(sessionId: Long, exerciseKey: String) {
@@ -134,13 +140,6 @@ internal class DefaultWorkoutService(
             reps = previousSet?.reps ?: DEFAULT_REPS,
             weightKg = previousSet?.weightKg ?: DEFAULT_WEIGHT_KG,
         )
-    }
-
-    override suspend fun copySetsFromLastTime(sessionId: Long, exerciseKey: String): CopyResult {
-        val previousSets = lastSetsFor(exerciseKey, excludingSessionId = sessionId)
-        if (previousSets.isEmpty()) return CopyResult.NO_PREVIOUS_SETS
-        previousSets.forEach { insertSet(sessionId, it.exerciseKey, it.reps, it.weightKg, it.isWarmup) }
-        return CopyResult.COPIED
     }
 
     override suspend fun changeSet(setId: Long, change: SetChange) {
@@ -210,8 +209,10 @@ internal class DefaultWorkoutService(
         )
     }
 
-    private suspend fun lastSetsFor(exerciseKey: String, excludingSessionId: Long): List<SetEntry> =
-        dao.lastSetsForExercise(exerciseKey, excludingSessionId).map { it.toModel() }
+    private suspend fun lastSetsFor(exerciseKey: String, excludingSessionId: Long): List<SetEntry> {
+        val editedSessionId = dao.getSession(excludingSessionId)?.editedSessionId
+        return dao.lastSetsForExercise(exerciseKey, listOfNotNull(excludingSessionId, editedSessionId)).map { it.toModel() }
+    }
 
     private suspend fun insertSet(
         sessionId: Long,
@@ -242,7 +243,7 @@ internal class DefaultWorkoutService(
 
 private fun SessionSummaryRow.toModel() = SessionSummary(id, date, startedAt, finishedAt, exerciseCount, setCount, planId, planName)
 
-private fun WorkoutSessionEntity.toModel() = WorkoutSession(id, date, startedAt, finishedAt, planId, notes)
+private fun WorkoutSessionEntity.toModel() = WorkoutSession(id, date, startedAt, finishedAt, planId, notes, editedSessionId)
 
 private fun SetEntryEntity.toModel() = SetEntry(id, sessionId, exerciseKey, positionInSession, reps, weightKg, rpe, isWarmup)
 

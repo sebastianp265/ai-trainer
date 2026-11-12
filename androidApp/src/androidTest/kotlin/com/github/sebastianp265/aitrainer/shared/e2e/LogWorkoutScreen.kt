@@ -5,6 +5,7 @@ import androidx.compose.ui.test.ComposeTimeoutException
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
@@ -14,8 +15,10 @@ import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.test.espresso.Espresso
 import com.github.sebastianp265.aitrainer.feature.workout.impl.ActiveWorkoutTags
 import com.github.sebastianp265.aitrainer.feature.workout.impl.LogWorkoutTags
+import com.github.sebastianp265.aitrainer.feature.workout.impl.TrainingTab
 
 class LogWorkoutScreen(
     compose: ComposeTestRule,
@@ -23,10 +26,8 @@ class LogWorkoutScreen(
 ) : Screen(compose) {
 
     fun startWorkout() {
-        waitFor(hasTestTag(LogWorkoutTags.START_WORKOUT))
-        compose.onNode(hasTestTag(LogWorkoutTags.START_WORKOUT)).performClick()
-        waitFor(hasTestTag(LogWorkoutTags.SHEET_EMPTY))
-        compose.onNode(hasTestTag(LogWorkoutTags.SHEET_EMPTY)).performClick()
+        waitFor(hasTestTag(LogWorkoutTags.START_EMPTY))
+        compose.onNode(hasTestTag(LogWorkoutTags.START_EMPTY)).performClick()
         waitForText(addExerciseText)
     }
 
@@ -61,7 +62,7 @@ class LogWorkoutScreen(
 
     fun assertTitle(title: String) = waitForText(title)
 
-    fun clickSameAsLastTime() = clickText("Same as last time")
+    fun goBack() = Espresso.pressBackUnconditionally()
 
     fun finish() {
         finishAndSeeSummary()
@@ -71,6 +72,13 @@ class LogWorkoutScreen(
     fun finishAndSeeSummary() {
         clickText("Finish")
         waitForText("Workout saved")
+    }
+
+    fun saveEdit() = clickText("Save")
+
+    fun cancelEdit() {
+        clickText("Cancel")
+        compose.onNode(hasText("Discard changes") and hasAnyAncestor(isDialog())).performClick()
     }
 
     fun askToDiscard() = clickText("Discard")
@@ -120,8 +128,9 @@ class LogWorkoutScreen(
     fun assertExerciseShown(name: String) = waitForText(name)
 
     fun assertHistoryEntry(summary: String) {
-        waitFor(hasTestTag(LogWorkoutTags.START_WORKOUT))
-        scrollTo(hasText(summary, substring = true))
+        waitFor(hasTestTag(LogWorkoutTags.tab(TrainingTab.HISTORY)))
+        compose.onNode(hasTestTag(LogWorkoutTags.tab(TrainingTab.HISTORY))).performClick()
+        scrollTo(hasTestTag(LogWorkoutTags.SESSION_ROW) and (hasText(summary, substring = true) or hasAnyDescendant(hasText(summary, substring = true))))
     }
 
     private fun typeIntoNumberDialog(text: String) {

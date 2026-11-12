@@ -35,13 +35,13 @@ interface WorkoutService {
 
     suspend fun discardSession(sessionId: Long)
 
-    suspend fun reopenSession(sessionId: Long): Boolean
+    suspend fun startEditing(sessionId: Long): Boolean
+
+    suspend fun saveEditing(sessionId: Long)
 
     suspend fun addExercise(sessionId: Long, exerciseKey: String)
 
     suspend fun addSet(sessionId: Long, block: ExerciseBlock)
-
-    suspend fun copySetsFromLastTime(sessionId: Long, exerciseKey: String): CopyResult
 
     suspend fun changeSet(setId: Long, change: SetChange)
 

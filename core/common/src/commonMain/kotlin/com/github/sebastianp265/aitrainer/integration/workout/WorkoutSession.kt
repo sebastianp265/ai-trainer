@@ -10,4 +10,5 @@ data class WorkoutSession(
     val finishedAt: Instant?,
     val planId: Long?,
     val notes: String?,
+    val editedSessionId: Long?,
 )

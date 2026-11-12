@@ -61,9 +61,7 @@ import com.github.sebastianp265.aitrainer.feature.exercise.ExerciseHistoryScreen
 import com.github.sebastianp265.aitrainer.feature.exercise.ExercisePickerScreen
 import com.github.sebastianp265.aitrainer.feature.exercise.PICKED_EXERCISE_KEY
 import com.github.sebastianp265.aitrainer.feature.health.ReloadHealthOnForeground
-import com.github.sebastianp265.aitrainer.feature.history.HistoryScreen
 import com.github.sebastianp265.aitrainer.feature.plan.NEW_PLAN
-import com.github.sebastianp265.aitrainer.feature.plan.TrainingWeek
 import com.github.sebastianp265.aitrainer.feature.plan.PlanDetailScreen
 import com.github.sebastianp265.aitrainer.feature.plan.PlanEditScreen
 import com.github.sebastianp265.aitrainer.feature.progress.DayDetailScreen
@@ -134,7 +132,6 @@ internal fun AppNavigation() {
         destination?.hasRoute(ApiKeyRoute::class) == true -> R.string.settings_claude_api_key
         destination?.hasRoute(ModelRoute::class) == true -> R.string.model_title
         destination?.hasRoute(BackupRoute::class) == true -> R.string.settings_backup
-        destination?.hasRoute(HistoryRoute::class) == true -> R.string.history_title
         destination?.hasRoute(CoachAboutRoute::class) == true -> R.string.nav_coach
         else -> null
     }
@@ -168,13 +165,13 @@ internal fun AppNavigation() {
             predictivePopExitTransition = { popExit() },
         ) {
             screen<LogRoute> { LogWorkoutScreen(
-                    onOpenHistory = { navController.navigate(HistoryRoute) },
                     onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) },
                     onOpenProposal = { navController.navigate(CoachProposalRoute(it)) },
                     onOpenCoach = { navController.openTab(TopLevelDestination.COACH) },
                     onOpenPlan = { navController.navigate(PlanDetailRoute(it)) },
+                    onEditPlan = { navController.navigate(PlanEditRoute(it)) },
                     onNewPlan = { navController.navigate(PlanEditRoute(NEW_PLAN)) },
-                    week = { TrainingWeek() },
+                    onResumeWorkout = { navController.navigate(ActiveWorkoutRoute) { launchSingleTop = true } },
                 ) }
             screen<CoachAboutRoute> { entry ->
                 val route = entry.toRoute<CoachAboutRoute>()
@@ -250,11 +247,6 @@ internal fun AppNavigation() {
                 )
             }
             screen<VolumeTargetsRoute> { VolumeTargetsScreen(onOpenCoach = { navController.openTab(TopLevelDestination.COACH) }) }
-            screen<HistoryRoute> {
-                HistoryScreen(
-                    onOpenWorkout = { navController.navigate(WorkoutDetailRoute(it)) },
-                )
-            }
             screen<PlanDetailRoute> { entry ->
                 PlanDetailScreen(
                     planId = entry.toRoute<PlanDetailRoute>().planId,

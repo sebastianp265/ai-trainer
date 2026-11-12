@@ -6,7 +6,6 @@ import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_APP
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_EXERCISE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_HEALTH
-import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_HISTORY
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_EXERCISE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_HEALTH
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_PLAN
@@ -63,8 +62,8 @@ enum class GradleModule(
         directoryName = "androidApp",
         packageModules = setOf(
             FEATURE_APP,
-            SHARED_LOCALIZATION, SHARED_STATE, SHARED_WORKOUT, SHARED_CHARTS, SHARED_DESIGN, SHARED_VOLUME, SHARED_COACH,
-            FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_HEALTH, FEATURE_SETTINGS, FEATURE_PROGRESS, FEATURE_PLAN, FEATURE_HISTORY, FEATURE_VOLUME, FEATURE_COACH,
+            SHARED_LOCALIZATION, SHARED_STATE, SHARED_WORKOUT, SHARED_CHARTS, SHARED_DESIGN, SHARED_COACH,
+            FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_HEALTH, FEATURE_SETTINGS, FEATURE_PROGRESS, FEATURE_PLAN, FEATURE_VOLUME, FEATURE_COACH,
         ),
         dependencies = { setOf(CORE_COMMON, CORE_ANDROID) },
     );

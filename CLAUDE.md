@@ -30,7 +30,7 @@ One shared library (the `core` modules) plus one application module per platform
 | `:core:common` (`core/common/`)           | Pure Kotlin Multiplatform library (JVM target for now): the `integration` contract, feature logic, the Room database, Koin modules. Depends on no Gradle module.       |
 | `:core:android` (`core/android/`)         | Android implementations of the platform interfaces from `:core:common`'s `integration` (Keystore, Health Connect, Room/DataStore builders). Depends on `:core:common`. |
 | `:androidApp` (`androidApp/`)             | Android application, frontend only: screens, ViewModels, navigation, resources. Depends on both `core` modules, but uses only their `integration` package.             |
-| `:architectureTest` (`architectureTest/`) | Kotlin/JVM, tests only: the Konsist architecture rules. Depends on no other Gradle module.                                                                             |
+| `:architectureTest` (`architectureTest/`) | Kotlin/JVM, tests only: the Konsist architecture rules and the conventions. Depends on no other Gradle module.                                                         |
 
 ## Package modules (the same in every Gradle module)
 
@@ -107,8 +107,11 @@ The emulator needs API 34+ with a *Google Play* image (Health Connect is built i
 
 ## Conventions
 
-- Placing multiple declarations (classes, top-level functions or properties) in the same Kotlin source file is encouraged as long as these declarations are closely related to each other semantically and the file size remains reasonable (not exceeding a few hundred lines).
-- **No comments in code** (Kotlin, XML, Gradle, tests). When something isn't clear, rename, extract a well-named function/constant/type, or restructure. Explain Android concepts and design reasons in your reply.
+The conventions a test can check are the test names in `ConventionsUTest` (`architectureTest`); keep them passing. Beyond them:
+
+- Closely related declarations share one Kotlin file.
+- When code needs a comment, rename, extract a well-named function/constant/type, or restructure instead. Explain Android concepts and design reasons in your reply.
+- Back returns to the previous screen or view; only back on the start tab leaves the app, and ongoing work (a running workout) stays reachable from where back leads.
 - Commit-sized changes; don't refactor unrelated code.
 - Never commit secrets, keystores or `local.properties`.
 - `.idea` is a whitelist in `.gitignore` (`/.idea/*` plus `!` exceptions); add a line there to share another IDE file.

@@ -161,6 +161,17 @@ class AppDatabaseMigrationUTest {
     }
 
     @Test
+    fun `migration from 16 to 17 keeps workouts and marks none of them as an edit`() {
+        helper.createDatabase(16).use { connection ->
+            connection.execSQL("INSERT INTO workout_session (id, date, startedAt, finishedAt, planId, notes) VALUES (1, '2026-11-01', 1000, 2000, NULL, NULL)")
+        }
+
+        helper.runMigrationsAndValidate(17).use { connection ->
+            assertEquals(1, connection.count("workout_session WHERE editedSessionId IS NULL"))
+        }
+    }
+
+    @Test
     fun `a backup of schema 12 migrates to the current schema and keeps workouts, plans and the coach`() {
         helper.createDatabase(12).use { connection ->
             connection.execSQL("INSERT INTO workout_session (id, date, startedAt, finishedAt, planId, notes) VALUES (1, '2026-11-01', 1000, 2000, NULL, 'felt good')")

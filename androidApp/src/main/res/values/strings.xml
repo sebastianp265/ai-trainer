@@ -7,7 +7,6 @@
     <string name="back">Back</string>
     <string name="nav_settings">Settings</string>
     <string name="start_workout">Start workout</string>
-    <string name="recent_workouts">Recent workouts</string>
     <string name="no_workouts_yet">You have no workouts yet</string>
     <string name="session_summary">%1$s · %2$s</string>
     <string name="discard">Discard</string>
@@ -17,7 +16,6 @@
     <string name="discard_workout_title">Discard workout?</string>
     <string name="discard_workout_text">Logged sets will not be saved.</string>
     <string name="add_set">+ Set</string>
-    <string name="same_as_last_time">Same as last time</string>
     <string name="warmup_short">W</string>
     <string name="unit_kg">kg</string>
     <string name="unit_reps">reps</string>
@@ -25,7 +23,6 @@
     <string name="decrease_reps">Decrease reps</string>
     <string name="delete_set">Delete set</string>
     <string name="add_exercise">Add exercise</string>
-    <string name="no_previous_sets">No previous sets of %1$s</string>
     <string name="save">Save</string>
     <string name="remove">Remove</string>
     <string name="settings_ai_trainer">AI trainer</string>
@@ -121,10 +118,7 @@
     <string name="progress_strength_title">Strength · estimated one-rep max (1RM)</string>
     <string name="progress_record">record</string>
 
-    <string name="history_title">All workouts</string>
-    <string name="history_all">All</string>
     <string name="history_workout">Workout</string>
-    <string name="history_empty">No workouts yet.</string>
 
     <plurals name="exercise_count">
         <item quantity="one">%d exercise</item>
@@ -148,7 +142,7 @@
     <string name="remove_exercise">Remove exercise</string>
     <string name="workout_empty_title">Workout</string>
     <string name="workout_empty_subtitle">empty workout</string>
-    <string name="discard_workout_text_plan">Logged sets will not be saved. The plan “%1$s” stays on the Plan tab.</string>
+    <string name="discard_workout_text_plan">Logged sets will not be saved. The plan “%1$s” stays in your plans.</string>
     <string name="back_to_workout">Back to workout</string>
     <string name="ok">OK</string>
     <string name="workout_subtitle">%1$s · %2$s</string>
@@ -206,11 +200,8 @@
     <string name="plan_set_n">Set %1$d</string>
     <string name="plan_warmup_n">Warm-up %1$d</string>
     <string name="plan_field_description">%1$s %2$s</string>
-    <string name="empty_workout">Empty workout</string>
-    <string name="empty_workout_text">You add exercises as you go</string>
     <string name="no_workouts_yet_text">Saved workouts will appear here.</string>
     <string name="from_plan">from plan</string>
-    <string name="from_a_plan">From a plan</string>
     <string name="value_minutes">%1$d min</string>
     <string name="workout_from_own_plan">from your plan</string>
     <string name="workout_from_coach_plan">from the coach’s plan</string>
@@ -291,20 +282,6 @@
         <item quantity="one">%1$s above: %2$s of %3$d–%4$d set.</item>
         <item quantity="other">%1$s above: %2$s of %3$d–%4$d sets.</item>
     </plurals>
-    <string name="week_title">This week · %1$s</string>
-    <string name="week_counts">%1$s · %2$s</string>
-    <plurals name="week_done_count">
-        <item quantity="one">%d done</item>
-        <item quantity="other">%d done</item>
-    </plurals>
-    <plurals name="week_planned_count">
-        <item quantity="one">%d planned</item>
-        <item quantity="other">%d planned</item>
-    </plurals>
-    <string name="week_legend_done">done</string>
-    <string name="week_legend_planned">planned</string>
-    <string name="week_today">today</string>
-    <string name="week_free">free</string>
     <string name="settings_coach_title">AI coach</string>
     <string name="settings_coach_off">Off</string>
     <string name="settings_coach_on_text">Chat, plan proposals and weekly review</string>
@@ -527,7 +504,21 @@
     <string name="hc_history_allowed">allowed</string>
     <string name="backup_from_newer_app">This backup comes from a newer version of the app. Update the app and try again.</string>
     <string name="backup_too_old">This backup comes from a version of the app too old to import.</string>
-    <string name="sheet_new_plan">New plan</string>
-    <string name="sheet_new_plan_text">Write it yourself and start it later</string>
-    <string name="plan_details">Plan details</string>
+    <string name="training_next_from_coach">Next · from the coach</string>
+    <string name="training_next_own">Next · your plan</string>
+    <string name="training_without_plan">Workout without a plan</string>
+    <string name="training_active_now">Workout in progress</string>
+    <string name="training_active_edit">Editing a workout</string>
+    <string name="training_active_resume">Back to workout</string>
+    <string name="training_tab_plans">Plans</string>
+    <string name="training_tab_history">History</string>
+    <string name="training_no_plan">no plan</string>
+    <string name="training_no_plans">No plans yet. Write your own or ask the coach for one.</string>
+    <string name="training_start_plan_description">Start %1$s</string>
+    <string name="training_edit_plan_description">Edit %1$s</string>
+    <string name="training_edit_workout_description">Edit workout from %1$s</string>
+    <string name="cancel_edit_title">Discard changes?</string>
+    <string name="cancel_edit_text">The workout stays as it was before editing.</string>
+    <string name="cancel_edit_confirm">Discard changes</string>
+    <string name="keep_editing">Keep editing</string>
 </resources>

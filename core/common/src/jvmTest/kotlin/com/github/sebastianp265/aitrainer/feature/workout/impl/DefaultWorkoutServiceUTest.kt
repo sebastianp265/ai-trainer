@@ -139,6 +139,57 @@ class DefaultWorkoutServiceUTest {
         assertEquals(60.0, recent.first().lastTime.single().weightKg)
     }
 
+    @Test
+    fun `saving an edited workout keeps its id and times and takes the changed sets`() = runBlocking {
+        val original = startSession()
+        service.addExercise(original, "bench")
+        service.finishSession(original)
+        val before = service.findSession(original)!!
+
+        service.startEditing(original)
+        val copy = service.observeActiveSession().first()!!.id
+        service.changeSet(setsOf(copy).single().id, SetChange.WeightTo(90.0))
+        service.saveEditing(copy)
+
+        assertEquals(null, service.observeActiveSession().first())
+        assertEquals(before, service.findSession(original))
+        assertEquals(listOf(90.0), setsOf(original).map { it.weightKg })
+    }
+
+    @Test
+    fun `cancelling an edit leaves the workout as it was`() = runBlocking {
+        val original = startSession()
+        service.addExercise(original, "bench")
+        service.changeSet(setsOf(original).single().id, SetChange.WeightTo(60.0))
+        service.finishSession(original)
+
+        service.startEditing(original)
+        val copy = service.observeActiveSession().first()!!.id
+        service.changeSet(setsOf(copy).single().id, SetChange.WeightTo(90.0))
+        service.discardSession(copy)
+
+        assertEquals(null, service.observeActiveSession().first())
+        assertEquals(listOf(60.0), setsOf(original).map { it.weightKg })
+    }
+
+    @Test
+    fun `while editing a workout its own sets are not the last time`() = runBlocking {
+        val earlier = startSession()
+        service.addExercise(earlier, "bench")
+        service.changeSet(setsOf(earlier).single().id, SetChange.WeightTo(50.0))
+        service.finishSession(earlier)
+        now += 1.days
+        val edited = startSession()
+        service.addExercise(edited, "bench")
+        service.changeSet(setsOf(edited).single().id, SetChange.WeightTo(70.0))
+        service.finishSession(edited)
+
+        service.startEditing(edited)
+        val copy = service.observeActiveSession().first()!!.id
+
+        assertEquals(listOf(50.0), service.lastWorkingSets("bench", excludingSessionId = copy).map { it.weightKg })
+    }
+
     private fun exercises() = listOf("bench", "squat").associateWith {
         Exercise(it, emptyMap(), Equipment("BARBELL", emptyMap()), emptyList(), emptyList())
     }

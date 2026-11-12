@@ -25,23 +25,20 @@ class TrainingFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `starting a workout offers every plan with the next one first and an empty workout`() {
+    fun `the next plan is offered on top and the other plans below it`() {
         given.plan("Push A", sets(BENCH_PRESS))
         given.plan("Legs B", sets(BACK_SQUAT))
         launchApp()
 
-        training.openStartSheet()
-
-        training.assertSheetOffers("Push A", "Legs B")
+        training.assertPlansOffered("Push A", "Legs B")
     }
 
     @Test
-    fun `an empty workout can be started from the sheet`() {
+    fun `a workout without a plan starts empty`() {
         given.plan("Push A", sets(BENCH_PRESS))
         launchApp()
 
-        training.openStartSheet()
-        training.startEmptyFromSheet()
+        training.startEmpty()
 
         workout.assertExerciseShown("Add exercise")
     }
@@ -60,7 +57,17 @@ class TrainingFlowE2ETest : AbstractE2ETest() {
         workout.finish()
 
         training.assertRecentWorkout("Push A")
-        plans.openStartSheet()
         plans.assertNoPlansYet()
+    }
+
+    @Test
+    fun `going back from a running workout keeps it running on top of Training`() {
+        given.runningWorkout(sets(BENCH_PRESS, kg = 80.0))
+        launchApp()
+
+        workout.goBack()
+        training.resumeWorkout()
+
+        workout.assertSets(BENCH_PRESS, "80" to "10")
     }
 }

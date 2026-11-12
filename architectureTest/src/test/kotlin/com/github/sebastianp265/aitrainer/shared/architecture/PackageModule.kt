@@ -1,9 +1,9 @@
 package com.github.sebastianp265.aitrainer.shared.architecture
 
-enum class Group(val path: String) {
-    INTEGRATION("integration"),
-    SHARED("shared"),
-    FEATURE("feature"),
+enum class Group(val path: String, val holdsImplementation: Boolean) {
+    INTEGRATION("integration", holdsImplementation = false),
+    SHARED("shared", holdsImplementation = true),
+    FEATURE("feature", holdsImplementation = true),
 }
 
 enum class PackageModule(val path: String) {
@@ -42,8 +42,7 @@ enum class PackageModule(val path: String) {
     FEATURE_PLAN("feature.plan"),
     FEATURE_VOLUME("feature.volume"),
     FEATURE_NUTRITION("feature.nutrition"),
-    FEATURE_COACH("feature.coach"),
-    FEATURE_HISTORY("feature.history");
+    FEATURE_COACH("feature.coach");
 
     val group: Group
         get() = Group.entries.single { it.path == path.substringBefore('.') }

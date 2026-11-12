@@ -56,7 +56,7 @@ class WorkoutReportFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
-    fun `a finished workout opens from the list and can be edited`() {
+    fun `a finished workout opens from the list and saved edits replace its sets`() {
         given.finishedWorkout(sets(BENCH_PRESS, kg = 80.0))
         launchApp()
 
@@ -64,8 +64,22 @@ class WorkoutReportFlowE2ETest : AbstractE2ETest() {
         report.assertDetailSets(1)
         report.edit()
         workout.typeWeight(BENCH_PRESS, setIndex = 0, kg = "82.5")
-        workout.finishAndSeeSummary()
-        report.showAllSets()
+        workout.saveEdit()
+
         report.assertDetailSets(1)
+        report.assertDetailSetShown("82.5 kg")
+    }
+
+    @Test
+    fun `cancelled edits leave the workout as it was`() {
+        given.finishedWorkout(sets(BENCH_PRESS, kg = 80.0))
+        launchApp()
+        training.openRecentWorkout("Workout")
+        report.edit()
+        workout.typeWeight(BENCH_PRESS, setIndex = 0, kg = "82.5")
+
+        workout.cancelEdit()
+
+        report.assertDetailSetShown("80 kg")
     }
 }

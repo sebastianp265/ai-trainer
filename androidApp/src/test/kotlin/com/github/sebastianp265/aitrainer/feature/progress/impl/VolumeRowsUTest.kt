@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.shared.volume
+package com.github.sebastianp265.aitrainer.feature.progress.impl
 
 import com.github.sebastianp265.aitrainer.integration.exercise.MuscleGroup
 import com.github.sebastianp265.aitrainer.integration.volume.TargetSource

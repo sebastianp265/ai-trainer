@@ -20,8 +20,6 @@ class WorkoutReportScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun done() = compose.onNode(hasTestTag(ReportTags.DONE)).performClick()
 
-    fun showAllSets() = clickText("See all sets")
-
     fun assertRecordShown(exercise: String) {
         waitFor(hasTestTag(ReportTags.RECORDS))
         waitForText("New records")
@@ -50,6 +48,8 @@ class WorkoutReportScreen(compose: ComposeTestRule) : Screen(compose) {
             compose.onAllNodes(hasTestTag(ReportTags.SET_LINE), useUnmergedTree = true).fetchSemanticsNodes().size == count
         }
     }
+
+    fun assertDetailSetShown(text: String) = waitForText(text, substring = true)
 
     fun edit() {
         waitFor(hasTestTag(ReportTags.EDIT))

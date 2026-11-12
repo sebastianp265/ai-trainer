@@ -12,9 +12,6 @@ import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
 import com.github.sebastianp265.aitrainer.integration.volume.VolumeService
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseStrength
 import com.github.sebastianp265.aitrainer.integration.workout.WorkoutService
-import com.github.sebastianp265.aitrainer.shared.volume.VolumeRow
-import com.github.sebastianp265.aitrainer.shared.volume.averageSetsPerWeek
-import com.github.sebastianp265.aitrainer.shared.volume.volumeRows
 import com.github.sebastianp265.aitrainer.shared.state.WhileUiSubscribed
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow

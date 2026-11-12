@@ -11,28 +11,26 @@ import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
-import androidx.test.espresso.Espresso
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanTags
 import com.github.sebastianp265.aitrainer.feature.workout.impl.LogWorkoutTags
+import com.github.sebastianp265.aitrainer.feature.workout.impl.TrainingTab
 
 class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
 
-    fun openStartSheet() {
-        waitFor(hasTestTag(LogWorkoutTags.START_WORKOUT))
-        compose.onNode(hasTestTag(LogWorkoutTags.START_WORKOUT)).performClick()
-        waitFor(hasTestTag(LogWorkoutTags.SHEET_EMPTY))
+    fun showPlans() {
+        waitFor(hasTestTag(LogWorkoutTags.tab(TrainingTab.PLANS)))
+        compose.onNode(hasTestTag(LogWorkoutTags.tab(TrainingTab.PLANS))).performClick()
     }
 
-    fun closeStartSheet() = Espresso.pressBack()
-
     fun assertNoPlansYet() {
-        waitFor(hasTestTag(LogWorkoutTags.SHEET_EMPTY))
-        assertTextNotShown("From a plan")
+        showPlans()
+        waitForText("No plans yet", substring = true)
     }
 
     fun startWritingOwnPlan() {
-        waitFor(hasTestTag(LogWorkoutTags.SHEET_NEW_PLAN))
-        compose.onNode(hasTestTag(LogWorkoutTags.SHEET_NEW_PLAN)).performClick()
+        showPlans()
+        scrollTo(hasTestTag(LogWorkoutTags.NEW_PLAN))
+        compose.onNode(hasTestTag(LogWorkoutTags.NEW_PLAN)).performClick()
     }
 
     fun typeName(name: String) {
@@ -57,11 +55,6 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
         field.performTextInput(kg)
     }
 
-    fun assertWeekShown() {
-        waitFor(hasTestTag(PlanTags.WEEK_STRIP))
-        waitForText("This week", substring = true)
-    }
-
     fun save() {
         compose.onNode(hasTestTag(PlanTags.SAVE)).assertIsEnabled()
         compose.onNode(hasTestTag(PlanTags.SAVE)).performClick()
@@ -83,13 +76,16 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun back() = compose.onNode(hasContentDescription("Back")).performClick()
 
-    fun assertListed(planName: String) = waitFor(hasTestTag(LogWorkoutTags.sheetPlan(planName)))
+    fun assertListed(planName: String) = waitFor(listed(planName))
 
     fun assertNotListed(planName: String) =
-        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(hasTestTag(LogWorkoutTags.sheetPlan(planName)), useUnmergedTree = true).fetchSemanticsNodes().isEmpty() }
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(listed(planName), useUnmergedTree = true).fetchSemanticsNodes().isEmpty() }
 
     fun open(planName: String) {
-        waitFor(hasTestTag(LogWorkoutTags.sheetPlanDetails(planName)))
-        compose.onNode(hasTestTag(LogWorkoutTags.sheetPlanDetails(planName))).performClick()
+        showPlans()
+        scrollTo(listed(planName))
+        compose.onNode(listed(planName)).performClick()
     }
+
+    private fun listed(planName: String) = hasTestTag(LogWorkoutTags.nextPlan(planName)) or hasTestTag(LogWorkoutTags.planRow(planName))
 }

@@ -5,12 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
 import com.github.sebastianp265.aitrainer.integration.plan.Plan
-import com.github.sebastianp265.aitrainer.shared.localization.mondayOf
-import kotlinx.datetime.DatePeriod
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
-import kotlin.time.Clock
 import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.plan.PlanDraft
 import com.github.sebastianp265.aitrainer.integration.plan.PlanService
@@ -31,34 +25,12 @@ import kotlinx.datetime.LocalDate
 
 internal const val NEW_PLAN_ID = -1L
 
-internal data class TrainingWeekUiState(val week: WeekUi? = null)
-
-internal class TrainingWeekViewModel(
-    planService: PlanService,
-    workoutService: WorkoutService,
-    clock: Clock,
-) : ViewModel() {
-
-    private val zone = TimeZone.currentSystemDefault()
-    private val monday = mondayOf(clock.todayIn(zone))
-    private val sunday = monday.plus(DatePeriod(days = 6))
-    private val today = clock.todayIn(zone)
-
-    val uiState: StateFlow<TrainingWeekUiState> = combine(
-        planService.observeUpcoming(),
-        workoutService.observeFinishedSessions(monday, sunday),
-    ) { plans, sessions ->
-        val doneDays = sessions.map { it.date }.toSet()
-        val plannedDays = plans.mapNotNull { it.date }.filter { it in monday..sunday }
-        val days = (0..6).map { offset ->
-            val date = monday.plus(DatePeriod(days = offset))
-            WeekDay(date, date == today, date in doneDays, date in plannedDays)
-        }
-        TrainingWeekUiState(WeekUi(days, doneCount = sessions.size, plannedCount = plannedDays.size))
-    }.stateIn(viewModelScope, WhileUiSubscribed, TrainingWeekUiState())
-}
-
-internal data class PlanDetailUiState(val isLoading: Boolean = true, val plan: Plan? = null, val exercises: Map<String, Exercise> = emptyMap())
+internal data class PlanDetailUiState(
+    val isLoading: Boolean = true,
+    val plan: Plan? = null,
+    val exercises: Map<String, Exercise> = emptyMap(),
+    val canStart: Boolean = false,
+)
 
 internal class PlanDetailViewModel(
     private val planService: PlanService,
@@ -72,7 +44,8 @@ internal class PlanDetailViewModel(
     val uiState: StateFlow<PlanDetailUiState> = combine(
         planId.filterNotNull().flatMapLatest { planService.observePlan(it) },
         exerciseService.observeExercisesByKey(),
-    ) { plan, exercises -> PlanDetailUiState(false, plan, exercises) }
+        workoutService.observeActiveSession(),
+    ) { plan, exercises, activeSession -> PlanDetailUiState(false, plan, exercises, canStart = activeSession == null) }
         .stateIn(viewModelScope, WhileUiSubscribed, PlanDetailUiState())
 
     fun show(id: Long) {

@@ -33,7 +33,7 @@ class LogWorkoutFlowE2ETest : AbstractE2ETest() {
         workout.assertSets(BENCH_PRESS, "7.5" to "9", "10" to "9")
         workout.finish()
 
-        workout.assertHistoryEntry("1 exercise · 2 sets")
+        workout.assertHistoryEntry("2 sets")
     }
 
     @Test
@@ -46,8 +46,6 @@ class LogWorkoutFlowE2ETest : AbstractE2ETest() {
 
         workout.assertSets(BENCH_PRESS, "7.5" to "9")
         workout.assertLastTime(BENCH_PRESS, "Last time: 9×7.5 kg RPE 8 · 9×10 kg")
-        workout.clickSameAsLastTime()
-        workout.assertSets(BENCH_PRESS, "7.5" to "9", "7.5" to "9", "10" to "9")
     }
 
     @Test
@@ -79,8 +77,7 @@ class LogWorkoutFlowE2ETest : AbstractE2ETest() {
         workout.confirmDiscard()
 
         training.assertNoRecentWorkouts()
-        training.openStartSheet()
-        training.assertSheetOffers("Push A")
+        training.assertPlansOffered("Push A")
     }
 
     private fun addBenchPress() {

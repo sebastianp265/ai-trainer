@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.heightIn
@@ -276,14 +275,4 @@ internal fun GroupRow(
         content = content,
     )
     if (divider) HorizontalDivider(color = MaterialTheme.colorScheme.surfaceVariant)
-}
-
-@Composable
-internal fun IconCircle(icon: ImageVector, modifier: Modifier = Modifier) {
-    Box(
-        modifier.size(40.dp).background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-    }
 }

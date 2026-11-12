@@ -22,6 +22,7 @@ internal object DesignIcons {
     val Back = lineIcon("back", "M19 12H5M11 6l-6 6 6 6")
     val Close = lineIcon("close", "M6 6l12 12M18 6L6 18")
     val Add = lineIcon("add", "M12 5v14M5 12h14")
+    val Play = lineIcon("play", "M7 5v14l12-7z")
     val Delete = lineIcon("delete", "M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13")
     val Check = lineIcon("check", "M5 12l5 5 9-10")
     val Edit = lineIcon("edit", "M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4")

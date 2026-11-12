@@ -9,6 +9,8 @@ import com.lemonappdev.konsist.api.verify.assertEmpty
 import com.lemonappdev.konsist.api.verify.assertTrue
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
@@ -22,6 +24,9 @@ class ArchitectureUTest {
 
         @JvmStatic
         fun integrationPairs(): List<ModulePair> = pairs().filter { it.packageModule.group == Group.INTEGRATION && it.packageModule != PackageModule.INTEGRATION_MODULE }
+
+        @JvmStatic
+        fun sharedPairs(): List<ModulePair> = pairs().filter { it.packageModule.group == Group.SHARED }
 
         @JvmStatic
         fun gradleModules(): List<GradleModule> = GradleModule.entries
@@ -38,6 +43,19 @@ class ArchitectureUTest {
     @MethodSource("gradleModules")
     fun `every file belongs to a declared package module`(gradleModule: GradleModule) {
         gradleModule.files.assertTrue { it.packageModule in gradleModule.packageModules }
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("pairs")
+    fun `every declared package module has code in its Gradle module`(pair: ModulePair) {
+        assertTrue(pair.files.isNotEmpty(), "$pair is declared but has no files")
+    }
+
+    @Test
+    fun `every package module is declared in a Gradle module`() {
+        val declared = GradleModule.entries.flatMap { it.packageModules }.toSet()
+
+        assertEquals(emptyList(), PackageModule.entries.filterNot { it in declared })
     }
 
     @ParameterizedTest(name = "{0}")
@@ -129,6 +147,27 @@ class ArchitectureUTest {
                 }
             }
             .assertEmpty()
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("sharedPairs")
+    fun `shared package module used by a single module that could hold it lives in that module instead`(pair: ModulePair) {
+        val rootPackage = pair.packageModule.rootPackage
+        val rootDeclarationNames = pair.files
+            .filter { it.isInPackageModuleRoot }
+            .flatMap { it.nonPrivateTopLevelDeclarations() }
+            .map { it.name }
+
+        val users = (pair.gradleModule.consumers + pair.gradleModule)
+            .flatMap { gradleModule ->
+                gradleModule.files
+                    .filter { file -> rootDeclarationNames.any { file.importsFromRoot(rootPackage, it) } }
+                    .map { ModulePair(gradleModule, it.packageModule!!) }
+            }
+            .toSet() - pair
+
+        val onlyUser = users.singleOrNull() ?: return
+        assertFalse(onlyUser.packageModule.group.holdsImplementation, "$pair is used only by $onlyUser, so it belongs there")
     }
 
     private fun PackageModule.mayDependOn(other: PackageModule): Boolean {

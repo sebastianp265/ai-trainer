@@ -38,7 +38,6 @@ class PlanFlowE2ETest : AbstractE2ETest() {
 
         plans.assertDetailShown("Push A", "Barbell Bench Press", "1 × 10 · 80 kg")
         plans.back()
-        plans.openStartSheet()
         plans.assertListed("Push A")
     }
 
@@ -64,12 +63,11 @@ class PlanFlowE2ETest : AbstractE2ETest() {
         plans.delete()
         plans.confirmDelete()
 
-        plans.openStartSheet()
         plans.assertNoPlansYet()
     }
 
     private fun openAllPlans() {
         launchApp()
-        plans.openStartSheet()
+        plans.showPlans()
     }
 }

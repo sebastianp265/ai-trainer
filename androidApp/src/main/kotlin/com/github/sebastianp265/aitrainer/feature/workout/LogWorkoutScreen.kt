@@ -1,10 +1,12 @@
 package com.github.sebastianp265.aitrainer.feature.workout
 
 import androidx.activity.compose.BackHandler
-import androidx.activity.compose.LocalActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.github.sebastianp265.aitrainer.feature.workout.impl.ActiveSessionState
 import com.github.sebastianp265.aitrainer.feature.workout.impl.ActiveSessionViewModel
@@ -16,6 +18,7 @@ import com.github.sebastianp265.aitrainer.feature.workout.impl.WorkoutDetailCont
 import com.github.sebastianp265.aitrainer.feature.workout.impl.WorkoutReportViewModel
 import com.github.sebastianp265.aitrainer.feature.workout.impl.WorkoutSummaryContent
 import com.github.sebastianp265.aitrainer.feature.workout.impl.LogWorkoutViewModel
+import com.github.sebastianp265.aitrainer.feature.workout.impl.TrainingActions
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.shared.coach.PendingProposalBanner
 import com.github.sebastianp265.aitrainer.shared.coach.ProposalScope
@@ -27,25 +30,31 @@ import androidx.compose.runtime.getValue
 
 @Composable
 internal fun LogWorkoutScreen(
-    onOpenHistory: () -> Unit,
     onOpenWorkout: (Long) -> Unit,
     onOpenProposal: (Long) -> Unit,
     onOpenCoach: () -> Unit,
     onOpenPlan: (Long) -> Unit,
+    onEditPlan: (Long) -> Unit,
     onNewPlan: () -> Unit,
-    week: @Composable () -> Unit,
+    onResumeWorkout: () -> Unit,
 ) {
     val viewModel: LogWorkoutViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val actions = remember(viewModel) {
+        object : TrainingActions {
+            override fun startEmpty() = viewModel.startEmptyWorkout()
+            override fun startPlan(planId: Long) = viewModel.startWorkoutFromPlan(planId)
+            override fun openPlan(planId: Long) = onOpenPlan(planId)
+            override fun editPlan(planId: Long) = onEditPlan(planId)
+            override fun newPlan() = onNewPlan()
+            override fun resumeWorkout() = onResumeWorkout()
+            override fun openWorkout(sessionId: Long) = onOpenWorkout(sessionId)
+            override fun editWorkout(sessionId: Long) = viewModel.editWorkout(sessionId)
+        }
+    }
     LogWorkoutContent(
         state = state,
-        onStartEmpty = viewModel::startEmptyWorkout,
-        onStartFromPlan = viewModel::startWorkoutFromPlan,
-        onOpenHistory = onOpenHistory,
-        onOpenWorkout = onOpenWorkout,
-        onOpenPlan = onOpenPlan,
-        onNewPlan = onNewPlan,
-        week = week,
+        actions = actions,
         banner = { PendingProposalBanner(ProposalScope.PLANS, onOpenProposal, onOpenCoach) },
     )
 }
@@ -60,8 +69,6 @@ internal fun ActiveWorkoutScreen(
 ) {
     val viewModel: ActiveWorkoutViewModel = koinViewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val activity = checkNotNull(LocalActivity.current)
-    BackHandler { activity.moveTaskToBack(true) }
     LaunchedEffect(pickedExerciseKey) {
         pickedExerciseKey?.let {
             viewModel.addExercise(it)
@@ -72,10 +79,10 @@ internal fun ActiveWorkoutScreen(
         object : ActiveWorkoutActions {
             override fun finishSession() = viewModel.finishSession(onFinished)
             override fun discardSession() = viewModel.discardSession()
+            override fun saveEdit() = viewModel.saveEdit()
             override fun addExercise(exerciseKey: String) = viewModel.addExercise(exerciseKey)
             override fun removeExercise(exercise: Exercise) = viewModel.removeExercise(exercise)
             override fun addSet(block: ExerciseBlock) = viewModel.addSet(block)
-            override fun copySetsFromLastTime(block: ExerciseBlock) = viewModel.copySetsFromLastTime(block)
             override fun addSpokenSet(block: ExerciseBlock, alternatives: List<String>) = viewModel.addSpokenSet(block, alternatives)
             override fun voiceUnavailable() = viewModel.voiceUnavailable()
             override fun changeSet(set: SetEntry, change: SetChange) = viewModel.changeSet(set, change)
@@ -95,12 +102,14 @@ internal fun ActiveWorkoutScreen(
 internal fun ActiveWorkoutRedirect(isActiveWorkoutOpen: () -> Boolean, onSessionStarted: () -> Unit, onSessionEnded: () -> Unit) {
     val viewModel: ActiveSessionViewModel = koinViewModel()
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var previousState by rememberSaveable { mutableStateOf(ActiveSessionState.Loading) }
     LaunchedEffect(state) {
         when (state) {
-            ActiveSessionState.Loading -> Unit
-            ActiveSessionState.Active -> if (!isActiveWorkoutOpen()) onSessionStarted()
+            ActiveSessionState.Loading -> return@LaunchedEffect
+            ActiveSessionState.Active -> if (previousState != ActiveSessionState.Active && !isActiveWorkoutOpen()) onSessionStarted()
             ActiveSessionState.None -> if (isActiveWorkoutOpen()) onSessionEnded()
         }
+        previousState = state
     }
 }
 
@@ -123,7 +132,7 @@ internal fun WorkoutDetailScreen(sessionId: Long, onBack: () -> Unit, onDeleted:
     WorkoutDetailContent(
         state = state,
         onBack = onBack,
-        onEdit = { viewModel.edit(onReopened = {}) },
+        onEdit = viewModel::edit,
         onDelete = { viewModel.delete(onDeleted) },
     )
 }

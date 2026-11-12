@@ -30,11 +30,6 @@ import com.github.sebastianp265.aitrainer.integration.volume.DEFAULT_MAX_WEEKLY_
 import com.github.sebastianp265.aitrainer.integration.volume.DEFAULT_MIN_WEEKLY_SETS
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
-import com.github.sebastianp265.aitrainer.shared.volume.TargetStatus
-import com.github.sebastianp265.aitrainer.shared.volume.VolumeBars
-import com.github.sebastianp265.aitrainer.shared.volume.VolumeLegend
-import com.github.sebastianp265.aitrainer.shared.volume.VolumeRow
-import com.github.sebastianp265.aitrainer.shared.volume.status
 import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 
 @Composable

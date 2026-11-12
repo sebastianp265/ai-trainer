@@ -43,7 +43,6 @@ class WeeklyReviewFlowE2ETest : AbstractE2ETest() {
         coach.acceptAll()
         coach.assertProposalState("ACCEPTED")
         tabs.open("Training")
-        plans.openStartSheet()
         plans.assertListed("Push A")
         plans.assertListed("Legs B")
     }

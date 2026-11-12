@@ -39,7 +39,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -52,7 +51,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.shared.localization.displayName
+import com.github.sebastianp265.aitrainer.shared.localization.formatWeekdayDate
 import com.github.sebastianp265.aitrainer.integration.exercise.Equipment
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.MuscleGroup
@@ -63,10 +62,7 @@ import com.github.sebastianp265.aitrainer.integration.workout.LastTimeGroup
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
 import com.github.sebastianp265.aitrainer.integration.workout.WorkoutSession
-import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalDate
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import com.github.sebastianp265.aitrainer.shared.design.DashedButton
 import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
@@ -89,6 +85,7 @@ internal fun ActiveWorkoutContent(
         }
     }
     var confirmDiscard by rememberSaveable { mutableStateOf(false) }
+    val isEditing = state.session?.editedSessionId != null
 
     Scaffold(
         modifier = modifier,
@@ -104,8 +101,11 @@ internal fun ActiveWorkoutContent(
                         modifier = Modifier.weight(1f).height(48.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
-                    ) { Text(stringResource(R.string.discard)) }
-                    Button(onClick = actions::finishSession, Modifier.weight(1f).height(48.dp)) { Text(stringResource(R.string.finish)) }
+                    ) { Text(stringResource(if (isEditing) R.string.cancel else R.string.discard)) }
+                    Button(
+                        onClick = if (isEditing) actions::saveEdit else actions::finishSession,
+                        modifier = Modifier.weight(1f).height(48.dp),
+                    ) { Text(stringResource(if (isEditing) R.string.save else R.string.finish)) }
                 }
             }
         },
@@ -133,7 +133,15 @@ internal fun ActiveWorkoutContent(
         }
     }
 
-    if (confirmDiscard) {
+    if (confirmDiscard && isEditing) {
+        CancelEditDialog(
+            onConfirm = {
+                confirmDiscard = false
+                actions.discardSession()
+            },
+            onDismiss = { confirmDiscard = false },
+        )
+    } else if (confirmDiscard) {
         DiscardWorkoutDialog(
             planName = state.plan?.name,
             onConfirm = {
@@ -147,13 +155,7 @@ internal fun ActiveWorkoutContent(
 
 @Composable
 private fun WorkoutHeader(session: WorkoutSession, plan: Plan?) {
-    var elapsedSeconds by remember { mutableLongStateOf(0) }
-    LaunchedEffect(session.startedAt) {
-        while (true) {
-            elapsedSeconds = (Clock.System.now() - session.startedAt).inWholeSeconds.coerceAtLeast(0)
-            delay(1.seconds)
-        }
-    }
+    val elapsedSeconds = rememberElapsedSeconds(session.startedAt)
     val title = plan?.name ?: stringResource(R.string.workout_empty_title)
     Row(verticalAlignment = Alignment.CenterVertically) {
     Column(Modifier.weight(1f).heightIn(min = 64.dp).padding(vertical = 8.dp), verticalArrangement = Arrangement.Center) {
@@ -164,7 +166,7 @@ private fun WorkoutHeader(session: WorkoutSession, plan: Plan?) {
             PlanAuthor.COACH -> stringResource(R.string.workout_from_coach_plan)
         }
         Text(
-            stringResource(R.string.workout_subtitle, origin, formatElapsed(elapsedSeconds)),
+            stringResource(R.string.workout_subtitle, origin, if (session.editedSessionId != null) formatWeekdayDate(session.date) else formatElapsed(elapsedSeconds)),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.testTag(ActiveWorkoutTags.SUBTITLE),
@@ -185,10 +187,23 @@ private fun WorkoutHeader(session: WorkoutSession, plan: Plan?) {
 }
 
 private fun ActiveWorkoutMessage.text(resources: Resources): String = when (this) {
-    is ActiveWorkoutMessage.NoPreviousSets ->
-        resources.getString(R.string.no_previous_sets, exercise.displayName(resources.configuration.locales[0]))
     is ActiveWorkoutMessage.NotUnderstood -> resources.getString(R.string.voice_not_understood, text)
     ActiveWorkoutMessage.VoiceUnavailable -> resources.getString(R.string.voice_unavailable)
+}
+
+@Composable
+private fun CancelEditDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.cancel_edit_title)) },
+        text = { Text(stringResource(R.string.cancel_edit_text)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm, colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
+                Text(stringResource(R.string.cancel_edit_confirm))
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.keep_editing)) } },
+    )
 }
 
 @Composable
@@ -214,10 +229,10 @@ internal fun DiscardWorkoutDialog(planName: String?, onConfirm: () -> Unit, onDi
 internal interface ActiveWorkoutActions {
     fun finishSession()
     fun discardSession()
+    fun saveEdit()
     fun addExercise(exerciseKey: String)
     fun removeExercise(exercise: Exercise)
     fun addSet(block: ExerciseBlock)
-    fun copySetsFromLastTime(block: ExerciseBlock)
     fun addSpokenSet(block: ExerciseBlock, alternatives: List<String>)
     fun voiceUnavailable()
     fun changeSet(set: SetEntry, change: SetChange)
@@ -255,7 +270,7 @@ private fun ActiveWorkoutPreview() {
             ActiveWorkoutContent(
                 state = ActiveWorkoutUiState(
                     isLoading = false,
-                    session = WorkoutSession(1, date, start, null, null, null),
+                    session = WorkoutSession(1, date, start, null, null, null, null),
                     blocks = listOf(
                         ExerciseBlockUi(
                             ExerciseBlock(
@@ -272,10 +287,10 @@ private fun ActiveWorkoutPreview() {
                 actions = object : ActiveWorkoutActions {
                     override fun finishSession() = Unit
                     override fun discardSession() = Unit
+                    override fun saveEdit() = Unit
                     override fun addExercise(exerciseKey: String) = Unit
                     override fun removeExercise(exercise: Exercise) = Unit
                     override fun addSet(block: ExerciseBlock) = Unit
-                    override fun copySetsFromLastTime(block: ExerciseBlock) = Unit
                     override fun addSpokenSet(block: ExerciseBlock, alternatives: List<String>) = Unit
                     override fun voiceUnavailable() = Unit
                     override fun changeSet(set: SetEntry, change: SetChange) = Unit

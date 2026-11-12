@@ -44,11 +44,9 @@ internal class WorkoutReportViewModel(
         sessionId.value = id
     }
 
-    fun edit(onReopened: () -> Unit) {
+    fun edit() {
         val id = sessionId.value ?: return
-        viewModelScope.launch {
-            if (workoutService.reopenSession(id)) onReopened()
-        }
+        viewModelScope.launch { workoutService.startEditing(id) }
     }
 
     fun delete(onDeleted: () -> Unit) {

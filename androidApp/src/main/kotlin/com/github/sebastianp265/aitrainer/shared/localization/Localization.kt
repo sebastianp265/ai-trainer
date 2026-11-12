@@ -3,9 +3,7 @@ package com.github.sebastianp265.aitrainer.shared.localization
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalConfiguration
-import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.minus
 import kotlinx.datetime.Month
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDate
@@ -60,6 +58,13 @@ internal fun formatMonth(year: Int, month: Month): String {
 }
 
 @Composable
+internal fun formatMonthName(month: Month): String {
+    val locale = LocalConfiguration.current.locales[0]
+    val format = remember(locale) { DateTimeFormatter.ofPattern("LLLL", locale) }
+    return format.format(java.time.Month.of(month.ordinal + 1)).replaceFirstChar { it.titlecase(locale) }
+}
+
+@Composable
 internal fun formatTime(instant: Instant): String {
     val locale = LocalConfiguration.current.locales[0]
     val format = remember(locale) { DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withLocale(locale) }
@@ -103,4 +108,3 @@ internal fun formatWeekRange(first: LocalDate, last: LocalDate): String {
     else "${dayMonth.format(first.toJavaLocalDate())} – ${dayMonth.format(last.toJavaLocalDate())}"
 }
 
-internal fun mondayOf(date: LocalDate): LocalDate = date.minus(DatePeriod(days = date.dayOfWeek.ordinal))

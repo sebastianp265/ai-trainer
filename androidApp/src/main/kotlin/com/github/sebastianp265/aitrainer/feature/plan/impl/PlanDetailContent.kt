@@ -101,7 +101,9 @@ internal fun PlanDetailContent(
             val coachEnabled = LocalCoachEnabled.current
             plan.coachNote?.takeIf { coachEnabled }?.let { CoachNote(it) }
             planExercises(plan.sets).forEach { ExerciseLines(it, state.exercises) }
-            Button(onClick = onStart, Modifier.fillMaxWidth().height(48.dp).testTag(PlanTags.START)) { Text(stringResource(R.string.plan_start)) }
+            if (state.canStart) {
+                Button(onClick = onStart, Modifier.fillMaxWidth().height(48.dp).testTag(PlanTags.START)) { Text(stringResource(R.string.plan_start)) }
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (coachEnabled) {
                     val openCoach = LocalOpenCoach.current
@@ -190,6 +192,7 @@ private fun PlanDetailPreview() {
                     ),
                 ),
                 exercises = mapOf("BENCH" to bench),
+                canStart = true,
             ),
             onBack = {},
             onEdit = {},

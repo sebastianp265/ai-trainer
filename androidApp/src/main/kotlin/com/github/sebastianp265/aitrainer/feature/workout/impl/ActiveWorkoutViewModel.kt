@@ -7,7 +7,6 @@ import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
 import com.github.sebastianp265.aitrainer.integration.plan.Plan
 import com.github.sebastianp265.aitrainer.integration.plan.PlanService
-import com.github.sebastianp265.aitrainer.integration.workout.CopyResult
 import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
 import com.github.sebastianp265.aitrainer.integration.workout.LastTimeGroup
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
@@ -30,7 +29,6 @@ import kotlinx.coroutines.launch
 internal data class ExerciseBlockUi(val block: ExerciseBlock, val lastTime: List<LastTimeGroup>)
 
 internal sealed interface ActiveWorkoutMessage {
-    data class NoPreviousSets(val exercise: Exercise) : ActiveWorkoutMessage
     data class NotUnderstood(val text: String) : ActiveWorkoutMessage
     data object VoiceUnavailable : ActiveWorkoutMessage
 }
@@ -100,6 +98,8 @@ internal class ActiveWorkoutViewModel(
         )
     }.stateIn(viewModelScope, WhileUiSubscribed, ActiveWorkoutUiState())
 
+    fun saveEdit() = withSession { workoutService.saveEditing(it.id) }
+
     fun finishSession(onFinished: (sessionId: Long) -> Unit) = withSession {
         workoutService.finishSession(it.id)
         onFinished(it.id)
@@ -112,12 +112,6 @@ internal class ActiveWorkoutViewModel(
     fun removeExercise(exercise: Exercise) = withSession { workoutService.removeExercise(it.id, exercise.key) }
 
     fun addSet(block: ExerciseBlock) = withSession { workoutService.addSet(it.id, block) }
-
-    fun copySetsFromLastTime(block: ExerciseBlock) = withSession { session ->
-        if (workoutService.copySetsFromLastTime(session.id, block.exercise.key) == CopyResult.NO_PREVIOUS_SETS) {
-            message.value = ActiveWorkoutMessage.NoPreviousSets(block.exercise)
-        }
-    }
 
     fun addSpokenSet(block: ExerciseBlock, alternatives: List<String>) = withSession { session ->
         val spoken = alternatives.firstNotNullOfOrNull { parseSpokenSet(it) }

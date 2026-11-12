@@ -1,6 +1,6 @@
 # Project status
 
-Last updated: 2026-11-10 · Branch `phase-5-7` · Phases 5, 6 and 7 are done (training, plans and weekly sets; the coach; weekly review, backup and polish).
+Last updated: 2026-11-12 · Branch `phase-5-7` · Phases 5, 6 and 7 are done (training, plans and weekly sets; the coach; weekly review, backup and polish).
 Phases 1–4 are done and merged. The design (phase 3) is in [`requirements.md`](requirements.md), [`design/`](design/README.md) and [`plan.md`](plan.md).
 Choices made without asking are in [`decisions.md`](decisions.md).
 
@@ -20,15 +20,16 @@ line icons, filled cards with small gray labels, grouped settings rows, colored 
 and green/orange text for good and off-target values. Plans written by the coach show the coach's note on the plan details.
 
 The app opens on **Training**. The bottom bar has four tabs: Training · Coach · Progress · Settings; with the coach switched off
-in Settings the Coach tab and every coach element disappear. The tabs have no top bar; screens opened from them have one with the back arrow. While a workout runs, the workout screen covers everything (no bottom bar, no top bar); if you close
+in Settings the Coach tab and every coach element disappear. The tabs have no top bar; screens opened from them have one with the back arrow. The workout screen covers everything (no bottom bar, no top bar). Back returns to the previous screen everywhere; only
+back on Training leaves the app. Back from a running workout keeps it running and returns to Training, where it is shown on top. If you close
 the app during a workout, it opens on the workout again.
 
 | Screen | State | What you can do |
 |---|---|---|
-| **Training** | ✅ Works | From the top: the week strip (done, planned), a pending coach proposal, "Start workout" and recent workouts with "All". "Start workout" opens a sheet with every plan (the next one first; tap to start, the info icon opens the plan), "Empty workout" and "New plan". |
-| **Workout in progress** | ✅ Works | Exercise cards with a "Last time" line (tap for the exercise history). Per set: tap the number to mark a warm-up, tap the weight or the reps to type, − / + for reps, tap RPE to pick 6 to 10, delete. "+ Set", "Same as last time", the microphone (say "80 na 8, RPE 8" and the set is added), remove an exercise, add an exercise. The coach button next to the title opens the coach about this workout. "Discard" asks for confirmation; "Finish" saves and opens the summary. |
+| **Training** | ✅ Works | From the top: a pending coach proposal, the card of the next plan ("Next · from the coach" or "Next · your plan": the first upcoming plan, by date, plans without a date last) with "Start workout" and ✎ (edit), then "Workout without a plan" and "New plan" side by side. While a workout runs (or a finished one is being edited), the top card shows it instead ("Workout in progress" with the elapsed time, or "Editing a workout" with its date) with "Back to workout", and every start button (here and in plan details) is hidden. Below them the Plans / History switch, which stays pinned at the top while you scroll. **Plans:** the other plans with the author tag, the exercise names, ✎ (edit) and ▶ (start); tapping a plan opens its details. **History:** every finished workout grouped by month (the year shows only for months of earlier years), each with the day and weekday, the plan name or "Workout", "from plan" / "no plan", the time and the number of sets; tap to open, ✎ to edit. A thin scrollbar shows while scrolling. |
+| **Workout in progress** | ✅ Works | Exercise cards with a "Last time" line (tap for the exercise history). Per set: tap the number to mark a warm-up, tap the weight or the reps to type, − / + for reps, tap RPE to pick 6 to 10, delete. "+ Set", the microphone (say "80 na 8, RPE 8" and the set is added), remove an exercise, add an exercise. The coach button next to the title opens the coach about this workout. "Discard" asks for confirmation; "Finish" saves and opens the summary. |
 | **Summary** | ✅ Works | Time, working sets, average RPE; new records; comparison with the plan ("on plan", "−1 set", "+2.5 kg", "+1 reps"); the previous workout of the same plan; "See all sets". |
-| **Finished workout** | ✅ Works | All sets with RPE and, for a planned workout, the plan line and the difference. Edit (re-opens it as a running workout) and delete (with confirmation). |
+| **Finished workout** | ✅ Works | All sets with RPE and, for a planned workout, the plan line and the difference. Edit opens a copy of it on the workout screen with the date instead of the timer and "Cancel" / "Save": "Save" replaces the workout's sets and keeps its date and times, "Cancel" (asks first) leaves it as it was. Also from ✎ in History. Delete asks for confirmation. |
 | **Exercise picker** | ✅ Works | Search, muscle group chips, recently used (with the last time), all exercises, "New exercise" (name, main group, additional groups). |
 | **Exercise history** | ✅ Works | Estimated 1RM, best set, change over 3 months, 1RM chart, average RPE chart, past sessions (tap to open the workout). Opens from the "Last time" line and from the strength card in Progress. |
 | **Plan details / edit / new** | ✅ Works | Details with warm-ups and grouped sets; "Start workout"; edit (name, optional date, exercises, weight, reps, RPE, warm-up flag); delete with confirmation. |
@@ -62,6 +63,8 @@ the app during a workout, it opens on the workout again.
 - Ask the coach for a calorie and protein target and check Progress; ask for a new exercise and find it in the exercise picker.
 - Dictate a set with the microphone during a workout ("80 na 8, RPE 8"), in Polish and English.
 - Look through every screen in light and dark mode.
+- Training: scroll a long History and plan list (the Plans / History switch stays on top, the scrollbar shows only while scrolling); check month headers around New Year.
+- Edit an old workout from History, change a weight, "Cancel" (nothing changes), then edit again and "Save" (the date and the time stay the same).
 - Switch the coach off and check that the Coach tab and the coach shortcuts are gone.
 - Switch on a Health Connect type in Settings that has no permission yet: the system permission screen opens for that type only, and after allowing, the switch is on and its data appears in Progress (no automated test taps that system screen).
 
@@ -69,7 +72,7 @@ the app during a workout, it opens on the workout again.
 
 Installing a new build keeps your data: schema 7 → 8 (six muscle groups, "Other" equipment), 8 → 9 (plans, workout ↔ plan link),
 9 → 10 (weekly targets), 10 → 11 (coach conversation, proposals, notes, profile, usage, request log), 11 → 12 (weekly review
-stored with a coach message), 12 → 13 (the request log of the removed debug screen is dropped), 13 → 14 (the coach's note on a plan), 14 → 15 (undo data of proposals, the topic of a message, the nutrition target). If the app on your phone has a schema older than 6, uninstall it once.
+stored with a coach message), 12 → 13 (the request log of the removed debug screen is dropped), 13 → 14 (the coach's note on a plan), 14 → 15 (undo data of proposals, the topic of a message, the nutrition target), 15 → 16 (copied Health Connect data dropped), 16 → 17 (a workout being edited points to the original). If the app on your phone has a schema older than 6, uninstall it once.
 
 ## What's not there yet
 

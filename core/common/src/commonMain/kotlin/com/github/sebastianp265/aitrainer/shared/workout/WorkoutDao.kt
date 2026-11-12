@@ -123,6 +123,12 @@ internal interface WorkoutDao {
     }
 
     @Transaction
+    suspend fun moveSetsAndDeleteSession(fromSessionId: Long, toSessionId: Long) {
+        replaceSessionSets(toSessionId, getSets(fromSessionId).map { it.copy(id = 0, sessionId = toSessionId) })
+        deleteSession(fromSessionId)
+    }
+
+    @Transaction
     suspend fun insertSetAtEnd(set: SetEntryEntity): Long =
         insertSet(set.copy(positionInSession = nextSetOrder(set.sessionId)))
 
@@ -176,12 +182,12 @@ internal interface WorkoutDao {
         WHERE exerciseKey = :exerciseKey AND sessionId = (
             SELECT s.id FROM workout_session s
             JOIN set_entry e ON e.sessionId = s.id
-            WHERE e.exerciseKey = :exerciseKey AND s.id != :excludingSessionId AND s.finishedAt IS NOT NULL
+            WHERE e.exerciseKey = :exerciseKey AND s.id NOT IN (:excludedSessionIds) AND s.finishedAt IS NOT NULL
             ORDER BY s.startedAt DESC
             LIMIT 1
         )
         ORDER BY positionInSession
         """
     )
-    suspend fun lastSetsForExercise(exerciseKey: String, excludingSessionId: Long): List<SetEntryEntity>
+    suspend fun lastSetsForExercise(exerciseKey: String, excludedSessionIds: List<Long>): List<SetEntryEntity>
 }

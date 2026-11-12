@@ -110,7 +110,6 @@ internal fun ExerciseCard(ui: ExerciseBlockUi, actions: ActiveWorkoutActions, on
                 }
                 Row(Modifier.padding(start = 30.dp, top = 4.dp, bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ChipButton(stringResource(R.string.add_set), onClick = { actions.addSet(block) })
-                    ChipButton(stringResource(R.string.same_as_last_time), onClick = { actions.copySetsFromLastTime(block) })
                     SaySetButton(block, actions)
                 }
             }

@@ -57,14 +57,11 @@ class CoachFlowE2ETest : AbstractE2ETest() {
         coach.accept()
         coach.assertProposalState("ACCEPTED")
         tabs.open("Training")
-        plans.openStartSheet()
         plans.assertListed("Push A")
-        plans.closeStartSheet()
         tabs.open("Coach")
         coach.undo()
         coach.assertProposalState("UNDONE")
         tabs.open("Training")
-        plans.openStartSheet()
         plans.assertNotListed("Push A")
     }
 
@@ -161,7 +158,6 @@ class CoachFlowE2ETest : AbstractE2ETest() {
         given.claudeApiKey()
         val planId = given.plan("Push A", sets(BENCH_PRESS, kg = 80.0))
         launchApp(claudeClient = claude)
-        plans.openStartSheet()
         plans.open("Push A")
         plans.askCoach()
         coach.assertTopic("About plan: Push A")

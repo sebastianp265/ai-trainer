@@ -3,7 +3,6 @@ package com.github.sebastianp265.aitrainer.feature.app.impl
 import com.github.sebastianp265.aitrainer.feature.exercise.exerciseUiModule
 import com.github.sebastianp265.aitrainer.feature.health.healthUiModule
 import com.github.sebastianp265.aitrainer.feature.plan.planUiModule
-import com.github.sebastianp265.aitrainer.feature.history.historyUiModule
 import com.github.sebastianp265.aitrainer.feature.progress.progressUiModule
 import com.github.sebastianp265.aitrainer.feature.settings.settingsUiModule
 import com.github.sebastianp265.aitrainer.feature.volume.volumeUiModule
@@ -33,7 +32,6 @@ internal val uiModules = listOf(
     volumeUiModule,
     workoutUiModule,
     healthUiModule,
-    historyUiModule,
     progressUiModule,
     settingsUiModule,
 )

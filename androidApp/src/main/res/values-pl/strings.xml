@@ -6,7 +6,6 @@
     <string name="back">Wstecz</string>
     <string name="nav_settings">Ustawienia</string>
     <string name="start_workout">Zacznij trening</string>
-    <string name="recent_workouts">Ostatnie treningi</string>
     <string name="no_workouts_yet">Nie masz jeszcze żadnych treningów</string>
     <string name="session_summary">%1$s · %2$s</string>
     <string name="discard">Odrzuć</string>
@@ -16,7 +15,6 @@
     <string name="discard_workout_title">Odrzucić trening?</string>
     <string name="discard_workout_text">Wpisane serie nie zostaną zapisane.</string>
     <string name="add_set">+ Seria</string>
-    <string name="same_as_last_time">Jak ostatnio</string>
     <string name="warmup_short">R</string>
     <string name="unit_kg">kg</string>
     <string name="unit_reps">powt.</string>
@@ -24,7 +22,6 @@
     <string name="decrease_reps">Zmniejsz liczbę powtórzeń</string>
     <string name="delete_set">Usuń serię</string>
     <string name="add_exercise">Dodaj ćwiczenie</string>
-    <string name="no_previous_sets">Brak wcześniejszych serii: %1$s</string>
     <string name="save">Zapisz</string>
     <string name="remove">Usuń</string>
     <string name="settings_ai_trainer">Trener AI</string>
@@ -120,10 +117,7 @@
     <string name="progress_strength_title">Siła · szacowany ciężar maksymalny (1RM)</string>
     <string name="progress_record">rekord</string>
 
-    <string name="history_title">Wszystkie treningi</string>
-    <string name="history_all">Wszystkie</string>
     <string name="history_workout">Trening</string>
-    <string name="history_empty">Brak treningów.</string>
 
     <plurals name="exercise_count">
         <item quantity="one">%d ćwiczenie</item>
@@ -151,7 +145,7 @@
     <string name="remove_exercise">Usuń ćwiczenie</string>
     <string name="workout_empty_title">Trening</string>
     <string name="workout_empty_subtitle">pusty trening</string>
-    <string name="discard_workout_text_plan">Wpisane serie nie zostaną zapisane. Plan „%1$s” zostanie w zakładce Plan.</string>
+    <string name="discard_workout_text_plan">Wpisane serie nie zostaną zapisane. Plan „%1$s” zostanie na liście planów.</string>
     <string name="back_to_workout">Wróć do treningu</string>
     <string name="ok">OK</string>
     <string name="workout_subtitle">%1$s · %2$s</string>
@@ -211,11 +205,8 @@
     <string name="plan_set_n">Seria %1$d</string>
     <string name="plan_warmup_n">Rozgrzewka %1$d</string>
     <string name="plan_field_description">%1$s %2$s</string>
-    <string name="empty_workout">Pusty trening</string>
-    <string name="empty_workout_text">Dodajesz ćwiczenia na bieżąco</string>
     <string name="no_workouts_yet_text">Zapisane treningi pojawią się tutaj.</string>
     <string name="from_plan">z planu</string>
-    <string name="from_a_plan">Z planu</string>
     <string name="value_minutes">%1$d min</string>
     <string name="workout_from_own_plan">z Twojego planu</string>
     <string name="workout_from_coach_plan">z planu trenera</string>
@@ -308,24 +299,6 @@
         <item quantity="many">%1$s powyżej: %2$s z %3$d–%4$d serii.</item>
         <item quantity="other">%1$s powyżej: %2$s z %3$d–%4$d serii.</item>
     </plurals>
-    <string name="week_title">Ten tydzień · %1$s</string>
-    <string name="week_counts">%1$s · %2$s</string>
-    <plurals name="week_done_count">
-        <item quantity="one">%d zrobiony</item>
-        <item quantity="few">%d zrobione</item>
-        <item quantity="many">%d zrobionych</item>
-        <item quantity="other">%d zrobionego</item>
-    </plurals>
-    <plurals name="week_planned_count">
-        <item quantity="one">%d zaplanowany</item>
-        <item quantity="few">%d zaplanowane</item>
-        <item quantity="many">%d zaplanowanych</item>
-        <item quantity="other">%d zaplanowanego</item>
-    </plurals>
-    <string name="week_legend_done">zrobiony</string>
-    <string name="week_legend_planned">zaplanowany</string>
-    <string name="week_today">dziś</string>
-    <string name="week_free">wolne</string>
     <string name="settings_coach_title">Trener AI</string>
     <string name="settings_coach_off">Wyłączony</string>
     <string name="settings_coach_on_text">Czat, propozycje planów i przegląd tygodnia</string>
@@ -560,7 +533,21 @@
     <string name="hc_history_allowed">dostęp jest</string>
     <string name="backup_from_newer_app">Ta kopia pochodzi z nowszej wersji aplikacji. Zaktualizuj aplikację i spróbuj ponownie.</string>
     <string name="backup_too_old">Ta kopia pochodzi ze zbyt starej wersji aplikacji, żeby ją zaimportować.</string>
-    <string name="sheet_new_plan">Nowy plan</string>
-    <string name="sheet_new_plan_text">Napisz go sam i zacznij później</string>
-    <string name="plan_details">Szczegóły planu</string>
+    <string name="training_next_from_coach">Następny · od trenera</string>
+    <string name="training_next_own">Następny · Twój plan</string>
+    <string name="training_without_plan">Trening bez planu</string>
+    <string name="training_active_now">Trwa trening</string>
+    <string name="training_active_edit">Edytujesz trening</string>
+    <string name="training_active_resume">Wróć do treningu</string>
+    <string name="training_tab_plans">Plany</string>
+    <string name="training_tab_history">Historia</string>
+    <string name="training_no_plan">bez planu</string>
+    <string name="training_no_plans">Nie masz jeszcze planów. Napisz własny albo poproś trenera.</string>
+    <string name="training_start_plan_description">Zacznij %1$s</string>
+    <string name="training_edit_plan_description">Edytuj %1$s</string>
+    <string name="training_edit_workout_description">Edytuj trening z %1$s</string>
+    <string name="cancel_edit_title">Odrzucić zmiany?</string>
+    <string name="cancel_edit_text">Trening zostanie taki, jak przed edycją.</string>
+    <string name="cancel_edit_confirm">Odrzuć zmiany</string>
+    <string name="keep_editing">Edytuj dalej</string>
 </resources>

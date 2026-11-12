@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.shared.volume
+package com.github.sebastianp265.aitrainer.feature.progress.impl
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement

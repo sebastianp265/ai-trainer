@@ -4,20 +4,15 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.AbstractE2ETest
 import com.github.sebastianp265.aitrainer.shared.e2e.BENCH_PRESS
-import com.github.sebastianp265.aitrainer.shared.e2e.PlanScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.sets
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
 import org.junit.runner.RunWith
 import kotlin.test.Test
-import kotlin.time.Clock
 
 @RunWith(AndroidJUnit4::class)
 class VolumeFlowE2ETest : AbstractE2ETest() {
 
     private val progress = ProgressScreen(compose)
     private val targets = VolumeTargetsScreen(compose)
-    private val plans = PlanScreen(compose)
 
     @Test
     fun `a target typed by hand replaces the default in progress until the defaults are restored`() {
@@ -49,13 +44,6 @@ class VolumeFlowE2ETest : AbstractE2ETest() {
         progress.assertNoVolumeTargets()
     }
 
-    @Test
-    fun `the Training tab shows the current week`() {
-        given.plan("Push A", sets(BENCH_PRESS), date = Clock.System.todayIn(TimeZone.currentSystemDefault()))
-        launchApp()
-
-        plans.assertWeekShown()
-    }
 
     private fun openProgressAfterABenchWorkout() {
         given.finishedWorkout(sets(BENCH_PRESS))
