@@ -1,6 +1,7 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.LibraryExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 plugins {
@@ -60,6 +61,18 @@ subprojects {
                     jvmTarget.set(JvmTarget.fromTarget(javaVersion.toString()))
                 }
             }
+        }
+    }
+
+    plugins.withId("org.jetbrains.kotlin.jvm") {
+        extensions.configure<KotlinJvmProjectExtension> {
+            compilerOptions {
+                jvmTarget.set(JvmTarget.fromTarget(javaVersion.toString()))
+            }
+        }
+        extensions.configure<JavaPluginExtension> {
+            sourceCompatibility = javaVersion
+            targetCompatibility = javaVersion
         }
     }
 }

@@ -85,7 +85,6 @@ Nothing planned is missing. See the known gaps below.
 - When Health Connect cannot be read (for example its read limit is reached), the screens show no Health Connect data instead of an error.
 - Not checked on a phone with a real key: the real Claude calls, the weekly review text, and backup import with a file from another device (the app restarts after an import).
 - The launcher icon and splash screen are still the Android defaults.
-- The IDE shows unresolved references in `jvmTest` files; Gradle compiles them (see `decisions.md`).
 - The end-to-end tests depend on the emulator. With 2 GB of RAM the emulator showed "System UI isn't responding" and tests failed because of that window; give it 4 GB.
 
 ## Final summary

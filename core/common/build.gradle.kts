@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val roomSchemaDirectory: String = layout.projectDirectory.dir("schemas").asFile.absolutePath
+
 kotlin {
     jvm()
 
@@ -20,21 +22,23 @@ kotlin {
             api(libs.androidx.datastore.preferences.core)
             api(project.dependencies.platform(libs.koin.bom))
             api(libs.koin.core)
-            api(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.serialization.json)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
         }
         jvmTest.dependencies {
             implementation(project.dependencies.platform(libs.junit.bom))
-            implementation(libs.kotlin.test.junit5)
             implementation(libs.androidx.room.testing)
             implementation(libs.androidx.sqlite.bundled)
-            implementation(libs.kotlinx.coroutines.test)
             runtimeOnly(libs.junit.platform.launcher)
         }
     }
 }
 
 room {
-    schemaDirectory("$projectDir/schemas")
+    schemaDirectory(roomSchemaDirectory)
 }
 
 dependencies {
@@ -43,4 +47,5 @@ dependencies {
 
 tasks.named<Test>("jvmTest") {
     useJUnitPlatform()
+    systemProperty("roomSchemaDirectory", roomSchemaDirectory)
 }

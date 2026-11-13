@@ -20,6 +20,7 @@ dependencies {
     implementation(libs.anthropic.java)
 
     testImplementation(libs.kotlin.test.junit)
+    testImplementation(libs.kotlinx.serialization.json)
     testImplementation(libs.okhttp.mockwebserver)
 
     androidTestImplementation(libs.kotlin.test.junit)
