@@ -3,7 +3,6 @@ package com.github.sebastianp265.aitrainer.integration.coach
 import com.github.sebastianp265.aitrainer.integration.exercise.NewExercise
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import kotlinx.datetime.LocalDate
-import kotlin.time.Duration
 import kotlin.time.Instant
 
 enum class CoachRole { USER, COACH }
@@ -74,15 +73,3 @@ data class CoachMessage(
 )
 
 data class CoachNote(val id: Long, val text: String, val createdAt: Instant)
-
-data class CoachUsage(val messages: Int, val inputTokens: Long, val outputTokens: Long)
-
-data class CoachRun(
-    val rounds: Int,
-    val inputTokens: Int,
-    val cacheReadTokens: Int,
-    val cacheWriteTokens: Int,
-    val outputTokens: Int,
-    val duration: Duration,
-    val stopReason: String?,
-)

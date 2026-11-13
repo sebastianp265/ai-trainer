@@ -10,5 +10,5 @@ private const val SETTINGS_DATA_STORE_FILE = "settings"
 
 internal val settingsModule = module {
     single(named(SETTINGS_DATA_STORE_FILE)) { get<PreferencesStores>().create(SETTINGS_DATA_STORE_FILE) }
-    factory<SettingsService> { DefaultSettingsService(get(named(SETTINGS_DATA_STORE_FILE)), get()) }
+    factory<SettingsService> { DefaultSettingsService(get(named(SETTINGS_DATA_STORE_FILE))) }
 }

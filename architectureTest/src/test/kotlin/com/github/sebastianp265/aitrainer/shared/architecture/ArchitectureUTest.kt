@@ -96,6 +96,16 @@ class ArchitectureUTest {
     }
 
     @ParameterizedTest(name = "{0}")
+    @MethodSource("pairs")
+    fun `ai is used only by itself, the app shell, the module lists and the database`(pair: ModulePair) {
+        if (pair.packageModule.isAi || pair.packageModule in setOf(PackageModule.FEATURE_APP, PackageModule.INTEGRATION_MODULE, PackageModule.SHARED_DATABASE)) return
+
+        val usesAi = pair.importedPackageModules.filter { it.isAi }
+
+        assertEquals(emptyList(), usesAi, "Package modules of ai that ${pair.packageModule} must not depend on in $pair")
+    }
+
+    @ParameterizedTest(name = "{0}")
     @MethodSource("gradleModules")
     fun `package modules do not depend on each other in cycles`(gradleModule: GradleModule) {
         val dependencies = PackageModule.entries.associateWith { ModulePair(gradleModule, it).importedPackageModules }

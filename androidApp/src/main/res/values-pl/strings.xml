@@ -28,6 +28,9 @@
     <string name="settings_claude_api_key">Klucz API Claude</string>
     <string name="settings_api_key_saved">Zapisany, zaszyfrowany na telefonie</string>
     <string name="settings_api_key_missing">Brak zapisanego klucza API</string>
+    <string name="settings_ai">AI</string>
+    <string name="settings_ai_text">Klucz API, model i strojenie</string>
+    <string name="ai_settings_text">Odpowiedzi trenera pisze model AI skonfigurowany tutaj. Klucz zostaje zaszyfrowany na tym telefonie.</string>
     <string name="settings_claude_model">Model Claude</string>
     <string name="health_connect_not_connected">Połącz, żeby widzieć tu wagę, kalorie, sen i tętno. Wybierasz, które dane udostępnić.</string>
     <string name="health_connect_unavailable">Health Connect nie jest dostępny na tym urządzeniu.</string>
@@ -301,10 +304,10 @@
     <string name="settings_coach_on_text">Czat, propozycje planów i przegląd tygodnia</string>
     <string name="settings_coach_off_explanation">Bez trenera aplikacja działa w całości: zapisujesz treningi, piszesz plany sam, cele serii i statystyki zostają. Znika zakładka Trener, propozycje i przegląd tygodnia. Rozmowy i notatki nie są usuwane: wrócą po włączeniu.</string>
     <string name="nav_coach">Trener</string>
-    <string name="coach_no_key_title">Trener potrzebuje klucza API</string>
-    <string name="coach_no_key_text">Trener działa na Claude. Wpisz swój klucz API w Ustawieniach: zostaje zaszyfrowany tylko na tym telefonie.</string>
-    <string name="coach_no_key_without">Bez klucza nadal zapisujesz treningi i plany.</string>
-    <string name="coach_enter_api_key">Wpisz klucz API</string>
+    <string name="coach_setup_title">Trener nie jest jeszcze skonfigurowany</string>
+    <string name="coach_setup_text">Dokończ konfigurację w Ustawieniach → AI, żeby zacząć rozmowę z trenerem.</string>
+    <string name="coach_setup_without">Bez tego nadal zapisujesz treningi i plany.</string>
+    <string name="coach_open_setup">Skonfiguruj trenera</string>
     <string name="coach_offline_banner">Brak połączenia z internetem. Treningi zapisujesz normalnie, trener odpowie po powrocie sieci.</string>
     <string name="coach_delete_message_title">Usuń wiadomość</string>
     <string name="coach_delete_message_text">Trener nie będzie jej już widział. Plany i propozycje z niej zostają.</string>
@@ -385,9 +388,9 @@
     <string name="coach_working_tool">Trener sprawdza: %1$s</string>
     <string name="coach_not_sent">Nie wysłano.</string>
     <string name="coach_retry">Spróbuj ponownie</string>
-    <string name="coach_error_key_title">Klucz API został odrzucony</string>
-    <string name="coach_error_key_text">Sprawdź, czy klucz jest poprawny i aktywny.</string>
-    <string name="coach_error_key_action">Sprawdź klucz</string>
+    <string name="coach_error_setup_title">Trener wymaga ponownej konfiguracji</string>
+    <string name="coach_error_setup_text">Sprawdź konfigurację w Ustawieniach → AI. Twoja wiadomość została zachowana.</string>
+    <string name="coach_error_setup_action">Otwórz konfigurację</string>
     <string name="coach_error_unavailable_title">Trener nie odpowiedział</string>
     <string name="coach_error_unavailable_text">Serwer jest przeciążony albo skończył się limit na koncie API. Twoja wiadomość została zachowana.</string>
     <string name="coach_input_hint">Napisz do trenera</string>

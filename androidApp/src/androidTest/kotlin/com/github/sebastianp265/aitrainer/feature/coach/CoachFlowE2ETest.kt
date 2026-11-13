@@ -29,11 +29,11 @@ class CoachFlowE2ETest : AbstractE2ETest() {
     private val workout = LogWorkoutScreen(compose)
 
     @Test
-    fun `without a key the Coach tab leads to the key screen`() {
-        launchApp(claudeClient = claude)
+    fun `without a key the Coach tab asks to set the coach up and leads to the key screen`() {
+        launchApp(aiClient = claude)
         tabs.open("Coach")
-        coach.assertKeyPrompt()
-        coach.openApiKeyFromPrompt()
+        coach.assertSetupPrompt()
+        coach.openSetupFromPrompt()
         settings.assertNoClaudeApiKeySaved()
     }
 
@@ -128,7 +128,7 @@ class CoachFlowE2ETest : AbstractE2ETest() {
         openCoachWithKey()
         claude.failWith(AiFailureKind.KEY_REJECTED)
         coach.send("Hello")
-        coach.assertErrorCard("The API key was rejected")
+        coach.assertErrorCard("The coach needs to be set up again")
         coach.tapErrorAction()
         settings.assertApiKeyScreenShown()
     }
@@ -168,9 +168,9 @@ class CoachFlowE2ETest : AbstractE2ETest() {
 
     @Test
     fun `asking the coach from a plan sends the message about that plan`() {
-        given.claudeApiKey()
+        given.aiApiKey()
         val planId = given.plan("Push A", sets(BENCH_PRESS, kg = 80.0))
-        launchApp(claudeClient = claude)
+        launchApp(aiClient = claude)
         plans.openNext("Push A")
         plans.askCoach()
         coach.assertTopic("About plan: Push A")
@@ -184,9 +184,9 @@ class CoachFlowE2ETest : AbstractE2ETest() {
 
     @Test
     fun `during a workout the coach changes its sets after a quick question`() {
-        given.claudeApiKey()
+        given.aiApiKey()
         given.runningWorkout(sets(BENCH_PRESS, count = 2, reps = 8, kg = 80.0))
-        launchApp(claudeClient = claude)
+        launchApp(aiClient = claude)
         workout.askCoach()
         coach.assertTopic("About the workout in progress")
         claude.answerWithToolCall("propose_workout_change", LIGHTER_BENCH)
@@ -200,8 +200,8 @@ class CoachFlowE2ETest : AbstractE2ETest() {
     }
 
     private fun openCoachWithKey() {
-        given.claudeApiKey()
-        launchApp(claudeClient = claude)
+        given.aiApiKey()
+        launchApp(aiClient = claude)
         tabs.open("Coach")
     }
 }

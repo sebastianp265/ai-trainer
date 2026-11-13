@@ -2,6 +2,7 @@ package com.github.sebastianp265.aitrainer.feature.coach.impl
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.sebastianp265.aitrainer.integration.coach.CoachReadiness
 import com.github.sebastianp265.aitrainer.integration.coach.CoachService
 import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
 import kotlinx.coroutines.NonCancellable
@@ -17,7 +18,7 @@ internal class WeeklyReviewViewModel(
     fun reviewIfDue() {
         viewModelScope.launch {
             withContext(NonCancellable) {
-                if (settingsService.observeCoachEnabled().first() && settingsService.observeIsClaudeApiKeyStored().first()) {
+                if (settingsService.observeCoachEnabled().first() && coachService.observeReadiness().first() == CoachReadiness.READY) {
                     coachService.reviewLastWeekIfDue()
                 }
             }

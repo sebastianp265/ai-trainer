@@ -15,8 +15,7 @@ import androidx.compose.runtime.getValue
 
 @Composable
 internal fun SettingsScreen(
-    onOpenApiKey: () -> Unit,
-    onOpenModel: () -> Unit,
+    onOpenAi: () -> Unit,
     onOpenMemory: () -> Unit,
     onOpenBackup: () -> Unit,
 ) {
@@ -25,8 +24,7 @@ internal fun SettingsScreen(
     val actions = remember(viewModel) {
         object : SettingsActions {
             override fun setCoachEnabled(enabled: Boolean) = viewModel.setCoachEnabled(enabled)
-            override fun openApiKey() = onOpenApiKey()
-            override fun openModel() = onOpenModel()
+            override fun openAi() = onOpenAi()
             override fun openMemory() = onOpenMemory()
             override fun openBackup() = onOpenBackup()
         }

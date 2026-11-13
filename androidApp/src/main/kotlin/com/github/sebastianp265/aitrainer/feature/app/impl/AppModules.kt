@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.feature.app.impl
 
+import com.github.sebastianp265.aitrainer.feature.ai.aiUiModule
 import com.github.sebastianp265.aitrainer.feature.exercise.exerciseUiModule
 import com.github.sebastianp265.aitrainer.feature.health.healthUiModule
 import com.github.sebastianp265.aitrainer.feature.plan.planUiModule
@@ -26,6 +27,7 @@ private val shellUiModule = module {
 internal val uiModules = listOf(
     shellUiModule,
     coachUiModule,
+    aiUiModule,
     pendingProposalUiModule,
     exerciseUiModule,
     planUiModule,

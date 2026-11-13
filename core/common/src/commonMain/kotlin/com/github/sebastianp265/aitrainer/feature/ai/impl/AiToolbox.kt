@@ -1,23 +1,22 @@
-package com.github.sebastianp265.aitrainer.feature.coach.impl
+package com.github.sebastianp265.aitrainer.feature.ai.impl
 
+import com.github.sebastianp265.aitrainer.integration.ai.AiTool
+import com.github.sebastianp265.aitrainer.integration.coach.CoachMemoryService
+import com.github.sebastianp265.aitrainer.integration.coach.ProposalDesk
+import com.github.sebastianp265.aitrainer.integration.coach.ProposalDraft
+import com.github.sebastianp265.aitrainer.integration.coach.ProposalOutcome
+import com.github.sebastianp265.aitrainer.integration.coach.ProposedPlan
+import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
+import com.github.sebastianp265.aitrainer.integration.exercise.NewExercise
+import com.github.sebastianp265.aitrainer.integration.health.HealthService
+import com.github.sebastianp265.aitrainer.integration.plan.PlanService
+import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
+import com.github.sebastianp265.aitrainer.integration.volume.VolumeService
+import com.github.sebastianp265.aitrainer.integration.workout.LastTimeGroup
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_MAX
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_MIN
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_STEP
-import com.github.sebastianp265.aitrainer.integration.nutrition.NutritionService
-import com.github.sebastianp265.aitrainer.integration.ai.AiTool
-import com.github.sebastianp265.aitrainer.integration.coach.CoachService
-import com.github.sebastianp265.aitrainer.integration.coach.ProposalState
-import com.github.sebastianp265.aitrainer.integration.coach.ProposalType
-import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
-import com.github.sebastianp265.aitrainer.integration.health.HealthService
-import com.github.sebastianp265.aitrainer.integration.plan.PlanService
-import com.github.sebastianp265.aitrainer.integration.volume.VolumeService
-import com.github.sebastianp265.aitrainer.integration.workout.LastTimeGroup
 import com.github.sebastianp265.aitrainer.integration.workout.WorkoutService
-import com.github.sebastianp265.aitrainer.shared.coach.CoachDao
-import com.github.sebastianp265.aitrainer.shared.coach.CoachNoteEntity
-import com.github.sebastianp265.aitrainer.shared.coach.CoachProfileEntity
-import com.github.sebastianp265.aitrainer.shared.coach.CoachProposalEntity
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
@@ -25,27 +24,32 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.time.Clock
 
+internal val aiJson = Json {
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+}
+
 internal class ToolRun(
     val text: String,
     val isError: Boolean = false,
     val checked: String? = null,
-    val proposalId: Long? = null,
 )
 
-internal class CoachToolbox(
+internal class AiToolbox(
     private val workouts: WorkoutService,
     private val health: HealthService,
     private val plans: PlanService,
     private val volume: VolumeService,
     private val exercises: ExerciseService,
-    private val nutrition: NutritionService,
-    private val dao: CoachDao,
+    private val memory: CoachMemoryService,
     private val clock: Clock,
 ) {
 
@@ -53,6 +57,7 @@ internal class CoachToolbox(
         const val DEFAULT_DAYS = 28
         const val MAX_WORKOUTS = 15
         const val MAX_SEARCH_RESULTS = 12
+        const val PROPOSAL_SAVED = "Proposal saved. The user will see it as a card and must accept it."
     }
 
     val definitions: List<AiTool> = listOf(
@@ -89,8 +94,8 @@ internal class CoachToolbox(
         tool("update_profile", "Fills in a profile field: goal, time, equipment, limitations or preferences.", """{"type":"object","properties":{"field":{"type":"string"},"value":{"type":"string"}},"required":["field","value"]}"""),
     )
 
-    suspend fun run(name: String, inputJson: String): ToolRun = try {
-        val input = coachJson.parseToJsonElement(inputJson).jsonObject
+    suspend fun run(name: String, inputJson: String, desk: ProposalDesk): ToolRun = try {
+        val input = aiJson.parseToJsonElement(inputJson).jsonObject
         when (name) {
             "get_workouts" -> getWorkouts(input.int("days") ?: DEFAULT_DAYS)
             "get_exercise_history" -> getExerciseHistory(input.string("exerciseKey"))
@@ -99,13 +104,13 @@ internal class CoachToolbox(
             "get_plans" -> getPlans()
             "get_weekly_sets" -> getWeeklySets(input.int("weeks") ?: 4)
             "get_workout" -> getWorkout(input.int("sessionId")?.toLong())
-            "propose_workout_change" -> proposeWorkoutChange(inputJson)
-            "propose_new_exercise" -> proposeNewExercise(inputJson)
-            "propose_nutrition_target" -> proposeNutritionTarget(inputJson)
-            "propose_plan" -> proposePlan(inputJson, ProposalType.NEW_PLAN)
-            "propose_plan_change" -> proposePlan(inputJson, ProposalType.CHANGE_PLAN)
-            "propose_plans" -> proposePlans(inputJson)
-            "propose_target_change" -> proposeTarget(inputJson)
+            "propose_workout_change" -> proposeWorkoutChange(inputJson, desk)
+            "propose_new_exercise" -> proposeNewExercise(inputJson, desk)
+            "propose_nutrition_target" -> proposeNutritionTarget(inputJson, desk)
+            "propose_plan" -> proposePlan(inputJson, desk, isChange = false)
+            "propose_plan_change" -> proposePlan(inputJson, desk, isChange = true)
+            "propose_plans" -> proposePlans(inputJson, desk)
+            "propose_target_change" -> proposeTarget(inputJson, desk)
             "add_note" -> addNote(input.string("text"))
             "update_note" -> updateNote(input.int("id") ?: -1, input.string("text"))
             "delete_note" -> deleteNote(input.int("id") ?: -1)
@@ -114,7 +119,7 @@ internal class CoachToolbox(
         }
     } catch (e: IllegalArgumentException) {
         ToolRun("Invalid input: ${e.message}", isError = true)
-    } catch (e: kotlinx.serialization.SerializationException) {
+    } catch (e: SerializationException) {
         ToolRun("Invalid input: ${e.message}", isError = true)
     }
 
@@ -183,68 +188,6 @@ internal class CoachToolbox(
         return ToolRun(text.trim(), checked = "workout")
     }
 
-    private suspend fun proposeWorkoutChange(inputJson: String): ToolRun {
-        val input = coachJson.decodeFromString<ProposeWorkoutChangeInput>(inputJson)
-        val session = (input.sessionId?.let { workouts.findSession(it) } ?: workouts.observeActiveSession().first())
-            ?: throw IllegalArgumentException("no running workout; give sessionId of a finished workout from get_workouts")
-        val exerciseKeys = (input.sets.map { it.exerciseKey } + input.removeExerciseKeys).distinct()
-        require(exerciseKeys.isNotEmpty()) { "nothing to change" }
-        val known = exerciseNames().keys
-        exerciseKeys.forEach { require(it in known) { "unknown exerciseKey $it; use find_exercises" } }
-        input.sets.forEach(::validate)
-        val id = dao.insertSupersedingProposal(
-            CoachProposalEntity(
-                type = ProposalType.WORKOUT_CHANGE, state = ProposalState.PENDING, summary = input.summary,
-                payload = coachJson.encodeToString(ProposalPayload.serializer(), ProposalPayload(sessionId = session.id, exerciseKeys = exerciseKeys, workoutSets = input.sets)),
-                subjectKey = "workout:${session.id}", messageId = null, createdAt = clock.now(),
-            ),
-        )
-        return ToolRun("Proposal saved. The user will see it as a card and must accept it.", proposalId = id)
-    }
-
-    private suspend fun proposeNutritionTarget(inputJson: String): ToolRun {
-        val input = coachJson.decodeFromString<ProposeNutritionTargetInput>(inputJson)
-        require(input.kcal != null || input.proteinG != null) { "give kcal, proteinG or both" }
-        input.kcal?.let { require(it in 1000..6000) { "kcal must be between 1000 and 6000" } }
-        input.proteinG?.let { require(it in 30..400) { "proteinG must be between 30 and 400" } }
-        val current = nutrition.observeTarget().first()
-        val id = dao.insertSupersedingProposal(
-            CoachProposalEntity(
-                type = ProposalType.NUTRITION_TARGET, state = ProposalState.PENDING, summary = input.summary,
-                payload = coachJson.encodeToString(
-                    ProposalPayload.serializer(),
-                    ProposalPayload(
-                        reason = input.reason,
-                        nutrition = NutritionPayload(input.kcal, input.proteinG, current?.kcal, current?.proteinG, current?.reason),
-                    ),
-                ),
-                subjectKey = "nutrition", messageId = null, createdAt = clock.now(),
-            ),
-        )
-        return ToolRun("Proposal saved. The user will see it as a card and must accept it.", proposalId = id)
-    }
-
-    private suspend fun proposeNewExercise(inputJson: String): ToolRun {
-        val input = coachJson.decodeFromString<ProposeNewExerciseInput>(inputJson)
-        require(input.name.isNotBlank()) { "name is empty" }
-        val groups = exercises.observeMuscleGroups().first().map { it.key }
-        (input.secondaryGroupKeys + input.primaryGroupKey).forEach { require(it in groups) { "unknown muscle group $it; use one of ${groups.joinToString()}" } }
-        exerciseNames().entries.firstOrNull { it.value.equals(input.name.trim(), ignoreCase = true) }?.let {
-            throw IllegalArgumentException("this exercise already exists with key ${it.key}")
-        }
-        val id = dao.insertSupersedingProposal(
-            CoachProposalEntity(
-                type = ProposalType.NEW_EXERCISE, state = ProposalState.PENDING, summary = input.summary,
-                payload = coachJson.encodeToString(
-                    ProposalPayload.serializer(),
-                    ProposalPayload(newExercise = NewExercisePayload(input.name.trim(), input.primaryGroupKey, input.secondaryGroupKeys)),
-                ),
-                subjectKey = "exercise:${input.name.trim().lowercase()}", messageId = null, createdAt = clock.now(),
-            ),
-        )
-        return ToolRun("Proposal saved. Once the user accepts it, find_exercises returns its key.", proposalId = id)
-    }
-
     private suspend fun getWeeklySets(weeks: Int): ToolRun {
         val today = clock.todayIn(TimeZone.currentSystemDefault())
         val sets = volume.observeWeeklySets(today.minus(DatePeriod(days = weeks * 7)), today).first()
@@ -256,83 +199,55 @@ internal class CoachToolbox(
         return ToolRun(text.trim(), checked = "weekly_sets")
     }
 
-    private suspend fun proposePlan(inputJson: String, type: ProposalType): ToolRun {
-        val input = coachJson.decodeFromString<ProposePlanInput>(inputJson)
-        require(type == ProposalType.NEW_PLAN || input.planId != null) { "planId is required for a change" }
-        validate(PlanPayload(input.planId, input.name, input.sets))
-        val subject = input.planId?.let { "plan:$it" }
-        val id = dao.insertSupersedingProposal(
-            CoachProposalEntity(
-                type = type, state = ProposalState.PENDING, summary = input.summary,
-                payload = coachJson.encodeToString(ProposalPayload.serializer(), ProposalPayload(plans = listOf(PlanPayload(input.planId, input.name, input.sets)))),
-                subjectKey = subject, messageId = null, createdAt = clock.now(),
-            ),
-        )
-        return ToolRun("Proposal saved. The user will see it as a card and must accept it.", proposalId = id)
+    private suspend fun proposeWorkoutChange(inputJson: String, desk: ProposalDesk): ToolRun {
+        val input = aiJson.decodeFromString<ProposeWorkoutChangeInput>(inputJson)
+        val draft = ProposalDraft.WorkoutChange(input.sessionId, input.sets.map { it.toPlannedSet() }, input.removeExerciseKeys, input.summary)
+        return propose(desk, draft, PROPOSAL_SAVED)
     }
 
-    private suspend fun proposePlans(inputJson: String): ToolRun {
-        val input = coachJson.decodeFromString<ProposePlansInput>(inputJson)
-        require(input.plans.isNotEmpty()) { "plans must not be empty" }
-        input.plans.forEach { validate(it) }
-        val id = dao.insertProposal(
-            CoachProposalEntity(
-                type = ProposalType.MULTI_PLAN, state = ProposalState.PENDING, summary = input.summary,
-                payload = coachJson.encodeToString(ProposalPayload.serializer(), ProposalPayload(plans = input.plans)),
-                subjectKey = null, messageId = null, createdAt = clock.now(),
-            ),
-        )
-        return ToolRun("Proposal saved. The user will see it as a card and must accept it.", proposalId = id)
+    private suspend fun proposeNutritionTarget(inputJson: String, desk: ProposalDesk): ToolRun {
+        val input = aiJson.decodeFromString<ProposeNutritionTargetInput>(inputJson)
+        return propose(desk, ProposalDraft.Nutrition(input.kcal, input.proteinG, input.reason, input.summary), PROPOSAL_SAVED)
     }
 
-    private suspend fun proposeTarget(inputJson: String): ToolRun {
-        val input = coachJson.decodeFromString<ProposeTargetInput>(inputJson)
-        require(input.minSets in 0..input.maxSets) { "minSets must be between 0 and maxSets" }
-        val current = volume.observeTargets().first().firstOrNull { it.groupKey == input.groupKey }
-            ?: throw IllegalArgumentException("unknown muscle group ${input.groupKey}")
-        val id = dao.insertSupersedingProposal(
-            CoachProposalEntity(
-                type = ProposalType.TARGET, state = ProposalState.PENDING, summary = input.summary,
-                payload = coachJson.encodeToString(
-                    ProposalPayload.serializer(),
-                    ProposalPayload(groupKey = input.groupKey, minSets = input.minSets, maxSets = input.maxSets, reason = input.reason, previousMinSets = current.minSets, previousMaxSets = current.maxSets),
-                ),
-                subjectKey = "target:${input.groupKey}", messageId = null, createdAt = clock.now(),
-            ),
-        )
-        return ToolRun("Proposal saved. The user will see it as a card and must accept it.", proposalId = id)
+    private suspend fun proposeNewExercise(inputJson: String, desk: ProposalDesk): ToolRun {
+        val input = aiJson.decodeFromString<ProposeNewExerciseInput>(inputJson)
+        val draft = ProposalDraft.Exercise(NewExercise(input.name, input.primaryGroupKey, input.secondaryGroupKeys), input.summary)
+        return propose(desk, draft, "Proposal saved. Once the user accepts it, find_exercises returns its key.")
     }
 
-    private suspend fun validate(plan: PlanPayload) {
-        require(plan.name.isNotBlank()) { "plan name is empty" }
-        require(plan.sets.isNotEmpty()) { "plan has no sets" }
-        val known = exerciseNames().keys
-        plan.sets.forEach {
-            require(it.exerciseKey in known) { "unknown exerciseKey ${it.exerciseKey}; use find_exercises" }
-            validate(it)
-        }
+    private suspend fun proposePlan(inputJson: String, desk: ProposalDesk, isChange: Boolean): ToolRun {
+        val input = aiJson.decodeFromString<ProposePlanInput>(inputJson)
+        require(!isChange || input.planId != null) { "planId is required for a change" }
+        val plan = ProposedPlan(input.planId.takeIf { isChange }, input.name, input.sets.map { it.toPlannedSet() })
+        return propose(desk, ProposalDraft.Plan(plan, input.summary), PROPOSAL_SAVED)
     }
 
-    private fun validate(set: PlannedSetPayload) {
-        require(set.reps > 0) { "reps must be positive" }
-        set.rpe?.let { require(isOnRpeScale(it)) { "RPE must be $RPE_SCALE" } }
+    private suspend fun proposePlans(inputJson: String, desk: ProposalDesk): ToolRun {
+        val input = aiJson.decodeFromString<ProposePlansInput>(inputJson)
+        return propose(desk, ProposalDraft.Plans(input.plans.map { it.toProposedPlan() }, input.summary), PROPOSAL_SAVED)
     }
 
-    private suspend fun addNote(text: String): ToolRun {
-        require(text.isNotBlank()) { "text is empty" }
-        val id = dao.insertNote(CoachNoteEntity(text = text.trim(), createdAt = clock.now()))
-        return ToolRun("Note saved with id $id.")
+    private suspend fun proposeTarget(inputJson: String, desk: ProposalDesk): ToolRun {
+        val input = aiJson.decodeFromString<ProposeTargetInput>(inputJson)
+        return propose(desk, ProposalDraft.Target(input.groupKey, input.minSets, input.maxSets, input.reason, input.summary), PROPOSAL_SAVED)
     }
+
+    private suspend fun propose(desk: ProposalDesk, draft: ProposalDraft, savedText: String): ToolRun = when (val outcome = desk.propose(draft)) {
+        is ProposalOutcome.Saved -> ToolRun(savedText)
+        is ProposalOutcome.Rejected -> ToolRun("Invalid input: ${outcome.reason}", isError = true)
+    }
+
+    private suspend fun addNote(text: String): ToolRun = ToolRun("Note saved with id ${memory.addNote(text)}.")
 
     private suspend fun updateNote(id: Int, text: String): ToolRun =
-        if (dao.updateNote(id.toLong(), text.trim()) > 0) ToolRun("Note updated.") else ToolRun("No note with id $id.", isError = true)
+        if (memory.updateNote(id.toLong(), text)) ToolRun("Note updated.") else ToolRun("No note with id $id.", isError = true)
 
     private suspend fun deleteNote(id: Int): ToolRun =
-        if (dao.deleteNote(id.toLong()) > 0) ToolRun("Note deleted.") else ToolRun("No note with id $id.", isError = true)
+        if (memory.deleteNote(id.toLong())) ToolRun("Note deleted.") else ToolRun("No note with id $id.", isError = true)
 
     private suspend fun updateProfile(field: String, value: String): ToolRun {
-        require(field in CoachService.PROFILE_FIELDS) { "field must be one of ${CoachService.PROFILE_FIELDS.joinToString()}" }
-        if (value.isBlank()) dao.deleteProfileField(field) else dao.upsertProfile(CoachProfileEntity(field, value.trim()))
+        memory.setProfileField(field, value)
         return ToolRun("Profile updated.")
     }
 
@@ -359,11 +274,27 @@ internal class CoachToolbox(
 }
 
 @Serializable
+internal data class ToolSet(
+    val exerciseKey: String,
+    val reps: Int,
+    val weightKg: Double = 0.0,
+    val rpe: Double? = null,
+    val warmup: Boolean = false,
+)
+
+@Serializable
+internal data class ToolPlan(
+    val planId: Long? = null,
+    val name: String,
+    val sets: List<ToolSet>,
+)
+
+@Serializable
 internal data class ProposePlanInput(
     val planId: Long? = null,
     val name: String,
     val summary: String,
-    val sets: List<PlannedSetPayload>,
+    val sets: List<ToolSet>,
 )
 
 @Serializable
@@ -381,12 +312,12 @@ internal data class ProposeNewExerciseInput(
 internal data class ProposeWorkoutChangeInput(
     val sessionId: Long? = null,
     val summary: String,
-    val sets: List<PlannedSetPayload> = emptyList(),
+    val sets: List<ToolSet> = emptyList(),
     val removeExerciseKeys: List<String> = emptyList(),
 )
 
 @Serializable
-internal data class ProposePlansInput(val summary: String, val plans: List<PlanPayload>)
+internal data class ProposePlansInput(val summary: String, val plans: List<ToolPlan>)
 
 @Serializable
 internal data class ProposeTargetInput(
@@ -397,9 +328,11 @@ internal data class ProposeTargetInput(
     val summary: String,
 )
 
-private const val RPE_SCALE = "from $RPE_MIN to $RPE_MAX in steps of $RPE_STEP"
+private fun ToolSet.toPlannedSet() = PlannedSet(exerciseKey, reps, weightKg, rpe, warmup)
 
-private fun isOnRpeScale(rpe: Double): Boolean = rpe in RPE_MIN..RPE_MAX && (rpe - RPE_MIN) % RPE_STEP == 0.0
+private fun ToolPlan.toProposedPlan() = ProposedPlan(planId, name, sets.map { it.toPlannedSet() })
+
+private const val RPE_SCALE = "from $RPE_MIN to $RPE_MAX in steps of $RPE_STEP"
 
 private fun setItemSchema() =
     """{"type":"object","properties":{"exerciseKey":{"type":"string"},"reps":{"type":"integer"},"weightKg":{"type":"number"},"rpe":{"type":"number","description":"$RPE_SCALE"},"warmup":{"type":"boolean"}},"required":["exerciseKey","reps"]}"""

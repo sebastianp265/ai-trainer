@@ -26,7 +26,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.integration.coach.CoachNote
-import com.github.sebastianp265.aitrainer.integration.coach.CoachService
+import com.github.sebastianp265.aitrainer.integration.coach.CoachMemoryService
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
 import com.github.sebastianp265.aitrainer.integration.exercise.MuscleGroup
 import com.github.sebastianp265.aitrainer.integration.volume.TargetSource
@@ -56,29 +56,29 @@ internal data class MemoryUiState(
 )
 
 internal class MemoryViewModel(
-    private val coachService: CoachService,
+    private val memoryService: CoachMemoryService,
     volumeService: VolumeService,
     exerciseService: ExerciseService,
 ) : ViewModel() {
 
     val uiState: StateFlow<MemoryUiState> = combine(
-        coachService.observeProfile(),
-        coachService.observeNotes(),
+        memoryService.observeProfile(),
+        memoryService.observeNotes(),
         volumeService.observeTargets(),
         exerciseService.observeMuscleGroups(),
     ) { profile, notes, targets, groups -> MemoryUiState(false, profile, notes, targets, groups) }
         .stateIn(viewModelScope, WhileUiSubscribed, MemoryUiState())
 
     fun setProfile(field: String, value: String) {
-        viewModelScope.launch { coachService.setProfileField(field, value) }
+        viewModelScope.launch { memoryService.setProfileField(field, value) }
     }
 
     fun updateNote(id: Long, text: String) {
-        viewModelScope.launch { coachService.updateNote(id, text) }
+        viewModelScope.launch { memoryService.updateNote(id, text) }
     }
 
     fun deleteNote(id: Long) {
-        viewModelScope.launch { coachService.deleteNote(id) }
+        viewModelScope.launch { memoryService.deleteNote(id) }
     }
 }
 
@@ -99,8 +99,8 @@ internal fun MemoryContent(state: MemoryUiState, actions: MemoryActions) {
         item { SectionHeader(stringResource(R.string.memory_profile)) }
         item {
             GroupCard {
-                CoachService.PROFILE_FIELDS.forEachIndexed { index, field ->
-                    GroupRow(divider = index < CoachService.PROFILE_FIELDS.lastIndex) {
+                CoachMemoryService.PROFILE_FIELDS.forEachIndexed { index, field ->
+                    GroupRow(divider = index < CoachMemoryService.PROFILE_FIELDS.lastIndex) {
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(profileLabel(field), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(

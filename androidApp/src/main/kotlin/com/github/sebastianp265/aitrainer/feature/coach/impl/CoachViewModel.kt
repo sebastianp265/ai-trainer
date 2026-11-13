@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.coach.CoachActivity
 import com.github.sebastianp265.aitrainer.integration.coach.CoachMessage
 import com.github.sebastianp265.aitrainer.integration.coach.CoachProposal
+import com.github.sebastianp265.aitrainer.integration.coach.CoachReadiness
 import com.github.sebastianp265.aitrainer.integration.coach.CoachService
 import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalType
@@ -13,7 +14,6 @@ import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
 import com.github.sebastianp265.aitrainer.integration.plan.Plan
 import com.github.sebastianp265.aitrainer.integration.plan.PlanService
-import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
 import com.github.sebastianp265.aitrainer.shared.state.WhileUiSubscribed
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +33,7 @@ internal data class MessageUi(val message: CoachMessage, val proposals: List<Pro
 
 internal data class CoachUiState(
     val isLoading: Boolean = true,
-    val hasKey: Boolean = false,
+    val readiness: CoachReadiness = CoachReadiness.NEEDS_SETUP,
     val messages: List<MessageUi> = emptyList(),
     val activity: CoachActivity = CoachActivity.Idle,
     val exercises: Map<String, Exercise> = emptyMap(),
@@ -43,7 +43,6 @@ internal data class CoachUiState(
 
 internal class CoachViewModel(
     private val coachService: CoachService,
-    settingsService: SettingsService,
     planService: PlanService,
     exerciseService: ExerciseService,
 ) : ViewModel() {
@@ -59,14 +58,14 @@ internal class CoachViewModel(
 
     val uiState: StateFlow<CoachUiState> = combine(
         conversation,
-        settingsService.observeIsClaudeApiKeyStored(),
+        coachService.observeReadiness(),
         exerciseService.observeExercisesByKey(),
         pendingTopic,
-    ) { (messages, activity, plans), hasKey, exercises, topic ->
+    ) { (messages, activity, plans), readiness, exercises, topic ->
         val plansById = plans.associateBy { it.id }
         CoachUiState(
             isLoading = false,
-            hasKey = hasKey,
+            readiness = readiness,
             messages = messages.map { message -> MessageUi(message, message.proposals.map { it.toUi(plansById) }) },
             activity = activity,
             exercises = exercises,

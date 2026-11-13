@@ -47,11 +47,3 @@ internal data class CoachProfileEntity(
     @PrimaryKey val field: String,
     val value: String,
 )
-
-@Entity(tableName = "coach_usage")
-internal data class CoachUsageEntity(
-    @PrimaryKey val month: String,
-    val messages: Int,
-    val inputTokens: Long,
-    val outputTokens: Long,
-)

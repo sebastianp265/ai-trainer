@@ -64,6 +64,8 @@ Every domain has the same name in all three groups: `integration.workout`, `shar
 
 Nothing may depend on `feature.app` or `integration.module`. No cycles between package modules.
 
+`ai` (`integration.ai`, `feature.ai`, `shared.ai`) is a plug-in behind the coach: only itself, `feature.app`, `integration.module` and `shared.database` may depend on it. The coach (`integration.coach`, `feature.coach`) knows only `CoachResponder`, the port that answers in the chat, so what answers (a model, a person, a rule engine) is chosen in `integration.module`.
+
 ### Where to put new code
 
 | New thing                                           | Goes to                                                                  |

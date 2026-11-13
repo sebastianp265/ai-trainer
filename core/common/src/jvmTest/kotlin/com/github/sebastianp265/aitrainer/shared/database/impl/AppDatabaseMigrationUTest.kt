@@ -198,6 +198,18 @@ class AppDatabaseMigrationUTest {
     }
 
     @Test
+    fun `migration from 19 to 20 keeps the usage of the model under its new table name`() {
+        helper.createDatabase(19).use { connection ->
+            connection.execSQL("INSERT INTO coach_usage (month, messages, inputTokens, outputTokens) VALUES ('2026-11', 3, 1200, 340)")
+        }
+
+        helper.runMigrationsAndValidate(20).use { connection ->
+            assertEquals(1, connection.count("ai_usage WHERE month = '2026-11' AND messages = 3 AND inputTokens = 1200 AND outputTokens = 340"))
+            assertEquals(0, connection.count("sqlite_master WHERE name = 'coach_usage'"))
+        }
+    }
+
+    @Test
     fun `a backup of schema 12 migrates to the current schema and keeps workouts, plans and the coach`() {
         helper.createDatabase(12).use { connection ->
             connection.execSQL("INSERT INTO workout_session (id, date, startedAt, finishedAt, planId, notes) VALUES (1, '2026-11-01', 1000, 2000, NULL, 'felt good')")

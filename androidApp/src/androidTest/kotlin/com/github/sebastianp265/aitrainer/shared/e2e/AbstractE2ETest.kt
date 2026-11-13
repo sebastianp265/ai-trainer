@@ -34,7 +34,7 @@ abstract class AbstractE2ETest {
     private val localeManager = context.getSystemService(LocaleManager::class.java)
     private var scenario: ActivityScenario<MainActivity>? = null
     private var realHealthDataSource: HealthDataSource? = null
-    private var realClaudeClient: AiClient? = null
+    private var realAiClient: AiClient? = null
 
     @BeforeTest
     fun startWithFreshData() {
@@ -53,14 +53,14 @@ abstract class AbstractE2ETest {
         localeManager.applicationLocales = LocaleList.getEmptyLocaleList()
         realHealthDataSource?.let { real -> loadKoinModules(module { single<HealthDataSource> { real } }) }
         realHealthDataSource = null
-        realClaudeClient?.let { real -> loadKoinModules(module { factory<AiClient> { real } }) }
-        realClaudeClient = null
+        realAiClient?.let { real -> loadKoinModules(module { factory<AiClient> { real } }) }
+        realAiClient = null
     }
 
-    protected fun launchApp(healthDataSource: HealthDataSource? = null, claudeClient: AiClient? = null) {
-        if (claudeClient != null) {
-            realClaudeClient = GlobalContext.get().get<AiClient>()
-            loadKoinModules(module { factory<AiClient> { claudeClient } })
+    protected fun launchApp(healthDataSource: HealthDataSource? = null, aiClient: AiClient? = null) {
+        if (aiClient != null) {
+            realAiClient = GlobalContext.get().get<AiClient>()
+            loadKoinModules(module { factory<AiClient> { aiClient } })
         }
         if (healthDataSource != null) {
             realHealthDataSource = GlobalContext.get().get<HealthDataSource>()
@@ -90,7 +90,7 @@ abstract class AbstractE2ETest {
             database.execSQL("DELETE FROM workout_session")
             database.execSQL("DELETE FROM planned_set")
             database.execSQL("DELETE FROM plan")
-            listOf("coach_message", "coach_proposal", "coach_note", "coach_profile", "coach_usage", "weekly_target").forEach { database.execSQL("DELETE FROM $it") }
+            listOf("coach_message", "coach_proposal", "coach_note", "coach_profile", "ai_usage", "weekly_target").forEach { database.execSQL("DELETE FROM $it") }
         }
     }
 

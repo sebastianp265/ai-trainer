@@ -29,6 +29,9 @@
     <string name="settings_claude_api_key">Claude API key</string>
     <string name="settings_api_key_saved">Saved, encrypted on this phone</string>
     <string name="settings_api_key_missing">No API key saved</string>
+    <string name="settings_ai">AI</string>
+    <string name="settings_ai_text">API key, model and tuning</string>
+    <string name="ai_settings_text">The coach\'s answers are written by an AI model you set up here. The key stays encrypted on this phone.</string>
     <string name="settings_claude_model">Claude model</string>
     <string name="health_connect_not_connected">Connect to see weight, calories, sleep and heart rate here. You choose which data to share.</string>
     <string name="health_connect_unavailable">Health Connect is not available on this device.</string>
@@ -284,10 +287,10 @@
     <string name="settings_coach_on_text">Chat, plan proposals and weekly review</string>
     <string name="settings_coach_off_explanation">Without the coach the app works in full: you log workouts, write plans yourself, set targets and statistics stay. The Coach tab, proposals and the weekly review disappear. Conversations and notes are not deleted: they come back when you switch it on.</string>
     <string name="nav_coach">Coach</string>
-    <string name="coach_no_key_title">The coach needs an API key</string>
-    <string name="coach_no_key_text">The coach runs on Claude. Enter your API key in Settings: it stays encrypted on this phone only.</string>
-    <string name="coach_no_key_without">Without a key you can still log workouts and plans.</string>
-    <string name="coach_enter_api_key">Enter API key</string>
+    <string name="coach_setup_title">The coach is not set up yet</string>
+    <string name="coach_setup_text">Finish the setup in Settings → AI to start chatting with the coach.</string>
+    <string name="coach_setup_without">Without it you can still log workouts and plans.</string>
+    <string name="coach_open_setup">Set up the coach</string>
     <string name="coach_offline_banner">No internet connection. You can log workouts as usual; the coach will answer when the network is back.</string>
     <string name="coach_delete_message_title">Delete message</string>
     <string name="coach_delete_message_text">The coach will no longer see it. Plans and proposals from it stay.</string>
@@ -364,9 +367,9 @@
     <string name="coach_working_tool">The coach is checking: %1$s</string>
     <string name="coach_not_sent">Not sent.</string>
     <string name="coach_retry">Try again</string>
-    <string name="coach_error_key_title">The API key was rejected</string>
-    <string name="coach_error_key_text">Check that the key is correct and active.</string>
-    <string name="coach_error_key_action">Check the key</string>
+    <string name="coach_error_setup_title">The coach needs to be set up again</string>
+    <string name="coach_error_setup_text">Check the setup in Settings → AI. Your message was kept.</string>
+    <string name="coach_error_setup_action">Open setup</string>
     <string name="coach_error_unavailable_title">The coach did not answer</string>
     <string name="coach_error_unavailable_text">The server is overloaded or the API account limit has run out. Your message was kept.</string>
     <string name="coach_input_hint">Write to the coach</string>

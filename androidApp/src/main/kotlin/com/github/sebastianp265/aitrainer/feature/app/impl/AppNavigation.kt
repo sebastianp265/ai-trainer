@@ -51,11 +51,12 @@ import com.github.sebastianp265.aitrainer.R
 import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
 import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.github.sebastianp265.aitrainer.feature.coach.ApiKeyScreen
+import com.github.sebastianp265.aitrainer.feature.ai.AiSettingsScreen
+import com.github.sebastianp265.aitrainer.feature.ai.ApiKeyScreen
 import com.github.sebastianp265.aitrainer.feature.coach.CoachMemoryScreen
 import com.github.sebastianp265.aitrainer.feature.coach.CoachProposalScreen
 import com.github.sebastianp265.aitrainer.feature.coach.CoachScreen
-import com.github.sebastianp265.aitrainer.feature.coach.ModelPickerScreen
+import com.github.sebastianp265.aitrainer.feature.ai.ModelPickerScreen
 import com.github.sebastianp265.aitrainer.feature.coach.WeeklyReviewOnForeground
 import com.github.sebastianp265.aitrainer.feature.exercise.ExerciseHistoryScreen
 import com.github.sebastianp265.aitrainer.feature.exercise.ExercisePickerScreen
@@ -129,6 +130,7 @@ internal fun AppNavigation() {
     val coachEnabled by coachEnabledViewModel.enabled.collectAsStateWithLifecycle()
     val title = when {
         destination?.hasRoute(CoachMemoryRoute::class) == true -> R.string.memory_title
+        destination?.hasRoute(AiSettingsRoute::class) == true -> R.string.settings_ai
         destination?.hasRoute(ApiKeyRoute::class) == true -> R.string.settings_claude_api_key
         destination?.hasRoute(ModelRoute::class) == true -> R.string.model_title
         destination?.hasRoute(BackupRoute::class) == true -> R.string.settings_backup
@@ -179,7 +181,7 @@ internal fun AppNavigation() {
                     topic = CoachTopic(TopicKind.valueOf(route.topicKind), route.topicId, route.topicLabel),
                     onOpenPreview = { navController.navigate(CoachProposalRoute(it)) },
                     onOpenTargets = { navController.navigate(VolumeTargetsRoute) },
-                    onOpenApiKey = { navController.navigate(ApiKeyRoute) },
+                    onOpenSetup = { navController.navigate(ApiKeyRoute) },
                 )
             }
             screen<CoachRoute> {
@@ -191,7 +193,7 @@ internal fun AppNavigation() {
                     topic = null,
                     onOpenPreview = { navController.navigate(CoachProposalRoute(it)) },
                     onOpenTargets = { navController.navigate(VolumeTargetsRoute) },
-                    onOpenApiKey = { navController.navigate(ApiKeyRoute) },
+                    onOpenSetup = { navController.navigate(ApiKeyRoute) },
                 )
             }
             screen<CoachMemoryRoute> { CoachMemoryScreen(onOpenTargets = { navController.navigate(VolumeTargetsRoute) }) }
@@ -202,6 +204,7 @@ internal fun AppNavigation() {
                     onReply = { navController.popIfCurrent(entry) },
                 )
             }
+            screen<AiSettingsRoute> { AiSettingsScreen(onOpenApiKey = { navController.navigate(ApiKeyRoute) }, onOpenModel = { navController.navigate(ModelRoute) }) }
             screen<ApiKeyRoute> { ApiKeyScreen() }
             screen<ModelRoute> { ModelPickerScreen() }
             screen<BackupRoute> { BackupScreen() }
@@ -294,8 +297,7 @@ internal fun AppNavigation() {
             screen<DayDetailRoute> { entry -> DayDetailScreen(LocalDate.parse(entry.toRoute<DayDetailRoute>().date)) }
             screen<SettingsRoute> {
                 SettingsScreen(
-                    onOpenApiKey = { navController.navigate(ApiKeyRoute) },
-                    onOpenModel = { navController.navigate(ModelRoute) },
+                    onOpenAi = { navController.navigate(AiSettingsRoute) },
                     onOpenMemory = { navController.navigate(CoachMemoryRoute) },
                     onOpenBackup = { navController.navigate(BackupRoute) },
                 )

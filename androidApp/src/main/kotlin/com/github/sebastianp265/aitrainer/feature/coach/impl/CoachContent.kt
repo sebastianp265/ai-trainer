@@ -55,8 +55,10 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.integration.ai.AiFailureKind
 import com.github.sebastianp265.aitrainer.integration.coach.CoachActivity
+import com.github.sebastianp265.aitrainer.integration.coach.CoachFailure
+import com.github.sebastianp265.aitrainer.integration.coach.CoachReadiness
+import com.github.sebastianp265.aitrainer.integration.coach.CoachStep
 import com.github.sebastianp265.aitrainer.integration.coach.CoachMessage
 import com.github.sebastianp265.aitrainer.integration.coach.CoachRole
 import com.github.sebastianp265.aitrainer.integration.coach.CoachTopic
@@ -85,7 +87,7 @@ internal interface CoachActions {
     fun undo(proposalId: Long)
     fun preview(proposalId: Long)
     fun openTargets()
-    fun openApiKey()
+    fun openSetup()
     fun deleteMessage(id: Long)
 }
 
@@ -93,13 +95,13 @@ internal interface CoachActions {
 internal fun CoachContent(state: CoachUiState, actions: CoachActions, modifier: Modifier = Modifier) {
     when {
         state.isLoading -> Box(modifier.fillMaxSize()) { CircularProgressIndicator(Modifier.align(Alignment.Center)) }
-        !state.hasKey -> CoachNoKey(actions::openApiKey, modifier)
+        state.readiness == CoachReadiness.NEEDS_SETUP -> CoachNeedsSetup(actions::openSetup, modifier)
         else -> Conversation(state, actions, modifier)
     }
 }
 
 @Composable
-private fun CoachNoKey(onOpenApiKey: () -> Unit, modifier: Modifier) {
+private fun CoachNeedsSetup(onOpenSetup: () -> Unit, modifier: Modifier) {
     Column(
         modifier.fillMaxSize().padding(horizontal = 24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
@@ -109,12 +111,12 @@ private fun CoachNoKey(onOpenApiKey: () -> Unit, modifier: Modifier) {
             Modifier.size(72.dp).background(MaterialTheme.colorScheme.tertiaryContainer, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(DesignIcons.Key, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer)
+            Icon(DesignIcons.Settings, contentDescription = null, tint = MaterialTheme.colorScheme.onTertiaryContainer)
         }
-        Text(stringResource(R.string.coach_no_key_title), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
-        Text(stringResource(R.string.coach_no_key_text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        Text(stringResource(R.string.coach_no_key_without), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
-        Button(onClick = onOpenApiKey, Modifier.height(48.dp).testTag(CoachTags.OPEN_API_KEY)) { Text(stringResource(R.string.coach_enter_api_key)) }
+        Text(stringResource(R.string.coach_setup_title), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.coach_setup_text), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.coach_setup_without), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center)
+        Button(onClick = onOpenSetup, Modifier.height(48.dp).testTag(CoachTags.OPEN_SETUP)) { Text(stringResource(R.string.coach_open_setup)) }
     }
 }
 
@@ -130,7 +132,7 @@ private fun Conversation(state: CoachUiState, actions: CoachActions, modifier: M
         if (itemCount > 0) listState.animateScrollToItem(listState.layoutInfo.totalItemsCount.coerceAtLeast(1) - 1)
     }
     Column(modifier.fillMaxSize().imePadding()) {
-        if (failed?.kind == AiFailureKind.NO_NETWORK) OfflineBanner()
+        if (failed?.kind == CoachFailure.NO_CONNECTION) OfflineBanner()
         LazyColumn(
             Modifier.weight(1f).fillMaxWidth(),
             state = listState,
@@ -148,7 +150,7 @@ private fun Conversation(state: CoachUiState, actions: CoachActions, modifier: M
                     MessageBubble(
                         item.message,
                         state.exercises,
-                        unsent = failed?.kind == AiFailureKind.NO_NETWORK && lastIsUser && index == state.messages.lastIndex,
+                        unsent = failed?.kind == CoachFailure.NO_CONNECTION && lastIsUser && index == state.messages.lastIndex,
                         onLongPress = { deleting = item.message.id },
                     )
                 }
@@ -477,35 +479,35 @@ private fun WorkingRow(working: CoachActivity.Working) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.testTag(CoachTags.WORKING)) {
         CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
         Text(
-            working.tool?.let { stringResource(R.string.coach_working_tool, toolPhrase(it)) } ?: stringResource(R.string.coach_working),
+            working.step?.let { stringResource(R.string.coach_working_tool, stepPhrase(it)) } ?: stringResource(R.string.coach_working),
             style = MaterialTheme.typography.bodyMedium,
         )
     }
 }
 
 @Composable
-private fun toolPhrase(tool: String): String = when (tool) {
-    "get_workouts" -> stringResource(R.string.coach_checked_workouts)
-    "get_exercise_history" -> stringResource(R.string.coach_tool_exercise_history)
-    "get_health_days" -> stringResource(R.string.coach_checked_health)
-    "get_plans" -> stringResource(R.string.coach_checked_plans)
-    "get_weekly_sets" -> stringResource(R.string.coach_checked_weekly_sets)
-    "get_workout" -> stringResource(R.string.coach_checked_workout)
-    "find_exercises" -> stringResource(R.string.coach_tool_find_exercises)
-    else -> stringResource(R.string.coach_tool_writing)
+private fun stepPhrase(step: CoachStep): String = when (step) {
+    CoachStep.WORKOUTS -> stringResource(R.string.coach_checked_workouts)
+    CoachStep.EXERCISE_HISTORY -> stringResource(R.string.coach_tool_exercise_history)
+    CoachStep.HEALTH -> stringResource(R.string.coach_checked_health)
+    CoachStep.PLANS -> stringResource(R.string.coach_checked_plans)
+    CoachStep.WEEKLY_SETS -> stringResource(R.string.coach_checked_weekly_sets)
+    CoachStep.WORKOUT -> stringResource(R.string.coach_checked_workout)
+    CoachStep.EXERCISES -> stringResource(R.string.coach_tool_find_exercises)
+    CoachStep.WRITING -> stringResource(R.string.coach_tool_writing)
 }
 
 @Composable
 private fun FailedRow(failed: CoachActivity.Failed, actions: CoachActions) {
     when (failed.kind) {
-        AiFailureKind.NO_NETWORK -> Row(Modifier.fillMaxWidth().testTag(CoachTags.FAILED), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+        CoachFailure.NO_CONNECTION -> Row(Modifier.fillMaxWidth().testTag(CoachTags.FAILED), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
             Icon(DesignIcons.Warning, contentDescription = null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
             Text(stringResource(R.string.coach_not_sent), Modifier.padding(start = 6.dp), style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp), color = MaterialTheme.colorScheme.error)
             TextButton(onClick = actions::retry, Modifier.testTag(CoachTags.RETRY), colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
                 Text(stringResource(R.string.coach_retry), style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp))
             }
         }
-        AiFailureKind.KEY_REJECTED, AiFailureKind.NO_KEY -> ErrorCard(R.string.coach_error_key_title, R.string.coach_error_key_text, R.string.coach_error_key_action, actions::openApiKey)
+        CoachFailure.NEEDS_SETUP -> ErrorCard(R.string.coach_error_setup_title, R.string.coach_error_setup_text, R.string.coach_error_setup_action, actions::openSetup)
         else -> ErrorCard(R.string.coach_error_unavailable_title, R.string.coach_error_unavailable_text, R.string.coach_retry, actions::retry)
     }
 }
@@ -634,7 +636,7 @@ internal object CoachTags {
     const val RETRY = "coach_retry"
     const val ERROR_CARD = "coach_error_card"
     const val ERROR_ACTION = "coach_error_action"
-    const val OPEN_API_KEY = "coach_open_api_key"
+    const val OPEN_SETUP = "coach_open_setup"
     const val REVIEW = "coach_review"
 }
 
@@ -645,7 +647,7 @@ private fun CoachPreview() {
         CoachContent(
             state = CoachUiState(
                 isLoading = false,
-                hasKey = true,
+                readiness = CoachReadiness.READY,
                 messages = listOf(
                     MessageUi(CoachMessage(1, CoachRole.USER, "Plan me a push day", Instant.fromEpochMilliseconds(1_767_600_000_000), emptyList(), emptyList(), null, null), emptyList()),
                     MessageUi(CoachMessage(2, CoachRole.COACH, "Here is a push day.", Instant.fromEpochMilliseconds(1_767_600_060_000), listOf("workouts"), emptyList(), null, null), emptyList()),
@@ -659,7 +661,7 @@ private fun CoachPreview() {
                 override fun undo(proposalId: Long) = Unit
                 override fun preview(proposalId: Long) = Unit
                 override fun openTargets() = Unit
-                override fun openApiKey() = Unit
+                override fun openSetup() = Unit
                 override fun deleteMessage(id: Long) = Unit
             },
         )

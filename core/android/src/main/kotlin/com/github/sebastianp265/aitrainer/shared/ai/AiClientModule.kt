@@ -8,7 +8,7 @@ import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
-internal val aiModule = module {
+internal val aiClientModule = module {
     single<AnthropicClient> { AnthropicOkHttpClient.builder().build() }
     singleOf(::SdkClaudeClient) bind AiClient::class
 }

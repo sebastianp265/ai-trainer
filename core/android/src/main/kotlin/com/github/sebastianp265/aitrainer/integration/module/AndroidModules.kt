@@ -1,6 +1,6 @@
 package com.github.sebastianp265.aitrainer.integration.module
 
-import com.github.sebastianp265.aitrainer.shared.ai.aiModule
+import com.github.sebastianp265.aitrainer.shared.ai.aiClientModule
 import com.github.sebastianp265.aitrainer.shared.health.healthDataSourceModule
 import com.github.sebastianp265.aitrainer.shared.backup.backupModule
 import com.github.sebastianp265.aitrainer.shared.platform.platformModule
@@ -10,7 +10,7 @@ val androidModules = listOf(
     platformModule,
     securityModule,
     healthDataSourceModule,
-    aiModule,
+    aiClientModule,
     backupModule,
 )
 

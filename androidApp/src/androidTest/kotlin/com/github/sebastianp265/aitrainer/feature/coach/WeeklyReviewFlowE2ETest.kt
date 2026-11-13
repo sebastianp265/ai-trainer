@@ -32,11 +32,11 @@ class WeeklyReviewFlowE2ETest : AbstractE2ETest() {
 
     @Test
     fun `the review of last week is shown when the app opens and its plans are accepted with one tap`() {
-        given.claudeApiKey()
+        given.aiApiKey()
         given.finishedWorkout(sets(BENCH_PRESS, reps = 8, kg = 80.0), on = wednesdayLastWeek)
         claude.answerWithToolCall("propose_plans", nextWeek)
         claude.answerWith("Here is next week.")
-        launchApp(claudeClient = claude)
+        launchApp(aiClient = claude)
         tabs.open("Coach")
         coach.assertReviewShown()
         coach.assertCoachSaid("Here is next week.")

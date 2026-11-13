@@ -66,6 +66,9 @@ internal object CoachMemoryRoute
 internal data class CoachProposalRoute(val proposalId: Long)
 
 @Serializable
+internal object AiSettingsRoute
+
+@Serializable
 internal object ApiKeyRoute
 
 @Serializable
@@ -90,6 +93,7 @@ internal val nestedRoutes = listOf(
     DayDetailRoute::class,
     VolumeTargetsRoute::class,
     CoachMemoryRoute::class,
+    AiSettingsRoute::class,
     ApiKeyRoute::class,
     ModelRoute::class,
     BackupRoute::class,

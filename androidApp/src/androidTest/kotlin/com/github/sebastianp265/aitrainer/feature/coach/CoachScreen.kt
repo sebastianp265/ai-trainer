@@ -20,11 +20,11 @@ class CoachScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun assertTopic(text: String) = waitForText(text)
 
-    fun assertKeyPrompt() = waitForText("The coach needs an API key")
+    fun assertSetupPrompt() = waitForText("The coach is not set up yet")
 
-    fun openApiKeyFromPrompt() {
-        waitFor(hasTestTag(CoachTags.OPEN_API_KEY))
-        compose.onNode(hasTestTag(CoachTags.OPEN_API_KEY)).performClick()
+    fun openSetupFromPrompt() {
+        waitFor(hasTestTag(CoachTags.OPEN_SETUP))
+        compose.onNode(hasTestTag(CoachTags.OPEN_SETUP)).performClick()
     }
 
     fun assertGreeting() {

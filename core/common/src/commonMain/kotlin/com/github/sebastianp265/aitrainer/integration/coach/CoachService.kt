@@ -1,12 +1,13 @@
 package com.github.sebastianp265.aitrainer.integration.coach
 
-import com.github.sebastianp265.aitrainer.integration.ai.AiFailureKind
 import kotlinx.coroutines.flow.Flow
 
 interface CoachService {
     fun observeMessages(): Flow<List<CoachMessage>>
 
     fun observeActivity(): Flow<CoachActivity>
+
+    fun observeReadiness(): Flow<CoachReadiness>
 
     suspend fun send(text: String, topic: CoachTopic? = null)
 
@@ -25,30 +26,18 @@ interface CoachService {
     suspend fun acceptAll(proposalIds: List<Long>)
 
     suspend fun undo(proposalId: Long): Boolean
-
-    fun observeProfile(): Flow<Map<String, String>>
-
-    suspend fun setProfileField(field: String, value: String)
-
-    fun observeNotes(): Flow<List<CoachNote>>
-
-    suspend fun updateNote(id: Long, text: String)
-
-    suspend fun deleteNote(id: Long)
-
-    fun observeUsageThisMonth(): Flow<CoachUsage>
-
-    fun observeLastRun(): Flow<CoachRun?>
-
-    companion object {
-        val PROFILE_FIELDS = listOf("goal", "time", "equipment", "limitations", "preferences")
-    }
 }
 
 sealed interface CoachActivity {
     data object Idle : CoachActivity
 
-    data class Working(val tool: String?) : CoachActivity
+    data class Working(val step: CoachStep?) : CoachActivity
 
-    data class Failed(val kind: AiFailureKind, val message: String) : CoachActivity
+    data class Failed(val kind: CoachFailure, val message: String) : CoachActivity
 }
+
+enum class CoachReadiness { READY, NEEDS_SETUP }
+
+enum class CoachFailure { NEEDS_SETUP, NO_CONNECTION, BUSY, OTHER }
+
+enum class CoachStep { WORKOUTS, EXERCISE_HISTORY, HEALTH, PLANS, WEEKLY_SETS, WORKOUT, EXERCISES, WRITING }

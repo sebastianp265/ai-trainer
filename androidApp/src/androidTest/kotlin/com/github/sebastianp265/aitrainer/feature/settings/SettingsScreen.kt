@@ -8,9 +8,10 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachApiKeyTags
-import com.github.sebastianp265.aitrainer.feature.coach.impl.CoachModelTags
-import com.github.sebastianp265.aitrainer.feature.coach.impl.ModelTuningTags
+import com.github.sebastianp265.aitrainer.feature.ai.impl.AiSettingsTags
+import com.github.sebastianp265.aitrainer.feature.ai.impl.ApiKeyTags
+import com.github.sebastianp265.aitrainer.feature.ai.impl.ModelTags
+import com.github.sebastianp265.aitrainer.feature.ai.impl.ModelTuningTags
 import androidx.compose.ui.test.isNotEnabled
 import androidx.compose.ui.test.isSelected
 import androidx.compose.ui.test.performScrollTo
@@ -43,17 +44,26 @@ class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun assertCoachOn() = waitForText("Chat, plan proposals and weekly review")
 
-    fun assertCoachRowsHidden() = assertTextNotShown("Claude API key")
+    fun assertCoachRowsHidden() =
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(hasTestTag(SettingsTags.AI_ROW)).fetchSemanticsNodes().isEmpty() }
 
     fun openApiKey() {
-        waitFor(hasTestTag(SettingsTags.API_KEY_ROW))
-        compose.onNode(hasTestTag(SettingsTags.API_KEY_ROW)).performClick()
-        waitFor(hasTestTag(CoachApiKeyTags.FIELD))
+        openAiSettings()
+        compose.onNode(hasTestTag(AiSettingsTags.API_KEY_ROW)).performClick()
+        waitFor(hasTestTag(ApiKeyTags.FIELD))
     }
 
     fun openModel() {
-        waitFor(hasTestTag(SettingsTags.MODEL_ROW))
-        compose.onNode(hasTestTag(SettingsTags.MODEL_ROW)).performClick()
+        openAiSettings()
+        compose.onNode(hasTestTag(AiSettingsTags.MODEL_ROW)).performClick()
+    }
+
+    private fun openAiSettings() {
+        waitFor(hasTestTag(SettingsTags.AI_ROW) or hasTestTag(AiSettingsTags.API_KEY_ROW))
+        if (compose.onAllNodes(hasTestTag(SettingsTags.AI_ROW)).fetchSemanticsNodes().isNotEmpty()) {
+            compose.onNode(hasTestTag(SettingsTags.AI_ROW)).performClick()
+        }
+        waitFor(hasTestTag(AiSettingsTags.API_KEY_ROW))
     }
 
     fun openBackup() {
@@ -67,15 +77,15 @@ class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
     }
 
     fun typeClaudeApiKey(key: String) {
-        waitFor(hasTestTag(CoachApiKeyTags.FIELD))
-        compose.onNode(hasTestTag(CoachApiKeyTags.FIELD)).performTextInput(key)
+        waitFor(hasTestTag(ApiKeyTags.FIELD))
+        compose.onNode(hasTestTag(ApiKeyTags.FIELD)).performTextInput(key)
     }
 
-    fun saveAndCheck() = compose.onNode(hasTestTag(CoachApiKeyTags.SAVE)).performClick()
+    fun saveAndCheck() = compose.onNode(hasTestTag(ApiKeyTags.SAVE)).performClick()
 
     fun removeClaudeApiKey() {
-        scrollTo(hasTestTag(CoachApiKeyTags.REMOVE))
-        compose.onNode(hasTestTag(CoachApiKeyTags.REMOVE)).performClick()
+        scrollTo(hasTestTag(ApiKeyTags.REMOVE))
+        compose.onNode(hasTestTag(ApiKeyTags.REMOVE)).performClick()
     }
 
     fun assertKeyWorks() = waitForText("The key works", substring = true)
@@ -84,7 +94,7 @@ class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
 
     fun assertKeyNotChecked() = waitForText("no connection to check it", substring = true)
 
-    fun assertApiKeyScreenShown() = waitFor(hasTestTag(CoachApiKeyTags.FIELD))
+    fun assertApiKeyScreenShown() = waitFor(hasTestTag(ApiKeyTags.FIELD))
 
     fun assertNoClaudeApiKeySaved() = waitForText("No API key saved")
 
@@ -93,8 +103,8 @@ class SettingsScreen(compose: ComposeTestRule) : Screen(compose) {
     fun assertNotShownAnywhere(text: String) = assertTextNotShown(text)
 
     fun chooseModel(model: String) {
-        waitFor(hasTestTag(CoachModelTags.option(model)))
-        compose.onNode(hasTestTag(CoachModelTags.option(model))).performClick()
+        waitFor(hasTestTag(ModelTags.option(model)))
+        compose.onNode(hasTestTag(ModelTags.option(model))).performClick()
     }
 
     fun assertModelShown(name: String) = waitForText(name)

@@ -14,7 +14,8 @@ import com.github.sebastianp265.aitrainer.shared.coach.CoachMessageEntity
 import com.github.sebastianp265.aitrainer.shared.coach.CoachNoteEntity
 import com.github.sebastianp265.aitrainer.shared.coach.CoachProfileEntity
 import com.github.sebastianp265.aitrainer.shared.coach.CoachProposalEntity
-import com.github.sebastianp265.aitrainer.shared.coach.CoachUsageEntity
+import com.github.sebastianp265.aitrainer.shared.ai.AiDao
+import com.github.sebastianp265.aitrainer.shared.ai.AiUsageEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.EquipmentEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.EquipmentTranslationEntity
 import com.github.sebastianp265.aitrainer.shared.exercise.ExerciseEntity
@@ -50,7 +51,7 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
         CoachProposalEntity::class,
         CoachNoteEntity::class,
         CoachProfileEntity::class,
-        CoachUsageEntity::class,
+        AiUsageEntity::class,
         NutritionTargetEntity::class,
     ],
     version = DATABASE_SCHEMA_VERSION,
@@ -67,6 +68,7 @@ import com.github.sebastianp265.aitrainer.shared.workout.WorkoutSessionEntity
         AutoMigration(from = 16, to = 17),
         AutoMigration(from = 17, to = 18, spec = Migration17To18::class),
         AutoMigration(from = 18, to = 19, spec = Migration18To19::class),
+        AutoMigration(from = 19, to = 20, spec = Migration19To20::class),
     ],
     exportSchema = true,
 )
@@ -78,6 +80,7 @@ internal abstract class AppDatabase : RoomDatabase() {
     abstract fun planDao(): PlanDao
     abstract fun volumeDao(): VolumeDao
     abstract fun coachDao(): CoachDao
+    abstract fun aiDao(): AiDao
     abstract fun nutritionDao(): NutritionDao
 
     companion object {

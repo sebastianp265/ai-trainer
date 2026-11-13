@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.feature.coach.impl
+package com.github.sebastianp265.aitrainer.feature.ai.impl
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,13 +32,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.integration.ai.AiClient
 import com.github.sebastianp265.aitrainer.integration.ai.AiFailureKind
 import com.github.sebastianp265.aitrainer.integration.ai.AiTuning
-import com.github.sebastianp265.aitrainer.integration.coach.CoachRun
-import com.github.sebastianp265.aitrainer.integration.coach.CoachService
-import com.github.sebastianp265.aitrainer.integration.coach.CoachUsage
-import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
+import com.github.sebastianp265.aitrainer.integration.ai.AiRun
+import com.github.sebastianp265.aitrainer.integration.ai.AiService
+import com.github.sebastianp265.aitrainer.integration.ai.AiUsage
 import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
 import com.github.sebastianp265.aitrainer.shared.localization.formatTime
 import com.github.sebastianp265.aitrainer.shared.state.WhileUiSubscribed
@@ -49,7 +47,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.Clock
 import kotlin.time.Instant
 import com.github.sebastianp265.aitrainer.shared.design.CardLabel
 import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
@@ -72,16 +69,14 @@ internal data class ApiKeyUiState(
 )
 
 internal class ApiKeyViewModel(
-    private val settingsService: SettingsService,
-    private val claude: AiClient,
-    private val clock: Clock,
+    private val aiService: AiService,
 ) : ViewModel() {
 
     private val check = MutableStateFlow(KeyCheck.IDLE)
 
     val uiState: StateFlow<ApiKeyUiState> = combine(
-        settingsService.observeIsClaudeApiKeyStored(),
-        settingsService.observeApiKeyCheckedAt(),
+        aiService.observeIsApiKeyStored(),
+        aiService.observeApiKeyCheckedAt(),
         check,
     ) { stored, checkedAt, check -> ApiKeyUiState(stored, checkedAt, check) }
         .stateIn(viewModelScope, WhileUiSubscribed, ApiKeyUiState())
@@ -90,14 +85,9 @@ internal class ApiKeyViewModel(
         if (apiKey.isBlank()) return
         viewModelScope.launch {
             withContext(NonCancellable) {
-                val key = apiKey.trim()
                 check.value = KeyCheck.CHECKING
-                check.value = when (claude.checkApiKey(key)) {
-                    null -> {
-                        settingsService.saveClaudeApiKey(key)
-                        settingsService.setApiKeyCheckedAt(clock.now())
-                        KeyCheck.IDLE
-                    }
+                check.value = when (aiService.checkAndSaveApiKey(apiKey)) {
+                    null -> KeyCheck.IDLE
                     AiFailureKind.KEY_REJECTED -> KeyCheck.REJECTED
                     AiFailureKind.NO_NETWORK -> KeyCheck.OFFLINE
                     else -> KeyCheck.OTHER
@@ -109,8 +99,7 @@ internal class ApiKeyViewModel(
     fun remove() {
         viewModelScope.launch {
             withContext(NonCancellable) {
-                settingsService.removeClaudeApiKey()
-                settingsService.setApiKeyCheckedAt(null)
+                aiService.removeApiKey()
                 check.value = KeyCheck.IDLE
             }
         }
@@ -130,7 +119,7 @@ internal fun ApiKeyContent(state: ApiKeyUiState, onSave: (String) -> Unit, onRem
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             shape = MaterialTheme.shapes.small,
-            modifier = Modifier.fillMaxWidth().testTag(CoachApiKeyTags.FIELD),
+            modifier = Modifier.fillMaxWidth().testTag(ApiKeyTags.FIELD),
         )
         KeyStatus(state)
         Button(
@@ -139,7 +128,7 @@ internal fun ApiKeyContent(state: ApiKeyUiState, onSave: (String) -> Unit, onRem
                 apiKey = ""
             },
             enabled = apiKey.isNotBlank() && state.check != KeyCheck.CHECKING,
-            modifier = Modifier.fillMaxWidth().height(48.dp).testTag(CoachApiKeyTags.SAVE),
+            modifier = Modifier.fillMaxWidth().height(48.dp).testTag(ApiKeyTags.SAVE),
         ) { Text(stringResource(R.string.api_key_save_and_check)) }
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -153,7 +142,7 @@ internal fun ApiKeyContent(state: ApiKeyUiState, onSave: (String) -> Unit, onRem
         if (state.isStored) {
             TextButton(
                 onClick = onRemove,
-                modifier = Modifier.align(Alignment.CenterHorizontally).testTag(CoachApiKeyTags.REMOVE),
+                modifier = Modifier.align(Alignment.CenterHorizontally).testTag(ApiKeyTags.REMOVE),
                 colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
             ) { Text(stringResource(R.string.api_key_remove)) }
         }
@@ -176,11 +165,11 @@ private fun KeyStatus(state: ApiKeyUiState) {
     val isFine = state.check == KeyCheck.IDLE && state.isStored
     Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
         if (isFine) Icon(DesignIcons.Check, contentDescription = null, Modifier.size(16.dp), tint = color)
-        Text(text, style = MaterialTheme.typography.bodyMedium, color = color, modifier = Modifier.testTag(CoachApiKeyTags.STATUS))
+        Text(text, style = MaterialTheme.typography.bodyMedium, color = color, modifier = Modifier.testTag(ApiKeyTags.STATUS))
     }
 }
 
-internal object CoachApiKeyTags {
+internal object ApiKeyTags {
     const val FIELD = "api_key_field"
     const val SAVE = "api_key_save"
     const val REMOVE = "api_key_remove"
@@ -188,31 +177,30 @@ internal object CoachApiKeyTags {
 }
 
 internal data class ModelUiState(
-    val model: String = SettingsService.DEFAULT_CLAUDE_MODEL,
-    val usage: CoachUsage = CoachUsage(0, 0, 0),
+    val model: String = AiService.DEFAULT_MODEL,
+    val usage: AiUsage = AiUsage(0, 0, 0),
     val tuning: AiTuning = AiTuning(),
-    val lastRun: CoachRun? = null,
+    val lastRun: AiRun? = null,
 )
 
 internal class ModelPickerViewModel(
-    private val settingsService: SettingsService,
-    coachService: CoachService,
+    private val aiService: AiService,
 ) : ViewModel() {
 
     val uiState: StateFlow<ModelUiState> = combine(
-        settingsService.observeClaudeModel(),
-        coachService.observeUsageThisMonth(),
-        settingsService.observeClaudeTuning(),
-        coachService.observeLastRun(),
+        aiService.observeModel(),
+        aiService.observeUsageThisMonth(),
+        aiService.observeTuning(),
+        aiService.observeLastRun(),
     ) { model, usage, tuning, lastRun -> ModelUiState(model, usage, tuning, lastRun) }
         .stateIn(viewModelScope, WhileUiSubscribed, ModelUiState())
 
     fun select(model: String) {
-        viewModelScope.launch { withContext(NonCancellable) { settingsService.setClaudeModel(model) } }
+        viewModelScope.launch { withContext(NonCancellable) { aiService.setModel(model) } }
     }
 
     fun tune(tuning: AiTuning) {
-        viewModelScope.launch { withContext(NonCancellable) { settingsService.setClaudeTuning(tuning) } }
+        viewModelScope.launch { withContext(NonCancellable) { aiService.setTuning(tuning) } }
     }
 }
 
@@ -220,10 +208,10 @@ internal class ModelPickerViewModel(
 internal fun ModelPickerContent(state: ModelUiState, onSelect: (String) -> Unit, onTune: (AiTuning) -> Unit) {
     Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         GroupCard {
-            SettingsService.CLAUDE_MODELS.forEachIndexed { index, model ->
+            AiService.MODELS.forEachIndexed { index, model ->
                 GroupRow(
-                    Modifier.selectable(selected = state.model == model, onClick = { onSelect(model) }, role = Role.RadioButton).testTag(CoachModelTags.option(model)),
-                    divider = index < SettingsService.CLAUDE_MODELS.lastIndex,
+                    Modifier.selectable(selected = state.model == model, onClick = { onSelect(model) }, role = Role.RadioButton).testTag(ModelTags.option(model)),
+                    divider = index < AiService.MODELS.lastIndex,
                 ) {
                     RadioButton(selected = state.model == model, onClick = null)
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -239,8 +227,8 @@ internal fun ModelPickerContent(state: ModelUiState, onSelect: (String) -> Unit,
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 CardLabel(stringResource(R.string.model_usage_title))
-                UsageRow(stringResource(R.string.model_usage_messages), formatNumber(state.usage.messages.toDouble()), CoachModelTags.USAGE_MESSAGES)
-                UsageRow(stringResource(R.string.model_usage_tokens), formatTokens(state.usage.inputTokens + state.usage.outputTokens), CoachModelTags.USAGE_TOKENS)
+                UsageRow(stringResource(R.string.model_usage_messages), formatNumber(state.usage.messages.toDouble()), ModelTags.USAGE_MESSAGES)
+                UsageRow(stringResource(R.string.model_usage_tokens), formatTokens(state.usage.inputTokens + state.usage.outputTokens), ModelTags.USAGE_TOKENS)
                 Text(stringResource(R.string.model_usage_cost), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
@@ -277,7 +265,7 @@ private fun modelHint(model: String): String = when (model) {
     else -> ""
 }
 
-internal object CoachModelTags {
+internal object ModelTags {
     const val USAGE_MESSAGES = "model_usage_messages"
     const val USAGE_TOKENS = "model_usage_tokens"
 

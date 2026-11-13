@@ -6,7 +6,7 @@ Choices made without asking are in [`decisions.md`](decisions.md).
 
 **Can I run it? Yes.** The debug build compiles with no errors. The app starts on the new Training screen and has working
 plans, workouts with RPE, a summary after each workout, exercise history, weekly sets per muscle group with targets, the
-Progress tab with Health Connect data and the Settings screen. The Coach tab, weekly review and backup work. The coach needs your Claude API key (Settings); without it the app behaves as with the coach off.
+Progress tab with Health Connect data and the Settings screen. The Coach tab, weekly review and backup work. The coach needs your Claude API key (Settings → AI); without it the app behaves as with the coach off.
 
 ## How to run
 
@@ -40,9 +40,9 @@ the app during a workout, it opens on the workout again.
 | **Proposal preview** | ✅ Works | The proposed plan with the changes marked (added, removed, sets, weight); "Accept" or "Reply to the coach". A pending proposal also shows as a card on Training and the targets screen. |
 | **Weekly review** | ✅ Works, not tried with a real key | When the app comes to the foreground after a finished Monday-to-Sunday week with data, the coach posts a card with the week's numbers and its review in the chat. |
 | **What the coach knows about me** | ✅ Works | Profile (goal, time, equipment, limitations, preferences), weekly set targets, coach notes; everything can be edited or deleted. |
-| **Settings** | ✅ Works | Coach switch (on at first). With it on: Claude API key, model, coach memory. Section "What your coach can access" (with the coach off: "Health Connect data") with a switch per Health Connect data type and "Data older than 30 days" with "Allow". "Data backup". |
-| **API key** | ✅ Works, not tried with a real key | Paste a key, "Save and check" (one call that spends no tokens; a key is saved only when the check succeeds), remove the key. |
-| **Coach model** | ✅ Works, tuning not tried with a real key | Opus, Sonnet or Haiku; messages and tokens used this month, counted on the phone. "Advanced" (folded): effort, thinking (off is unavailable on Opus and above high effort), answer limit typed in (1 to 32 000 tokens, 16 000 by default), prompt cache 5 min (default) or 1 h, the only two the API offers, "Restore defaults". "Last answer" shows rounds, input, cache read and write, output tokens, time and how it ended; kept until the app closes. Tools and the system prompt are cached for the chosen time, the conversation for 5 min. |
+| **Settings** | ✅ Works | Coach switch (on at first). With it on: AI (opens the API key and the model), coach memory. Section "What your coach can access" (with the coach off: "Health Connect data") with a switch per Health Connect data type and "Data older than 30 days" with "Allow". "Data backup". |
+| **API key** (Settings → AI) | ✅ Works, not tried with a real key | Paste a key, "Save and check" (one call that spends no tokens; a key is saved only when the check succeeds), remove the key. |
+| **Model** (Settings → AI) | ✅ Works, tuning not tried with a real key | Opus, Sonnet or Haiku; messages and tokens used this month, counted on the phone. "Advanced" (folded): effort, thinking (off is unavailable on Opus and above high effort), answer limit typed in (1 to 32 000 tokens, 16 000 by default), prompt cache 5 min (default) or 1 h, the only two the API offers, "Restore defaults". "Last answer" shows rounds, input, cache read and write, output tokens, time and how it ended; kept until the app closes. Tools and the system prompt are cached for the chosen time, the conversation for 5 min. |
 | **Data backup** | ✅ Works, not tried between two devices | Export everything except the API key to one file. Import shows what the file contains, asks, replaces all data and restarts the app. |
 | **Health Connect** | ✅ Works | Nothing is copied into the app: Progress, the day detail and the coach read Health Connect when they open and again whenever the app comes back to the foreground. No separate screen and no sync buttons; everything is in the Settings section. Switching on asks Health Connect for that one item; switching off hides that data from the app and the coach (the permission in Health Connect stays; "Change permissions in Health Connect" opens it). "Allow" next to "Data older than 30 days" asks for access to past data, with no time limit. Workouts recorded by other apps are not read. The Progress card without data opens Settings. |
 
@@ -65,6 +65,7 @@ the app during a workout, it opens on the workout again.
 - Training: scroll a long History and plan list (the Plans / History switch stays on top, the scrollbar shows only while scrolling); check month headers around New Year.
 - Edit an old workout from History, change a weight, "Cancel" (nothing changes), then edit again and "Save" (the date and the time stay the same).
 - Training, Plans tab: drag a plan by its handle (or hold the tile) to another place (the order stays after reopening the app); ✎ opens the plan editor; a new plan goes to the end. Dragging is not covered by an automated test.
+- Settings → AI: the API key (status, save and check, remove) and the model open from there. The model and its tuning were moved to a new settings file, so after installing this build they are back at the defaults (the API key stays); choose them again.
 - Switch the coach off and check that the Coach tab and the coach shortcuts are gone.
 - Switch on a Health Connect type in Settings that has no permission yet: the system permission screen opens for that type only, and after allowing, the switch is on and its data appears in Progress (no automated test taps that system screen).
 
@@ -72,7 +73,7 @@ the app during a workout, it opens on the workout again.
 
 Installing a new build keeps your data: schema 7 → 8 (six muscle groups, "Other" equipment), 8 → 9 (plans, workout ↔ plan link),
 9 → 10 (weekly targets), 10 → 11 (coach conversation, proposals, notes, profile, usage, request log), 11 → 12 (weekly review
-stored with a coach message), 12 → 13 (the request log of the removed debug screen is dropped), 13 → 14 (the coach's note on a plan), 14 → 15 (undo data of proposals, the topic of a message, the nutrition target), 15 → 16 (copied Health Connect data dropped), 16 → 17 (a workout being edited points to the original), 17 → 18 (plan dates dropped), 18 → 19 (the order of plans; existing plans keep the order they were made in). If the app on your phone has a schema older than 6, uninstall it once.
+stored with a coach message), 12 → 13 (the request log of the removed debug screen is dropped), 13 → 14 (the coach's note on a plan), 14 → 15 (undo data of proposals, the topic of a message, the nutrition target), 15 → 16 (copied Health Connect data dropped), 16 → 17 (a workout being edited points to the original), 17 → 18 (plan dates dropped), 18 → 19 (the order of plans; existing plans keep the order they were made in), 19 → 20 (the table of model usage is renamed from coach_usage to ai_usage). If the app on your phone has a schema older than 6, uninstall it once.
 
 ## What's not there yet
 

@@ -4,7 +4,8 @@ import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.plan.PlanDraft
 import com.github.sebastianp265.aitrainer.integration.plan.PlanService
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
-import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
+import com.github.sebastianp265.aitrainer.integration.settings.Secret
+import com.github.sebastianp265.aitrainer.integration.settings.SecretStore
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.integration.workout.WorkoutService
 import kotlinx.coroutines.flow.first
@@ -29,7 +30,7 @@ class Given {
 
     private val koin get() = GlobalContext.get()
 
-    fun claudeApiKey() = runBlocking { koin.get<SettingsService>().saveClaudeApiKey("test-key") }
+    fun aiApiKey() = runBlocking { koin.get<SecretStore>().write(Secret.CLAUDE_API_KEY, "test-key") }
 
     fun plan(name: String, sets: List<PlannedSet>): Long = runBlocking {
         koin.get<PlanService>().createPlan(PlanDraft(name, sets), PlanAuthor.USER)

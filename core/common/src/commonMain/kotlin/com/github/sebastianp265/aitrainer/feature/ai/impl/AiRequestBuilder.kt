@@ -1,46 +1,46 @@
-package com.github.sebastianp265.aitrainer.feature.coach.impl
+package com.github.sebastianp265.aitrainer.feature.ai.impl
 
-import com.github.sebastianp265.aitrainer.integration.nutrition.NutritionTarget
 import com.github.sebastianp265.aitrainer.integration.ai.AiContent
 import com.github.sebastianp265.aitrainer.integration.ai.AiMessage
 import com.github.sebastianp265.aitrainer.integration.ai.AiRequest
 import com.github.sebastianp265.aitrainer.integration.ai.AiRole
 import com.github.sebastianp265.aitrainer.integration.ai.AiTool
 import com.github.sebastianp265.aitrainer.integration.ai.AiTuning
+import com.github.sebastianp265.aitrainer.integration.coach.CoachMemoryService
+import com.github.sebastianp265.aitrainer.integration.coach.CoachNote
 import com.github.sebastianp265.aitrainer.integration.coach.CoachRole
-import com.github.sebastianp265.aitrainer.integration.coach.CoachService
+import com.github.sebastianp265.aitrainer.integration.coach.CoachTurn
 import com.github.sebastianp265.aitrainer.integration.coach.TopicKind
 import com.github.sebastianp265.aitrainer.integration.health.HealthDay
+import com.github.sebastianp265.aitrainer.integration.nutrition.NutritionTarget
 import com.github.sebastianp265.aitrainer.integration.volume.WeeklyTarget
-import com.github.sebastianp265.aitrainer.shared.coach.CoachMessageEntity
-import com.github.sebastianp265.aitrainer.shared.coach.CoachNoteEntity
 import kotlinx.datetime.LocalDate
 
-internal class CoachContext(
+internal class AiContext(
     val model: String,
     val tuning: AiTuning,
     val today: LocalDate,
     val profile: Map<String, String>,
-    val notes: List<CoachNoteEntity>,
+    val notes: List<CoachNote>,
     val targets: List<WeeklyTarget>,
     val nutritionTarget: NutritionTarget?,
     val recentWorkouts: List<String>,
     val healthDays: List<HealthDay>,
-    val history: List<CoachMessageEntity>,
+    val turns: List<CoachTurn>,
     val tools: List<AiTool>,
 )
 
-internal fun buildCoachRequest(context: CoachContext, transientUserText: String? = null): AiRequest =
+internal fun buildAiRequest(context: AiContext, transientUserText: String? = null): AiRequest =
     AiRequest(
         model = context.model,
         system = systemPrompt(context),
-        messages = conversation(context.history, transientUserText),
+        messages = conversation(context.turns, transientUserText),
         tools = context.tools,
         tuning = context.tuning,
     )
 
-private fun conversation(history: List<CoachMessageEntity>, transientUserText: String?): List<AiMessage> =
-    (history.sortedBy { it.id }.map { it.role to it.textForClaude() } + listOfNotNull(transientUserText?.let { CoachRole.USER to it }))
+private fun conversation(turns: List<CoachTurn>, transientUserText: String?): List<AiMessage> =
+    (turns.map { it.role to it.textForModel() } + listOfNotNull(transientUserText?.let { CoachRole.USER to it }))
         .fold(mutableListOf<Pair<AiRole, String>>()) { messages, (messageRole, messageText) ->
             val role = if (messageRole == CoachRole.USER) AiRole.USER else AiRole.ASSISTANT
             if (messages.isNotEmpty() && messages.last().first == role) {
@@ -53,7 +53,7 @@ private fun conversation(history: List<CoachMessageEntity>, transientUserText: S
         .dropWhile { it.first == AiRole.ASSISTANT }
         .map { (role, text) -> AiMessage(role, listOf(AiContent.Text(text))) }
 
-private fun CoachMessageEntity.textForClaude(): String {
+private fun CoachTurn.textForModel(): String {
     val topic = topic ?: return text
     val subject = when (topic.kind) {
         TopicKind.PLAN -> "plan id ${topic.id}"
@@ -64,7 +64,7 @@ private fun CoachMessageEntity.textForClaude(): String {
     return "[The user asks about this $subject: \"${topic.label}\"]\n$text"
 }
 
-private fun systemPrompt(context: CoachContext): String = buildString {
+private fun systemPrompt(context: AiContext): String = buildString {
     appendLine("You are the personal strength coach inside a single-user Android training app. Today is ${context.today}.")
     appendLine("Reply in the language the user writes in. Keep answers short and practical.")
     appendLine()
@@ -79,7 +79,7 @@ private fun systemPrompt(context: CoachContext): String = buildString {
     appendLine("- Save lasting facts with add_note and fill the profile with update_profile. Do not store small talk.")
     appendLine()
     appendLine("## Profile")
-    CoachService.PROFILE_FIELDS.forEach { field -> appendLine("$field: ${context.profile[field] ?: "unknown"}") }
+    CoachMemoryService.PROFILE_FIELDS.forEach { field -> appendLine("$field: ${context.profile[field] ?: "unknown"}") }
     appendLine()
     appendLine("## Notes")
     if (context.notes.isEmpty()) appendLine("(none)") else context.notes.forEach { appendLine("[${it.id}] ${it.text}") }

@@ -17,7 +17,7 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
     private val claude = FakeAiClient()
 
     @BeforeTest
-    fun start() = launchApp(claudeClient = claude)
+    fun start() = launchApp(aiClient = claude)
 
     @Test
     fun `the coach is on at first and switching it off hides its settings and its tab`() {

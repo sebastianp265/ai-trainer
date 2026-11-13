@@ -43,10 +43,14 @@ enum class PackageModule(val path: String) {
     FEATURE_PLAN("feature.plan"),
     FEATURE_VOLUME("feature.volume"),
     FEATURE_NUTRITION("feature.nutrition"),
-    FEATURE_COACH("feature.coach");
+    FEATURE_COACH("feature.coach"),
+    FEATURE_AI("feature.ai");
 
     val group: Group
         get() = Group.entries.single { it.path == path.substringBefore('.') }
+
+    val isAi: Boolean
+        get() = path.substringAfter('.') == "ai"
 
     val rootPackage: String
         get() = "$BASE_PACKAGE.$path"

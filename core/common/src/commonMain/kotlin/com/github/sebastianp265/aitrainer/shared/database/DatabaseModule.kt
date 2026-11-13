@@ -19,5 +19,6 @@ internal val databaseModule = module {
     single { get<AppDatabase>().planDao() }
     single { get<AppDatabase>().volumeDao() }
     single { get<AppDatabase>().coachDao() }
+    single { get<AppDatabase>().aiDao() }
     single { get<AppDatabase>().nutritionDao() }
 }

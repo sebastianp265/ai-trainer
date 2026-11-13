@@ -2,6 +2,7 @@ package com.github.sebastianp265.aitrainer.shared.database.impl
 
 import androidx.room.DeleteColumn
 import androidx.room.DeleteTable
+import androidx.room.RenameTable
 import androidx.room.migration.AutoMigrationSpec
 import androidx.room.migration.Migration
 import androidx.sqlite.SQLiteConnection
@@ -78,3 +79,6 @@ internal class Migration18To19 : AutoMigrationSpec {
         connection.execSQL("UPDATE plan SET position = id")
     }
 }
+
+@RenameTable(fromTableName = "coach_usage", toTableName = "ai_usage")
+internal class Migration19To20 : AutoMigrationSpec

@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.feature.coach.impl
+package com.github.sebastianp265.aitrainer.feature.ai.impl
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.text.KeyboardOptions
@@ -35,7 +35,7 @@ import com.github.sebastianp265.aitrainer.integration.ai.AiCacheDuration
 import com.github.sebastianp265.aitrainer.integration.ai.AiEffort
 import com.github.sebastianp265.aitrainer.integration.ai.AiThinking
 import com.github.sebastianp265.aitrainer.integration.ai.AiTuning
-import com.github.sebastianp265.aitrainer.integration.coach.CoachRun
+import com.github.sebastianp265.aitrainer.integration.ai.AiRun
 import com.github.sebastianp265.aitrainer.shared.design.CardLabel
 import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
@@ -145,7 +145,7 @@ private fun Option(label: String, selected: Boolean, tag: String, enabled: Boole
 }
 
 @Composable
-internal fun LastRunCard(run: CoachRun) {
+internal fun LastRunCard(run: AiRun) {
     Card(Modifier.fillMaxWidth().testTag(ModelTuningTags.LAST_RUN)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             CardLabel(stringResource(R.string.model_last_run_title))
@@ -192,7 +192,7 @@ private fun ModelTuningPreview() {
         Surface {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 TuningOptions("claude-sonnet-5-5", AiTuning(effort = AiEffort.LOW), onTune = {})
-                LastRunCard(CoachRun(rounds = 3, inputTokens = 412, cacheReadTokens = 7_930, cacheWriteTokens = 640, outputTokens = 380, duration = 9.seconds, stopReason = "end_turn"))
+                LastRunCard(AiRun(rounds = 3, inputTokens = 412, cacheReadTokens = 7_930, cacheWriteTokens = 640, outputTokens = 380, duration = 9.seconds, stopReason = "end_turn"))
             }
         }
     }

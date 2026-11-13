@@ -80,13 +80,4 @@ internal interface CoachDao {
 
     @Query("DELETE FROM coach_profile WHERE field = :field")
     suspend fun deleteProfileField(field: String)
-
-    @Query("SELECT * FROM coach_usage WHERE month = :month")
-    fun observeUsage(month: String): Flow<CoachUsageEntity?>
-
-    @Query("SELECT * FROM coach_usage WHERE month = :month")
-    suspend fun usage(month: String): CoachUsageEntity?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertUsage(usage: CoachUsageEntity)
 }

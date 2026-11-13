@@ -17,7 +17,7 @@ interface BundledFiles {
     fun read(path: String): String
 }
 
-const val DATABASE_SCHEMA_VERSION = 19
+const val DATABASE_SCHEMA_VERSION = 20
 
 const val OLDEST_MIGRATED_SCHEMA_VERSION = 6
 
