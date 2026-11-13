@@ -568,6 +568,10 @@
     <string name="training_no_plan">bez planu</string>
     <string name="training_no_plans">Nie masz jeszcze planów. Napisz własny albo poproś trenera.</string>
     <string name="training_start_plan_description">Zacznij %1$s</string>
+    <string name="training_edit_plan_description">Edytuj %1$s</string>
+    <string name="training_plan_next_tag">Następny</string>
+    <string name="training_reorder_hint">Przeciągnij plan za uchwyt, żeby zmienić kolejność. Pierwszy jest następny.</string>
+    <string name="training_drag_handle_description">Przeciągnij %1$s, żeby zmienić jego miejsce</string>
     <string name="training_edit_workout_description">Edytuj trening z %1$s</string>
     <string name="cancel_edit_title">Odrzucić zmiany?</string>
     <string name="cancel_edit_text">Trening zostanie taki, jak przed edycją.</string>

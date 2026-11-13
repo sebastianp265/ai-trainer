@@ -12,10 +12,30 @@ internal interface PlanDao {
         """
         SELECT * FROM plan p
         WHERE NOT EXISTS (SELECT 1 FROM workout_session s WHERE s.planId = p.id AND s.finishedAt IS NOT NULL)
-        ORDER BY p.id
+        ORDER BY p.position, p.id
         """
     )
     fun observeUpcomingPlans(): Flow<List<PlanEntity>>
+
+    @Query(
+        """
+        SELECT id FROM plan p
+        WHERE NOT EXISTS (SELECT 1 FROM workout_session s WHERE s.planId = p.id AND s.finishedAt IS NOT NULL)
+        ORDER BY p.position, p.id
+        """
+    )
+    suspend fun getUpcomingPlanIds(): List<Long>
+
+    @Query("SELECT COALESCE(MAX(position), -1) + 1 FROM plan")
+    suspend fun nextPosition(): Int
+
+    @Query("UPDATE plan SET position = :position WHERE id = :id")
+    suspend fun updatePosition(id: Long, position: Int)
+
+    @Transaction
+    suspend fun savePositions(orderedIds: List<Long>) {
+        orderedIds.forEachIndexed { index, id -> updatePosition(id, index) }
+    }
 
     @Query(
         """

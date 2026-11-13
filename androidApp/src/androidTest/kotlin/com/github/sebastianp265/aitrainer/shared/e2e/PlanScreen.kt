@@ -33,6 +33,8 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
         compose.onNode(hasTestTag(LogWorkoutTags.NEW_PLAN)).performClick()
     }
 
+    fun assertEditorShown() = waitFor(hasTestTag(PlanTags.NAME_FIELD))
+
     fun typeName(name: String) {
         waitFor(hasTestTag(PlanTags.NAME_FIELD))
         compose.onNode(hasTestTag(PlanTags.NAME_FIELD)).performTextInput(name)
@@ -80,10 +82,9 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
     fun assertNotListed(planName: String) =
         compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(listed(planName), useUnmergedTree = true).fetchSemanticsNodes().isEmpty() }
 
-    fun open(planName: String) {
-        showPlans()
-        scrollTo(listed(planName))
-        compose.onNode(listed(planName)).performClick()
+    fun openNext(planName: String) {
+        waitFor(hasTestTag(LogWorkoutTags.nextPlan(planName)))
+        compose.onNode(hasTestTag(LogWorkoutTags.nextPlan(planName))).performClick()
     }
 
     private fun listed(planName: String) = hasTestTag(LogWorkoutTags.nextPlan(planName)) or hasTestTag(LogWorkoutTags.planRow(planName))

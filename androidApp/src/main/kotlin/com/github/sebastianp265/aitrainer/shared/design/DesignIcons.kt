@@ -26,6 +26,12 @@ internal object DesignIcons {
     val Check = lineIcon("check", "M5 12l5 5 9-10")
     val Edit = lineIcon("edit", "M4 20h4L19 9l-4-4L4 16v4zM13 7l4 4")
     val Send = lineIcon("send", "M4 12l16-8-6 16-3-7-7-1z")
+    val DragHandle = lineIcon(
+        "drag_handle",
+        circle(9f, 6f, 1f), circle(15f, 6f, 1f),
+        circle(9f, 12f, 1f), circle(15f, 12f, 1f),
+        circle(9f, 18f, 1f), circle(15f, 18f, 1f),
+    )
     val ChevronRight = lineIcon("chevron_right", "M9 6l6 6-6 6")
     val Warning = lineIcon("warning", "M12 4l9 16H3l9-16zM12 10v4M12 17v.5")
     val Key = lineIcon("key", circle(8f, 15f, 4f), "M11 12l9-9M17 6l3 3M14 9l2 2")

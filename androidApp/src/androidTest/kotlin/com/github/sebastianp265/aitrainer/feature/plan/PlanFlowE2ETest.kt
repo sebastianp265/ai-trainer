@@ -45,7 +45,7 @@ class PlanFlowE2ETest : AbstractE2ETest() {
     fun `an edited plan shows its new numbers`() {
         given.plan("Push A", sets(BENCH_PRESS, kg = 80.0))
         openAllPlans()
-        plans.open("Push A")
+        plans.openNext("Push A")
 
         plans.edit()
         plans.typeWeight(setIndex = 0, kg = "85")
@@ -58,7 +58,7 @@ class PlanFlowE2ETest : AbstractE2ETest() {
     fun `a deleted plan disappears after confirmation`() {
         given.plan("Push A", sets(BENCH_PRESS))
         openAllPlans()
-        plans.open("Push A")
+        plans.openNext("Push A")
 
         plans.delete()
         plans.confirmDelete()

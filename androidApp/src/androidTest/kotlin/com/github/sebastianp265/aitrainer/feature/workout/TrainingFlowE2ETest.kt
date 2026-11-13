@@ -34,6 +34,18 @@ class TrainingFlowE2ETest : AbstractE2ETest() {
     }
 
     @Test
+    fun `tapping a plan does nothing and its edit button opens the editor`() {
+        given.plan("Push A", sets(BENCH_PRESS))
+        given.plan("Legs B", sets(BACK_SQUAT))
+        launchApp()
+
+        training.assertPlanRowDoesNotOpenOnTap("Legs B")
+        training.editPlan("Legs B")
+
+        plans.assertEditorShown()
+    }
+
+    @Test
     fun `a workout without a plan starts empty`() {
         given.plan("Push A", sets(BENCH_PRESS))
         launchApp()

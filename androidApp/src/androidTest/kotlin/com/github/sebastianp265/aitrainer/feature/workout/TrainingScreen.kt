@@ -2,6 +2,7 @@ package com.github.sebastianp265.aitrainer.feature.workout
 
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
@@ -47,7 +48,20 @@ class TrainingScreen(compose: ComposeTestRule) : Screen(compose) {
         showTab(TrainingTab.PLANS)
         val shown = compose.onAllNodes(hasTestTagStartingWith(LogWorkoutTags.planRow(""))).fetchSemanticsNodes()
             .map { it.config[SemanticsProperties.TestTag] }
-        assertEquals(otherPlans.map(LogWorkoutTags::planRow), shown)
+        assertEquals((listOf(nextPlan) + otherPlans).map(LogWorkoutTags::planRow), shown)
+    }
+
+    fun editPlan(planName: String) {
+        showTab(TrainingTab.PLANS)
+        scrollTo(hasTestTag(LogWorkoutTags.editPlan(planName)))
+        compose.onNode(hasTestTag(LogWorkoutTags.editPlan(planName))).performClick()
+    }
+
+    fun assertPlanRowDoesNotOpenOnTap(planName: String) {
+        showTab(TrainingTab.PLANS)
+        scrollTo(hasTestTag(LogWorkoutTags.planRow(planName)))
+        compose.onNode(hasTestTag(LogWorkoutTags.planRow(planName))).performClick()
+        compose.onNode(hasTestTag(LogWorkoutTags.planRow(planName))).assertIsDisplayed()
     }
 
     fun assertRecentWorkout(title: String) {

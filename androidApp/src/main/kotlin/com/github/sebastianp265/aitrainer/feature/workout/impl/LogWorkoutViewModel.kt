@@ -46,7 +46,7 @@ internal fun historyMonths(sessions: List<SessionSummary>, today: LocalDate): Li
 
 internal class LogWorkoutViewModel(
     private val workoutService: WorkoutService,
-    planService: PlanService,
+    private val planService: PlanService,
     exerciseService: ExerciseService,
     clock: Clock,
 ) : ViewModel() {
@@ -84,6 +84,9 @@ internal class LogWorkoutViewModel(
         viewModelScope.launch { workoutService.startSession(planId) }
     }
 
+    fun movePlan(planId: Long, toIndex: Int) {
+        viewModelScope.launch { planService.movePlan(planId, toIndex) }
+    }
     fun editWorkout(sessionId: Long) {
         viewModelScope.launch { workoutService.startEditing(sessionId) }
     }

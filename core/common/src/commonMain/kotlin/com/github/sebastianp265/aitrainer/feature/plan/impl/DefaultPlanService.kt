@@ -28,9 +28,18 @@ internal class DefaultPlanService(
 
     override suspend fun createPlan(draft: PlanDraft, author: PlanAuthor): Long {
         require(draft.isSavable()) { "A plan needs a name and at least one set" }
-        val id = dao.insertPlan(PlanEntity(name = draft.name.trim(), author = author, createdAt = clock.now(), coachNote = draft.coachNote))
+        val id = dao.insertPlan(
+            PlanEntity(name = draft.name.trim(), author = author, createdAt = clock.now(), position = dao.nextPosition(), coachNote = draft.coachNote),
+        )
         dao.insertPlannedSets(draft.sets.toEntities(id))
         return id
+    }
+
+    override suspend fun movePlan(id: Long, toIndex: Int) {
+        val ids = dao.getUpcomingPlanIds().toMutableList()
+        if (!ids.remove(id)) return
+        ids.add(toIndex.coerceIn(0, ids.size), id)
+        dao.savePositions(ids)
     }
 
     override suspend fun updatePlan(id: Long, draft: PlanDraft) {

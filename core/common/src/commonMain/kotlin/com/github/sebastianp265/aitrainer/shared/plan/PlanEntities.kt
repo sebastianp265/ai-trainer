@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.shared.plan
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -14,6 +15,7 @@ internal data class PlanEntity(
     val name: String,
     val author: PlanAuthor,
     val createdAt: Instant,
+    @ColumnInfo(defaultValue = "0") val position: Int,
     val coachNote: String? = null,
 )
 

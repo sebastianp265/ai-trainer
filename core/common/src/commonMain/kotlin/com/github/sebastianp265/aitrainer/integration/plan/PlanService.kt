@@ -12,4 +12,6 @@ interface PlanService {
     suspend fun updatePlan(id: Long, draft: PlanDraft)
 
     suspend fun deletePlan(id: Long)
+
+    suspend fun movePlan(id: Long, toIndex: Int)
 }

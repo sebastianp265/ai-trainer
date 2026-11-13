@@ -44,6 +44,49 @@ class DefaultPlanServiceUTest {
     }
 
     @Test
+    fun `a plan moved to an earlier place pushes the others down`() = runBlocking {
+        plans.createPlan(draft("First"), PlanAuthor.USER)
+        plans.createPlan(draft("Second"), PlanAuthor.USER)
+        val third = plans.createPlan(draft("Third"), PlanAuthor.USER)
+
+        plans.movePlan(third, toIndex = 0)
+
+        assertEquals(listOf("Third", "First", "Second"), plans.observeUpcoming().first().map { it.name })
+    }
+
+    @Test
+    fun `a plan moved to a later place pulls the others up`() = runBlocking {
+        val first = plans.createPlan(draft("First"), PlanAuthor.USER)
+        plans.createPlan(draft("Second"), PlanAuthor.USER)
+        plans.createPlan(draft("Third"), PlanAuthor.USER)
+
+        plans.movePlan(first, toIndex = 2)
+
+        assertEquals(listOf("Second", "Third", "First"), plans.observeUpcoming().first().map { it.name })
+    }
+
+    @Test
+    fun `a place beyond the list puts the plan at the end`() = runBlocking {
+        val first = plans.createPlan(draft("First"), PlanAuthor.USER)
+        plans.createPlan(draft("Second"), PlanAuthor.USER)
+
+        plans.movePlan(first, toIndex = 10)
+
+        assertEquals(listOf("Second", "First"), plans.observeUpcoming().first().map { it.name })
+    }
+
+    @Test
+    fun `a plan made after moving others goes to the end`() = runBlocking {
+        plans.createPlan(draft("First"), PlanAuthor.USER)
+        val second = plans.createPlan(draft("Second"), PlanAuthor.USER)
+        plans.movePlan(second, toIndex = 0)
+
+        plans.createPlan(draft("Third"), PlanAuthor.USER)
+
+        assertEquals(listOf("Second", "First", "Third"), plans.observeUpcoming().first().map { it.name })
+    }
+
+    @Test
     fun `a plan keeps its author and sets in order`() = runBlocking {
         val id = plans.createPlan(
             draft("Push", set("bench", 10, 40.0, warmup = true), set("bench", 8, 82.5, 8.0), set("squat", 5, 110.0)),

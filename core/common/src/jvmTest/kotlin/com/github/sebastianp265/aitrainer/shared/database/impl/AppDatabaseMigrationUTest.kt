@@ -187,6 +187,17 @@ class AppDatabaseMigrationUTest {
     }
 
     @Test
+    fun `migration from 18 to 19 keeps the order in which plans were made`() {
+        helper.createDatabase(18).use { connection ->
+            connection.execSQL("INSERT INTO plan (id, name, author, createdAt, coachNote) VALUES (3, 'Third', 'USER', 1000, NULL), (5, 'Fifth', 'COACH', 2000, NULL)")
+        }
+
+        helper.runMigrationsAndValidate(19).use { connection ->
+            assertEquals(listOf("Third", "Fifth"), connection.column("SELECT name FROM plan ORDER BY position"))
+        }
+    }
+
+    @Test
     fun `a backup of schema 12 migrates to the current schema and keeps workouts, plans and the coach`() {
         helper.createDatabase(12).use { connection ->
             connection.execSQL("INSERT INTO workout_session (id, date, startedAt, finishedAt, planId, notes) VALUES (1, '2026-11-01', 1000, 2000, NULL, 'felt good')")

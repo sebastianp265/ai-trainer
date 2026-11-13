@@ -171,7 +171,7 @@ class CoachFlowE2ETest : AbstractE2ETest() {
         given.claudeApiKey()
         val planId = given.plan("Push A", sets(BENCH_PRESS, kg = 80.0))
         launchApp(claudeClient = claude)
-        plans.open("Push A")
+        plans.openNext("Push A")
         plans.askCoach()
         coach.assertTopic("About plan: Push A")
         claude.answerWith("It fits your week.")

@@ -72,3 +72,9 @@ internal class Migration15To16 : AutoMigrationSpec {
 
 @DeleteColumn(tableName = "plan", columnName = "date")
 internal class Migration17To18 : AutoMigrationSpec
+
+internal class Migration18To19 : AutoMigrationSpec {
+    override fun onPostMigrate(connection: SQLiteConnection) {
+        connection.execSQL("UPDATE plan SET position = id")
+    }
+}
