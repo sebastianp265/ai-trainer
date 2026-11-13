@@ -10,7 +10,6 @@ import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanDetailViewModel
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanEditActions
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanEditContent
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanEditViewModel
-import kotlinx.datetime.LocalDate
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.compose.runtime.getValue
 
@@ -52,13 +51,12 @@ internal fun PlanEditScreen(
     val actions = remember(viewModel) {
         object : PlanEditActions {
             override fun changeName(name: String) = viewModel.changeName(name)
-            override fun changeDate(date: LocalDate?) = viewModel.changeDate(date)
             override fun addExercise() = onOpenExercisePicker()
             override fun removeExercise(exerciseKey: String) = viewModel.removeExercise(exerciseKey)
             override fun addSet(exerciseKey: String) = viewModel.addSet(exerciseKey)
             override fun removeSet(setId: Long) = viewModel.removeSet(setId)
-            override fun changeWeight(setId: Long, weight: String) = viewModel.changeWeight(setId, weight)
-            override fun changeReps(setId: Long, reps: String) = viewModel.changeReps(setId, reps)
+            override fun changeWeight(setId: Long, kg: Double) = viewModel.changeWeight(setId, kg)
+            override fun changeReps(setId: Long, reps: Int) = viewModel.changeReps(setId, reps)
             override fun changeRpe(setId: Long, rpe: Double?) = viewModel.changeRpe(setId, rpe)
             override fun toggleWarmup(setId: Long) = viewModel.toggleWarmup(setId)
             override fun save() = viewModel.save(onSaved)

@@ -19,7 +19,6 @@ enum class ProposalState { PENDING, ACCEPTED, SUPERSEDED, UNDONE }
 data class ProposedPlan(
     val planId: Long?,
     val name: String,
-    val date: LocalDate?,
     val sets: List<PlannedSet>,
 )
 
@@ -54,7 +53,6 @@ data class WeeklyReviewSummary(
     val weekStart: LocalDate,
     val weekEnd: LocalDate,
     val workouts: Int,
-    val plannedWorkouts: Int?,
     val records: Int,
     val weightFromKg: Double?,
     val weightToKg: Double?,

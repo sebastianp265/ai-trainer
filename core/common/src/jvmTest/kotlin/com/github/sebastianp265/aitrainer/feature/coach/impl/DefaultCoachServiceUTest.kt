@@ -29,7 +29,7 @@ class DefaultCoachServiceUTest {
     @AfterTest
     fun close() = f.database.close()
 
-    private val benchPlan = """{"name":"Push A","date":"2026-11-12","summary":"Heavier bench","sets":[{"exerciseKey":"bench","reps":8,"weightKg":82.5,"rpe":8.0}]}"""
+    private val benchPlan = """{"name":"Push A","summary":"Heavier bench","sets":[{"exerciseKey":"bench","reps":8,"weightKg":82.5,"rpe":8.0}]}"""
 
     @Test
     fun `the request carries profile, notes, targets, data summary and the conversation`() = runBlocking {
@@ -153,7 +153,7 @@ class DefaultCoachServiceUTest {
     @Test
     fun `read tools answer from the database`() = runBlocking {
         f.finishBenchWorkout(82.5)
-        f.plans.createPlan(com.github.sebastianp265.aitrainer.integration.plan.PlanDraft("Legs", null, listOf(com.github.sebastianp265.aitrainer.integration.plan.PlannedSet("squat", 5, 100.0, null, false))), PlanAuthor.USER)
+        f.plans.createPlan(com.github.sebastianp265.aitrainer.integration.plan.PlanDraft("Legs", listOf(com.github.sebastianp265.aitrainer.integration.plan.PlannedSet("squat", 5, 100.0, null, false))), PlanAuthor.USER)
 
         val history = f.toolbox.run("get_exercise_history", """{"exerciseKey":"bench"}""")
         val found = f.toolbox.run("find_exercises", """{"query":"squat"}""")
@@ -188,7 +188,7 @@ class DefaultCoachServiceUTest {
 
     @Test
     fun `a newer proposal for the same plan supersedes the older one`() = runBlocking {
-        val planId = f.plans.createPlan(com.github.sebastianp265.aitrainer.integration.plan.PlanDraft("Push A", null, listOf(com.github.sebastianp265.aitrainer.integration.plan.PlannedSet("bench", 8, 80.0, null, false))), PlanAuthor.USER)
+        val planId = f.plans.createPlan(com.github.sebastianp265.aitrainer.integration.plan.PlanDraft("Push A", listOf(com.github.sebastianp265.aitrainer.integration.plan.PlannedSet("bench", 8, 80.0, null, false))), PlanAuthor.USER)
         val change = """{"planId":$planId,"name":"Push A","summary":"x","sets":[{"exerciseKey":"bench","reps":8,"weightKg":%s}]}"""
         val first = assertNotNull(f.toolbox.run("propose_plan_change", change.format("82.5")).proposalId)
         val second = assertNotNull(f.toolbox.run("propose_plan_change", change.format("85")).proposalId)
@@ -201,7 +201,7 @@ class DefaultCoachServiceUTest {
 
     @Test
     fun `accepting a target change moves the target and leaves plans untouched`() = runBlocking {
-        f.plans.createPlan(com.github.sebastianp265.aitrainer.integration.plan.PlanDraft("Legs", null, listOf(com.github.sebastianp265.aitrainer.integration.plan.PlannedSet("squat", 5, 100.0, null, false))), PlanAuthor.USER)
+        f.plans.createPlan(com.github.sebastianp265.aitrainer.integration.plan.PlanDraft("Legs", listOf(com.github.sebastianp265.aitrainer.integration.plan.PlannedSet("squat", 5, 100.0, null, false))), PlanAuthor.USER)
         val id = assertNotNull(f.toolbox.run("propose_target_change", """{"groupKey":"LEGS","minSets":8,"maxSets":12,"reason":"recovery","summary":"Legs: 10-20 to 8-12"}""").proposalId)
         val proposal = f.coach.observeProposal(id).first()!!
         assertEquals(ProposalType.TARGET, proposal.type)
@@ -233,7 +233,7 @@ class DefaultCoachServiceUTest {
 
     @Test
     fun `undoing an accepted plan change brings back the plan as it was`() = runBlocking {
-        val planId = f.plans.createPlan(com.github.sebastianp265.aitrainer.integration.plan.PlanDraft("Push A", null, listOf(com.github.sebastianp265.aitrainer.integration.plan.PlannedSet("bench", 8, 80.0, null, false)), coachNote = "Old note"), PlanAuthor.COACH)
+        val planId = f.plans.createPlan(com.github.sebastianp265.aitrainer.integration.plan.PlanDraft("Push A", listOf(com.github.sebastianp265.aitrainer.integration.plan.PlannedSet("bench", 8, 80.0, null, false)), coachNote = "Old note"), PlanAuthor.COACH)
         val change = """{"planId":$planId,"name":"Push B","summary":"Heavier","sets":[{"exerciseKey":"squat","reps":5,"weightKg":100}]}"""
         val id = assertNotNull(f.toolbox.run("propose_plan_change", change).proposalId)
         f.coach.accept(id)
@@ -343,7 +343,7 @@ class DefaultCoachServiceUTest {
         val planProposal = assertNotNull(f.toolbox.run("propose_plan", benchPlan).proposalId)
         f.coach.accept(planProposal)
         val plan = f.plans.observeUpcoming().first().single()
-        f.plans.updatePlan(plan.id, com.github.sebastianp265.aitrainer.integration.plan.PlanDraft(plan.name, plan.date, plan.sets.map { it.copy(reps = 5) }))
+        f.plans.updatePlan(plan.id, com.github.sebastianp265.aitrainer.integration.plan.PlanDraft(plan.name, plan.sets.map { it.copy(reps = 5) }))
         assertTrue(!f.coach.observeProposal(planProposal).first()!!.isUndoable)
         assertTrue(!f.coach.undo(planProposal))
         assertEquals(5, f.plans.observePlan(plan.id).first()!!.sets.single().reps)
@@ -422,7 +422,7 @@ class DefaultCoachServiceUTest {
     @Test
     fun `last weeks review is posted once with its numbers and a proposal for the next week`() = runBlocking {
         finishBenchWorkoutLastWeek()
-        f.claude.callTool("propose_plans", """{"summary":"Next week","plans":[{"name":"Push A","date":"2026-11-12","sets":[{"exerciseKey":"bench","reps":8,"weightKg":82.5}]},{"name":"Legs B","date":"2026-11-14","sets":[{"exerciseKey":"squat","reps":5,"weightKg":110}]}]}""")
+        f.claude.callTool("propose_plans", """{"summary":"Next week","plans":[{"name":"Push A","sets":[{"exerciseKey":"bench","reps":8,"weightKg":82.5}]},{"name":"Legs B","sets":[{"exerciseKey":"squat","reps":5,"weightKg":110}]}]}""")
         f.claude.answer("A solid week.")
 
         f.coach.reviewLastWeekIfDue()

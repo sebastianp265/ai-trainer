@@ -39,7 +39,6 @@ import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
 import com.github.sebastianp265.aitrainer.integration.plan.Plan
 import com.github.sebastianp265.aitrainer.integration.plan.PlanService
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
-import com.github.sebastianp265.aitrainer.shared.localization.formatLongWeekdayDate
 import com.github.sebastianp265.aitrainer.shared.state.WhileUiSubscribed
 import com.github.sebastianp265.aitrainer.shared.workout.PlanLine
 import com.github.sebastianp265.aitrainer.shared.workout.planExercises
@@ -143,12 +142,11 @@ internal fun ProposalPreviewContent(state: PreviewUiState, onAccept: () -> Unit,
 private fun previewSubtitle(proposal: CoachProposal): String {
     val first = proposal.plans.firstOrNull() ?: return ""
     val name = if (proposal.plans.size > 1) pluralStringResource(R.plurals.coach_plans_count, proposal.plans.size, proposal.plans.size) else first.name
-    val date = first.date?.takeIf { proposal.plans.size == 1 }?.let { formatLongWeekdayDate(it) }
     val effect = when (proposal.type) {
         ProposalType.CHANGE_PLAN -> stringResource(R.string.preview_replaces)
         else -> stringResource(R.string.preview_new)
     }
-    return listOfNotNull(name, date, effect).joinToString(" · ")
+    return listOf(name, effect).joinToString(" · ")
 }
 
 @Composable

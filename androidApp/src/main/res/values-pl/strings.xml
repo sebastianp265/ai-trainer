@@ -179,8 +179,6 @@
     <string name="plan_edit_title">Edytuj plan</string>
     <string name="plan_author_you">Ty</string>
     <string name="plan_author_coach">trener</string>
-    <string name="plan_subtitle">%1$s · %2$s</string>
-    <string name="plan_no_date">bez daty</string>
     <string name="plan_written_by_you">Twój plan</string>
     <string name="plan_written_by_coach">napisał trener</string>
     <string name="plan_edit">Edytuj</string>
@@ -198,8 +196,6 @@
     <string name="plan_line_warmup_bodyweight">%1$d · %2$s</string>
     <string name="plan_name_label">Nazwa</string>
     <string name="plan_name_hint">np. Push A</string>
-    <string name="plan_date_label">Data (opcjonalnie)</string>
-    <string name="plan_clear_date">Usuń datę</string>
     <string name="plan_no_exercises_title">Brak ćwiczeń</string>
     <string name="plan_no_exercises_text">Dodaj ćwiczenie, a potem serie: ciężar, powtórzenia i docelowe RPE. Serie rozgrzewkowe oznaczysz literą R.</string>
     <string name="plan_save_hint">„Zapisz” włącza się, gdy plan ma nazwę i co najmniej jedno ćwiczenie.</string>
@@ -373,7 +369,6 @@
         <item quantity="many">%1$d planów</item>
         <item quantity="other">%1$d planu</item>
     </plurals>
-    <string name="coach_plan_title_dated">%1$s · %2$s</string>
     <string name="coach_change_added">+  %1$s</string>
     <string name="coach_change_removed">−  %1$s (%2$s)</string>
     <plurals name="coach_change_sets">
@@ -507,12 +502,6 @@
     <string name="coach_accept_all">Akceptuj wszystkie</string>
     <string name="review_kind">PRZEGLĄD TYGODNIA · %1$s</string>
     <string name="review_workouts">Treningi</string>
-    <plurals name="review_workouts_of_planned">
-        <item quantity="one">%1$d z %2$d zaplanowanego</item>
-        <item quantity="few">%1$d z %2$d zaplanowanych</item>
-        <item quantity="many">%1$d z %2$d zaplanowanych</item>
-        <item quantity="other">%1$d z %2$d zaplanowanych</item>
-    </plurals>
     <string name="review_strength">Siła</string>
     <plurals name="review_records">
         <item quantity="one">%1$d nowy rekord</item>
@@ -579,7 +568,6 @@
     <string name="training_no_plan">bez planu</string>
     <string name="training_no_plans">Nie masz jeszcze planów. Napisz własny albo poproś trenera.</string>
     <string name="training_start_plan_description">Zacznij %1$s</string>
-    <string name="training_edit_plan_description">Edytuj %1$s</string>
     <string name="training_edit_workout_description">Edytuj trening z %1$s</string>
     <string name="cancel_edit_title">Odrzucić zmiany?</string>
     <string name="cancel_edit_text">Trening zostanie taki, jak przed edycją.</string>

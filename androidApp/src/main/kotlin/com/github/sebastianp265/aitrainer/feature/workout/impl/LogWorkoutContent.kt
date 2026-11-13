@@ -76,7 +76,6 @@ internal interface TrainingActions {
     fun startEmpty()
     fun startPlan(planId: Long)
     fun openPlan(planId: Long)
-    fun editPlan(planId: Long)
     fun newPlan()
     fun resumeWorkout()
     fun openWorkout(sessionId: Long)
@@ -174,11 +173,6 @@ private fun NextPlanCard(plan: Plan, actions: TrainingActions) {
         onButtonClick = { actions.startPlan(plan.id) },
         modifier = Modifier.testTag(LogWorkoutTags.nextPlan(plan.name)),
         buttonModifier = Modifier.testTag(LogWorkoutTags.NEXT_PLAN_START),
-        labelAction = {
-            IconButton(onClick = { actions.editPlan(plan.id) }) {
-                Icon(DesignIcons.Edit, contentDescription = stringResource(R.string.training_edit_plan_description, plan.name))
-            }
-        },
     )
 }
 
@@ -208,7 +202,6 @@ private fun HeroCard(
     onButtonClick: () -> Unit,
     modifier: Modifier,
     buttonModifier: Modifier,
-    labelAction: @Composable () -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
     Surface(
@@ -219,13 +212,10 @@ private fun HeroCard(
         contentColor = colors.onPrimary,
     ) {
         Column(Modifier.padding(start = 20.dp, top = 8.dp, end = 8.dp, bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row {
-                Column(Modifier.weight(1f).padding(top = 12.dp, end = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(label, Modifier.padding(bottom = 2.dp), style = MaterialTheme.typography.labelLarge)
-                    Text(title, style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold))
-                    Text(subtitle, style = MaterialTheme.typography.bodyMedium)
-                }
-                labelAction()
+            Column(Modifier.padding(top = 12.dp, end = 12.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(label, Modifier.padding(bottom = 2.dp), style = MaterialTheme.typography.labelLarge)
+                Text(title, style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold))
+                Text(subtitle, style = MaterialTheme.typography.bodyMedium)
             }
             Button(
                 onClick = onButtonClick,
@@ -327,9 +317,6 @@ private fun PlanRow(plan: Plan, canStart: Boolean, exercises: Map<String, Exerci
                 AuthorTag(plan.author)
             }
             Text(exerciseNames, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        IconButton(onClick = { actions.editPlan(plan.id) }) {
-            Icon(DesignIcons.Edit, contentDescription = stringResource(R.string.training_edit_plan_description, plan.name), tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (canStart) {
             FilledTonalIconButton(onClick = { actions.startPlan(plan.id) }, Modifier.size(48.dp)) {
@@ -474,8 +461,8 @@ private fun LogWorkoutPreview() {
                 state = LogUiState(
                     isLoading = false,
                     plans = listOf(
-                        Plan(1, "Push A", LocalDate(2026, 11, 12), PlanAuthor.COACH, listOf(PlannedSet("BENCH", 8, 80.0, null, false))),
-                        Plan(2, "Push B", null, PlanAuthor.USER, listOf(PlannedSet("BENCH", 8, 70.0, null, false))),
+                        Plan(1, "Push A", PlanAuthor.COACH, listOf(PlannedSet("BENCH", 8, 80.0, null, false))),
+                        Plan(2, "Push B", PlanAuthor.USER, listOf(PlannedSet("BENCH", 8, 70.0, null, false))),
                     ),
                     historyMonths = listOf(
                         HistoryMonth(2026, Month.NOVEMBER, isCurrentYear = true, sessions = listOf(
@@ -488,7 +475,6 @@ private fun LogWorkoutPreview() {
                     override fun startEmpty() = Unit
                     override fun startPlan(planId: Long) = Unit
                     override fun openPlan(planId: Long) = Unit
-                    override fun editPlan(planId: Long) = Unit
                     override fun newPlan() = Unit
                     override fun resumeWorkout() = Unit
                     override fun openWorkout(sessionId: Long) = Unit

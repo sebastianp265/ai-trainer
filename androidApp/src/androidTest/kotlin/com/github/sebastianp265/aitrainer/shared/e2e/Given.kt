@@ -31,8 +31,8 @@ class Given {
 
     fun claudeApiKey() = runBlocking { koin.get<SettingsService>().saveClaudeApiKey("test-key") }
 
-    fun plan(name: String, sets: List<PlannedSet>, date: LocalDate? = null): Long = runBlocking {
-        koin.get<PlanService>().createPlan(PlanDraft(name, date, sets), PlanAuthor.USER)
+    fun plan(name: String, sets: List<PlannedSet>): Long = runBlocking {
+        koin.get<PlanService>().createPlan(PlanDraft(name, sets), PlanAuthor.USER)
     }
 
     fun finishedWorkout(sets: List<PlannedSet>, on: LocalDate? = null) = runBlocking {

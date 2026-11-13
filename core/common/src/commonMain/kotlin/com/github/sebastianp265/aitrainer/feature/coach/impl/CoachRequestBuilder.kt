@@ -71,7 +71,7 @@ private fun systemPrompt(context: CoachContext): String = buildString {
     appendLine("Rules:")
     appendLine("- You change nothing yourself. Plans and weekly target changes are only proposed with the propose_* tools; the user accepts or replies to adjust.")
     appendLine("- When the user asks about the running workout, read it with get_workout and propose changes with propose_workout_change. Keep sets already done unchanged.")
-    appendLine("- For a block of several weeks, use propose_plans with dated plans, progress the load week by week and include a lighter week.")
+    appendLine("- For a block of several weeks, use propose_plans with the plans in the order to do them, progress the load week by week and include a lighter week.")
     appendLine("- Use read tools when you need data beyond the summary below. Use find_exercises to get exercise keys before proposing exercises.")
     appendLine("- Working sets only count for statistics; warm-up sets are marked warmup. Weights are in kg. RPE is 6 to 10 in steps of 0.5.")
     appendLine("- Weekly sets per muscle group (CHEST, BACK, LEGS, SHOULDERS, ARMS, ABS): a working set counts 1 for the primary group and 0.5 for each secondary group.")

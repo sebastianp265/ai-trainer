@@ -218,11 +218,6 @@ internal interface ActiveWorkoutActions {
 
 internal object ActiveWorkoutTags {
     const val ASK_COACH = "workout_ask_coach"
-    const val WEIGHT = "set_weight"
-    const val REPS = "set_reps"
-    const val RPE = "set_rpe"
-    const val WARMUP_TOGGLE = "set_warmup_toggle"
-    const val NUMBER_INPUT = "number_input"
     const val LAST_TIME = "last_time"
     const val SUBTITLE = "workout_subtitle"
 

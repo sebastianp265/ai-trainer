@@ -1,6 +1,12 @@
 package com.github.sebastianp265.aitrainer.shared.e2e
 
 import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isDialog
+import androidx.compose.ui.test.performTextClearance
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.onAllNodesWithText
@@ -26,6 +32,13 @@ abstract class Screen(protected val compose: ComposeTestRule) {
         }
 
     protected fun clickText(text: String) = compose.onNodeWithText(text).performClick()
+
+    protected fun typeIntoNumberDialog(text: String) {
+        val field = compose.onNode(hasSetTextAction() and hasAnyAncestor(isDialog()))
+        field.performTextClearance()
+        field.performTextInput(text)
+        compose.onNode(hasText("OK") and hasAnyAncestor(isDialog())).performClick()
+    }
 
     protected fun waitForTextGone(text: String) =
         compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodesWithText(text).fetchSemanticsNodes().isEmpty() }

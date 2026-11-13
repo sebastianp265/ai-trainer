@@ -174,8 +174,6 @@
     <string name="plan_edit_title">Edit plan</string>
     <string name="plan_author_you">You</string>
     <string name="plan_author_coach">coach</string>
-    <string name="plan_subtitle">%1$s · %2$s</string>
-    <string name="plan_no_date">no date</string>
     <string name="plan_written_by_you">your plan</string>
     <string name="plan_written_by_coach">written by the coach</string>
     <string name="plan_edit">Edit</string>
@@ -193,8 +191,6 @@
     <string name="plan_line_warmup_bodyweight">%1$d · %2$s</string>
     <string name="plan_name_label">Name</string>
     <string name="plan_name_hint">e.g. Push A</string>
-    <string name="plan_date_label">Date (optional)</string>
-    <string name="plan_clear_date">Remove date</string>
     <string name="plan_no_exercises_title">No exercises</string>
     <string name="plan_no_exercises_text">Add an exercise, then sets: weight, reps and target RPE. Mark warm-up sets with the letter R.</string>
     <string name="plan_save_hint">“Save” turns on when the plan has a name and at least one exercise.</string>
@@ -354,7 +350,6 @@
         <item quantity="one">%1$d plan</item>
         <item quantity="other">%1$d plans</item>
     </plurals>
-    <string name="coach_plan_title_dated">%1$s · %2$s</string>
     <string name="coach_change_added">+  %1$s</string>
     <string name="coach_change_removed">−  %1$s (%2$s)</string>
     <plurals name="coach_change_sets">
@@ -482,10 +477,6 @@
     <string name="coach_accept_all">Accept all</string>
     <string name="review_kind">WEEKLY REVIEW · %1$s</string>
     <string name="review_workouts">Workouts</string>
-    <plurals name="review_workouts_of_planned">
-        <item quantity="one">%1$d of %2$d planned</item>
-        <item quantity="other">%1$d of %2$d planned</item>
-    </plurals>
     <string name="review_strength">Strength</string>
     <plurals name="review_records">
         <item quantity="one">%1$d new record</item>
@@ -550,7 +541,6 @@
     <string name="training_no_plan">no plan</string>
     <string name="training_no_plans">No plans yet. Write your own or ask the coach for one.</string>
     <string name="training_start_plan_description">Start %1$s</string>
-    <string name="training_edit_plan_description">Edit %1$s</string>
     <string name="training_edit_workout_description">Edit workout from %1$s</string>
     <string name="cancel_edit_title">Discard changes?</string>
     <string name="cancel_edit_text">The workout stays as it was before editing.</string>

@@ -1,111 +1,57 @@
 package com.github.sebastianp265.aitrainer.feature.workout.impl
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.shared.localization.displayName
-import com.github.sebastianp265.aitrainer.shared.workout.rpeScale
 import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
-import com.github.sebastianp265.aitrainer.shared.localization.formatWeight
+import com.github.sebastianp265.aitrainer.shared.localization.displayName
+import com.github.sebastianp265.aitrainer.shared.workout.EditedSet
+import com.github.sebastianp265.aitrainer.shared.workout.ExerciseSetsCard
+import com.github.sebastianp265.aitrainer.shared.workout.SetRow
+import com.github.sebastianp265.aitrainer.shared.workout.SetRowActions
 import com.github.sebastianp265.aitrainer.shared.workout.hiddenSetCount
 import com.github.sebastianp265.aitrainer.shared.workout.rememberLastTimeLabels
 import com.github.sebastianp265.aitrainer.shared.workout.text
-import com.github.sebastianp265.aitrainer.shared.design.ChipButton
-import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
-import com.github.sebastianp265.aitrainer.shared.design.extendedColors
 
 @Composable
 internal fun ExerciseCard(ui: ExerciseBlockUi, actions: ActiveWorkoutActions, onOpenHistory: () -> Unit) {
     val block = ui.block
-    var expanded by rememberSaveable(block.exercise.key) { mutableStateOf(true) }
-    Card(Modifier.fillMaxWidth().testTag(ActiveWorkoutTags.exerciseCard(block.exercise.key))) {
-        Column(Modifier.padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(
-                Modifier.fillMaxWidth().clickable { expanded = !expanded },
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    block.exercise.displayName(LocalConfiguration.current.locales[0]),
-                    Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 17.sp),
-                )
-                if (expanded) {
-                    IconButton(onClick = { actions.removeExercise(block.exercise) }, Modifier.size(44.dp)) {
-                        Icon(DesignIcons.Close, contentDescription = stringResource(R.string.remove_exercise), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                } else {
-                    Text(
-                        pluralStringResource(R.plurals.set_count, block.sets.size, block.sets.size),
-                        Modifier.padding(end = 12.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
-            LastTimeLabel(ui, onOpenHistory)
-            if (expanded) {
-                var workingNumber = 0
-                block.sets.forEach { set ->
-                    if (!set.isWarmup) workingNumber++
-                    SetRow(if (set.isWarmup) null else workingNumber, set, actions)
-                }
-                Row(Modifier.padding(start = 30.dp, top = 4.dp, bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ChipButton(stringResource(R.string.add_set), onClick = { actions.addSet(block) })
-                }
-            }
+    ExerciseSetsCard(
+        name = block.exercise.displayName(LocalConfiguration.current.locales[0]),
+        setCount = block.sets.size,
+        onRemove = { actions.removeExercise(block.exercise) },
+        onAddSet = { actions.addSet(block) },
+        modifier = Modifier.testTag(ActiveWorkoutTags.exerciseCard(block.exercise.key)),
+        belowName = { LastTimeLabel(ui, onOpenHistory) },
+    ) {
+        var workingNumber = 0
+        block.sets.forEach { set ->
+            if (!set.isWarmup) workingNumber++
+            SetRow(EditedSet(set.id, if (set.isWarmup) null else workingNumber, set.weightKg, set.reps, set.rpe), setActions(set, actions))
         }
     }
+}
+
+private fun setActions(set: SetEntry, actions: ActiveWorkoutActions) = object : SetRowActions {
+    override fun toggleWarmup() = actions.changeSet(set, SetChange.ToggleWarmup)
+    override fun changeWeight(kg: Double) = actions.changeSet(set, SetChange.WeightTo(kg))
+    override fun changeReps(reps: Int) = actions.changeSet(set, SetChange.RepsTo(reps))
+    override fun changeRpe(rpe: Double?) = actions.changeSet(set, SetChange.RpeTo(rpe))
+    override fun delete() = actions.deleteSet(set)
 }
 
 @Composable
@@ -138,187 +84,3 @@ private fun LastTimeLabel(ui: ExerciseBlockUi, onOpenHistory: () -> Unit) {
 }
 
 private const val NO_BREAK_SPACE = ' '
-
-@Composable
-internal fun SetRow(workingNumber: Int?, set: SetEntry, actions: ActiveWorkoutActions) {
-    var typing by rememberSaveable(set.id) { mutableStateOf<TypedField?>(null) }
-    var pickingRpe by rememberSaveable(set.id) { mutableStateOf(false) }
-    val decreaseDescription = stringResource(R.string.decrease_reps)
-    val increaseDescription = stringResource(R.string.increase_reps)
-    val weightDescription = stringResource(R.string.set_weight_description)
-    Column {
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 52.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                workingNumber?.toString() ?: stringResource(R.string.warmup_short),
-                modifier = Modifier.width(24.dp).toggleable(value = set.isWarmup, role = Role.Checkbox) { actions.changeSet(set, SetChange.ToggleWarmup) }.testTag(ActiveWorkoutTags.WARMUP_TOGGLE),
-                style = MaterialTheme.typography.labelLarge,
-                color = if (set.isWarmup) extendedColors.warning else MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-            )
-            ValueBox(
-                Modifier.width(72.dp).clickable { typing = TypedField.WEIGHT }.semantics { contentDescription = weightDescription },
-            ) {
-                Text(if (set.weightKg > 0) formatWeight(set.weightKg) else "–", Modifier.testTag(ActiveWorkoutTags.WEIGHT), style = valueStyle())
-                UnitText(stringResource(R.string.unit_kg))
-            }
-            Row(
-                Modifier.weight(1f).height(44.dp).background(MaterialTheme.colorScheme.surface, FieldShape).padding(horizontal = 2.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                StepButton("−", decreaseDescription) { actions.changeSet(set, SetChange.Reps(-1)) }
-                Column(
-                    Modifier.weight(1f).fillMaxHeight().clickable { typing = TypedField.REPS },
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Text(set.reps.toString(), Modifier.testTag(ActiveWorkoutTags.REPS), style = valueStyle())
-                    UnitText(stringResource(R.string.unit_reps))
-                }
-                StepButton("+", increaseDescription) { actions.changeSet(set, SetChange.Reps(1)) }
-            }
-            if (set.isWarmup) {
-                Spacer(Modifier.width(RpeButtonWidth))
-            } else {
-                RpeButton(set.rpe, picking = pickingRpe) { pickingRpe = !pickingRpe }
-            }
-            IconButton(onClick = { actions.deleteSet(set) }, Modifier.size(32.dp, 44.dp)) {
-                Icon(DesignIcons.Delete, contentDescription = stringResource(R.string.delete_set), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-        }
-        if (pickingRpe && !set.isWarmup) {
-            val description = stringResource(R.string.set_rpe_description, workingNumber ?: 0)
-            Column(Modifier.padding(start = 30.dp, top = 4.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(stringResource(R.string.rpe_hint), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                FlowRow(
-                    Modifier.fillMaxWidth().semantics { contentDescription = description },
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    rpeScale.forEach { value ->
-                        RpeChip(formatWeight(value), selected = set.rpe == value) {
-                            actions.changeSet(set, SetChange.RpeTo(if (set.rpe == value) null else value))
-                            pickingRpe = false
-                        }
-                    }
-                }
-            }
-        }
-    }
-    when (typing) {
-        TypedField.WEIGHT -> NumberInputDialog(
-            title = stringResource(R.string.set_weight_dialog_title),
-            initial = if (set.weightKg > 0) plainNumber(set.weightKg) else "",
-            allowDecimals = true,
-            onConfirm = {
-                actions.changeSet(set, SetChange.WeightTo(it))
-                typing = null
-            },
-            onDismiss = { typing = null },
-        )
-        TypedField.REPS -> NumberInputDialog(
-            title = stringResource(R.string.set_reps_dialog_title),
-            initial = set.reps.toString(),
-            allowDecimals = false,
-            onConfirm = {
-                actions.changeSet(set, SetChange.RepsTo(it.toInt()))
-                typing = null
-            },
-            onDismiss = { typing = null },
-        )
-        null -> Unit
-    }
-}
-
-private val FieldShape = RoundedCornerShape(10.dp)
-
-@Composable
-private fun valueStyle() = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium, lineHeight = 20.sp)
-
-@Composable
-private fun UnitText(text: String) {
-    Text(text, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Normal), color = MaterialTheme.colorScheme.onSurfaceVariant)
-}
-
-@Composable
-private fun ValueBox(modifier: Modifier, content: @Composable ColumnScope.() -> Unit) {
-    Column(
-        modifier.height(44.dp).background(MaterialTheme.colorScheme.surface, FieldShape),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        content = content,
-    )
-}
-
-@Composable
-private fun StepButton(text: String, description: String, onClick: () -> Unit) {
-    Box(
-        Modifier.size(32.dp, 44.dp).clickable(onClick = onClick).semantics { contentDescription = description },
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(text, style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp), color = MaterialTheme.colorScheme.primary)
-    }
-}
-
-private val RpeButtonWidth = 64.dp
-
-@Composable
-private fun RpeButton(rpe: Double?, picking: Boolean, onClick: () -> Unit) {
-    val colors = MaterialTheme.colorScheme
-    val filled = rpe != null && picking
-    val outline = colors.outline
-    Box(
-        Modifier.width(RpeButtonWidth).height(44.dp)
-            .then(
-                when {
-                    filled -> Modifier.background(colors.primary, FieldShape)
-                    rpe != null -> Modifier.border(1.dp, outline, FieldShape)
-                    else -> Modifier.drawBehind {
-                        drawRoundRect(
-                            color = outline,
-                            style = Stroke(width = 1.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4.dp.toPx(), 3.dp.toPx()))),
-                            cornerRadius = CornerRadius(10.dp.toPx()),
-                        )
-                    }
-                },
-            )
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            rpe?.let { formatWeight(it) } ?: stringResource(R.string.rpe_label),
-            Modifier.testTag(ActiveWorkoutTags.RPE),
-            style = MaterialTheme.typography.labelLarge,
-            color = when {
-                filled -> colors.onPrimary
-                rpe != null -> colors.onSurface
-                else -> colors.onSurfaceVariant
-            },
-        )
-    }
-}
-
-@Composable
-private fun RpeChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    val colors = MaterialTheme.colorScheme
-    Surface(
-        onClick = onClick,
-        modifier = Modifier.height(36.dp).widthIn(min = 40.dp),
-        shape = MaterialTheme.shapes.small,
-        color = if (selected) colors.primary else colors.surface,
-        contentColor = if (selected) colors.onPrimary else colors.onSurface,
-        border = if (selected) null else BorderStroke(1.dp, colors.outlineVariant),
-    ) {
-        Box(Modifier.padding(horizontal = 8.dp), contentAlignment = Alignment.Center) {
-            Text(text, style = MaterialTheme.typography.labelLarge)
-        }
-    }
-}
-
-private enum class TypedField { WEIGHT, REPS }
-
-private fun plainNumber(value: Double): String = if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
-

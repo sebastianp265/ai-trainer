@@ -8,7 +8,6 @@ import com.github.sebastianp265.aitrainer.shared.database.impl.inMemoryDatabase
 import com.github.sebastianp265.aitrainer.shared.database.impl.seedExercises
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.LocalDate
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -32,43 +31,41 @@ class DefaultPlanServiceUTest {
     private fun set(exercise: String, reps: Int = 8, weight: Double = 80.0, rpe: Double? = null, warmup: Boolean = false) =
         PlannedSet(exercise, reps, weight, rpe, warmup)
 
-    private fun draft(name: String, date: LocalDate? = null, vararg sets: PlannedSet) =
-        PlanDraft(name, date, sets.toList().ifEmpty { listOf(set("bench")) })
+    private fun draft(name: String, vararg sets: PlannedSet) =
+        PlanDraft(name, sets.toList().ifEmpty { listOf(set("bench")) })
 
     @Test
-    fun `upcoming plans are ordered by date and then plans without a date`() = runBlocking {
-        plans.createPlan(draft("Undated"), PlanAuthor.USER)
-        plans.createPlan(draft("Later", LocalDate(2026, 11, 14)), PlanAuthor.COACH)
-        plans.createPlan(draft("Sooner", LocalDate(2026, 11, 12)), PlanAuthor.USER)
+    fun `upcoming plans are in the order they were made`() = runBlocking {
+        plans.createPlan(draft("First"), PlanAuthor.USER)
+        plans.createPlan(draft("Second"), PlanAuthor.COACH)
+        plans.createPlan(draft("Third"), PlanAuthor.USER)
 
-        assertEquals(listOf("Sooner", "Later", "Undated"), plans.observeUpcoming().first().map { it.name })
+        assertEquals(listOf("First", "Second", "Third"), plans.observeUpcoming().first().map { it.name })
     }
 
     @Test
-    fun `a plan keeps its author, date and sets in order`() = runBlocking {
+    fun `a plan keeps its author and sets in order`() = runBlocking {
         val id = plans.createPlan(
-            draft("Push", LocalDate(2026, 11, 12), set("bench", 10, 40.0, warmup = true), set("bench", 8, 82.5, 8.0), set("squat", 5, 110.0)),
+            draft("Push", set("bench", 10, 40.0, warmup = true), set("bench", 8, 82.5, 8.0), set("squat", 5, 110.0)),
             PlanAuthor.COACH,
         )
 
         val plan = plans.observePlan(id).first()!!
 
         assertEquals(PlanAuthor.COACH, plan.author)
-        assertEquals(LocalDate(2026, 11, 12), plan.date)
         assertEquals(listOf("bench", "bench", "squat"), plan.sets.map { it.exerciseKey })
         assertEquals(listOf(true, false, false), plan.sets.map { it.isWarmup })
         assertEquals(8.0, plan.sets[1].rpe)
     }
 
     @Test
-    fun `updating a plan replaces its name, date, sets and coach note`() = runBlocking {
-        val id = plans.createPlan(draft("Old", null, set("bench"), set("bench")).copy(coachNote = "Lighter week"), PlanAuthor.COACH)
+    fun `updating a plan replaces its name, sets and coach note`() = runBlocking {
+        val id = plans.createPlan(draft("Old", set("bench"), set("bench")).copy(coachNote = "Lighter week"), PlanAuthor.COACH)
 
-        plans.updatePlan(id, draft("New", LocalDate(2026, 11, 20), set("squat", 5, 100.0)))
+        plans.updatePlan(id, draft("New", set("squat", 5, 100.0)))
 
         val plan = plans.observePlan(id).first()!!
         assertEquals("New", plan.name)
-        assertEquals(LocalDate(2026, 11, 20), plan.date)
         assertEquals(listOf("squat"), plan.sets.map { it.exerciseKey })
         assertEquals(null, plan.coachNote)
     }
@@ -85,13 +82,13 @@ class DefaultPlanServiceUTest {
 
     @Test
     fun `a plan needs a name and at least one set`() = runBlocking<Unit> {
-        assertFailsWith<IllegalArgumentException> { plans.createPlan(PlanDraft("  ", null, listOf(set("bench"))), PlanAuthor.USER) }
-        assertFailsWith<IllegalArgumentException> { plans.createPlan(PlanDraft("Empty", null, emptyList()), PlanAuthor.USER) }
+        assertFailsWith<IllegalArgumentException> { plans.createPlan(PlanDraft("  ", listOf(set("bench"))), PlanAuthor.USER) }
+        assertFailsWith<IllegalArgumentException> { plans.createPlan(PlanDraft("Empty", emptyList()), PlanAuthor.USER) }
     }
 
     @Test
     fun `a workout started from a plan is filled with its sets`() = runBlocking {
-        val id = plans.createPlan(draft("Push", null, set("bench", 10, 40.0, warmup = true), set("bench", 8, 82.5, 8.0)), PlanAuthor.USER)
+        val id = plans.createPlan(draft("Push", set("bench", 10, 40.0, warmup = true), set("bench", 8, 82.5, 8.0)), PlanAuthor.USER)
 
         workouts.startSession(id)
 

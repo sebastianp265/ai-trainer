@@ -162,7 +162,7 @@ internal class CoachToolbox(
         val names = exerciseNames()
         val text = plans.observeUpcoming().first().joinToString("\n") { plan ->
             val sets = plan.sets.joinToString("; ") { "${names[it.exerciseKey] ?: it.exerciseKey} [${it.exerciseKey}] ${if (it.isWarmup) "warm-up " else ""}${it.reps}×${roundKg(it.weightKg)} kg${it.rpe?.let { r -> " @${roundKg(r)}" }.orEmpty()}" }
-            "planId=${plan.id} \"${plan.name}\" ${plan.date ?: "no date"} by ${plan.author.name.lowercase()}: $sets"
+            "planId=${plan.id} \"${plan.name}\" by ${plan.author.name.lowercase()}: $sets"
         }
         return ToolRun(text.ifEmpty { "No upcoming plans." }, checked = "plans")
     }
@@ -259,12 +259,12 @@ internal class CoachToolbox(
     private suspend fun proposePlan(inputJson: String, type: ProposalType): ToolRun {
         val input = coachJson.decodeFromString<ProposePlanInput>(inputJson)
         require(type == ProposalType.NEW_PLAN || input.planId != null) { "planId is required for a change" }
-        validate(PlanPayload(input.planId, input.name, input.date, input.sets))
+        validate(PlanPayload(input.planId, input.name, input.sets))
         val subject = input.planId?.let { "plan:$it" }
         val id = dao.insertSupersedingProposal(
             CoachProposalEntity(
                 type = type, state = ProposalState.PENDING, summary = input.summary,
-                payload = coachJson.encodeToString(ProposalPayload.serializer(), ProposalPayload(plans = listOf(PlanPayload(input.planId, input.name, input.date, input.sets)))),
+                payload = coachJson.encodeToString(ProposalPayload.serializer(), ProposalPayload(plans = listOf(PlanPayload(input.planId, input.name, input.sets)))),
                 subjectKey = subject, messageId = null, createdAt = clock.now(),
             ),
         )
@@ -306,7 +306,6 @@ internal class CoachToolbox(
     private suspend fun validate(plan: PlanPayload) {
         require(plan.name.isNotBlank()) { "plan name is empty" }
         require(plan.sets.isNotEmpty()) { "plan has no sets" }
-        plan.date?.let { LocalDate.parse(it) }
         val known = exerciseNames().keys
         plan.sets.forEach {
             require(it.exerciseKey in known) { "unknown exerciseKey ${it.exerciseKey}; use find_exercises" }
@@ -363,7 +362,6 @@ internal class CoachToolbox(
 internal data class ProposePlanInput(
     val planId: Long? = null,
     val name: String,
-    val date: String? = null,
     val summary: String,
     val sets: List<PlannedSetPayload>,
 )
@@ -407,7 +405,7 @@ private fun setItemSchema() =
     """{"type":"object","properties":{"exerciseKey":{"type":"string"},"reps":{"type":"integer"},"weightKg":{"type":"number"},"rpe":{"type":"number","description":"$RPE_SCALE"},"warmup":{"type":"boolean"}},"required":["exerciseKey","reps"]}"""
 
 private fun planItemSchema() =
-    """{"type":"object","properties":{"planId":{"type":"integer"},"name":{"type":"string"},"date":{"type":"string"},"sets":{"type":"array","items":${setItemSchema()}}},"required":["name","sets"]}"""
+    """{"type":"object","properties":{"planId":{"type":"integer"},"name":{"type":"string"},"sets":{"type":"array","items":${setItemSchema()}}},"required":["name","sets"]}"""
 
 private fun planSchema(withId: Boolean) =
-    """{"type":"object","properties":{${if (withId) """"planId":{"type":"integer"},""" else ""}"name":{"type":"string"},"date":{"type":"string","description":"YYYY-MM-DD, optional"},"summary":{"type":"string"},"sets":{"type":"array","items":${setItemSchema()}}},"required":[${if (withId) """"planId",""" else ""}"name","summary","sets"]}"""
+    """{"type":"object","properties":{${if (withId) """"planId":{"type":"integer"},""" else ""}"name":{"type":"string"},"summary":{"type":"string"},"sets":{"type":"array","items":${setItemSchema()}}},"required":[${if (withId) """"planId",""" else ""}"name","summary","sets"]}"""

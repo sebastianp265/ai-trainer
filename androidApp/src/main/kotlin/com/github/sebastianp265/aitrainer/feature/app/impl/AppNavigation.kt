@@ -169,7 +169,6 @@ internal fun AppNavigation() {
                     onOpenProposal = { navController.navigate(CoachProposalRoute(it)) },
                     onOpenCoach = { navController.openTab(TopLevelDestination.COACH) },
                     onOpenPlan = { navController.navigate(PlanDetailRoute(it)) },
-                    onEditPlan = { navController.navigate(PlanEditRoute(it)) },
                     onNewPlan = { navController.navigate(PlanEditRoute(NEW_PLAN)) },
                     onResumeWorkout = { navController.navigate(ActiveWorkoutRoute) { launchSingleTop = true } },
                 ) }

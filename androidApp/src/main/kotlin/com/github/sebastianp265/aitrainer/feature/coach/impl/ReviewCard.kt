@@ -31,7 +31,7 @@ internal fun ReviewCard(review: WeeklyReviewSummary) {
                 style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 0.3.sp),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
-            ReviewRow(R.string.review_workouts, workoutsText(review))
+            ReviewRow(R.string.review_workouts, review.workouts.toString())
             if (review.records > 0) ReviewRow(R.string.review_strength, pluralStringResource(R.plurals.review_records, review.records, review.records))
             review.weightFromKg?.let { from ->
                 val to = review.weightToKg
@@ -58,11 +58,6 @@ internal fun ReviewCard(review: WeeklyReviewSummary) {
     }
 }
 
-@Composable
-private fun workoutsText(review: WeeklyReviewSummary): String {
-    val base = review.plannedWorkouts?.let { pluralStringResource(R.plurals.review_workouts_of_planned, it, review.workouts, it) } ?: review.workouts.toString()
-    return base
-}
 
 @Composable
 private fun ReviewRow(label: Int, value: String) {

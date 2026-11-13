@@ -67,7 +67,6 @@ import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.shared.localization.displayName
 import com.github.sebastianp265.aitrainer.shared.localization.formatLongWeekdayDate
 import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
-import com.github.sebastianp265.aitrainer.shared.localization.formatWeekdayDate
 import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -331,11 +330,7 @@ private fun ProposalCard(item: ProposalUi, exercises: Map<String, Exercise>, act
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(plan.name, style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp))
                         Text(
-                            stringResource(
-                                R.string.session_summary,
-                                plan.date?.let { formatWeekdayDate(it) } ?: stringResource(R.string.plan_no_date),
-                                pluralStringResource(R.plurals.set_count, sets, sets),
-                            ),
+                            pluralStringResource(R.plurals.set_count, sets, sets),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -463,8 +458,7 @@ private fun proposalTitle(item: ProposalUi): String {
     proposal.newExercise?.let { return it.name }
     if (proposal.nutrition != null) return stringResource(R.string.coach_nutrition_title)
     if (proposal.plans.size > 1) return pluralStringResource(R.plurals.coach_plans_count, proposal.plans.size, proposal.plans.size)
-    val plan = proposal.plans.single()
-    return plan.date?.let { stringResource(R.string.coach_plan_title_dated, plan.name, formatLongWeekdayDate(it)) } ?: plan.name
+    return proposal.plans.single().name
 }
 
 @Composable

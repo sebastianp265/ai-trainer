@@ -28,14 +28,14 @@ internal class DefaultPlanService(
 
     override suspend fun createPlan(draft: PlanDraft, author: PlanAuthor): Long {
         require(draft.isSavable()) { "A plan needs a name and at least one set" }
-        val id = dao.insertPlan(PlanEntity(name = draft.name.trim(), date = draft.date, author = author, createdAt = clock.now(), coachNote = draft.coachNote))
+        val id = dao.insertPlan(PlanEntity(name = draft.name.trim(), author = author, createdAt = clock.now(), coachNote = draft.coachNote))
         dao.insertPlannedSets(draft.sets.toEntities(id))
         return id
     }
 
     override suspend fun updatePlan(id: Long, draft: PlanDraft) {
         require(draft.isSavable()) { "A plan needs a name and at least one set" }
-        dao.updatePlan(id, draft.name.trim(), draft.date, draft.coachNote)
+        dao.updatePlan(id, draft.name.trim(), draft.coachNote)
         dao.replacePlannedSets(id, draft.sets.toEntities(id))
     }
 
@@ -59,7 +59,6 @@ private fun List<PlannedSet>.toEntities(planId: Long) = mapIndexed { index, set 
 private fun PlanEntity.toModel(sets: List<PlannedSetEntity>) = Plan(
     id = id,
     name = name,
-    date = date,
     author = author,
     sets = sets.sortedBy { it.positionInPlan }.map { PlannedSet(it.exerciseKey, it.reps, it.weightKg, it.rpe, it.isWarmup) },
     coachNote = coachNote,

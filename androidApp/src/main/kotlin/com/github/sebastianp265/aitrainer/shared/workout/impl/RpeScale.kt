@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.shared.workout
+package com.github.sebastianp265.aitrainer.shared.workout.impl
 
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_MAX
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_MIN

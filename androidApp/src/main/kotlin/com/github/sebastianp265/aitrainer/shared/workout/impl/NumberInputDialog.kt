@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.feature.workout.impl
+package com.github.sebastianp265.aitrainer.shared.workout.impl
 
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
@@ -10,8 +10,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import com.github.sebastianp265.aitrainer.R
@@ -37,7 +35,6 @@ internal fun NumberInputDialog(
                 onValueChange = { text = it },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = if (allowDecimals) KeyboardType.Decimal else KeyboardType.Number),
-                modifier = Modifier.testTag(ActiveWorkoutTags.NUMBER_INPUT),
             )
         },
         confirmButton = {

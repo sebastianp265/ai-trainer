@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.LocalDate
 
 internal const val NEW_PLAN_ID = -1L
 
@@ -72,8 +71,8 @@ internal class PlanDetailViewModel(
 internal data class EditableSet(
     val id: Long,
     val exerciseKey: String,
-    val weight: String,
-    val reps: String,
+    val weightKg: Double,
+    val reps: Int,
     val rpe: Double?,
     val isWarmup: Boolean,
 )
@@ -82,11 +81,10 @@ internal data class PlanEditUiState(
     val isLoading: Boolean = true,
     val isNew: Boolean = true,
     val name: String = "",
-    val date: LocalDate? = null,
     val sets: List<EditableSet> = emptyList(),
     val exercises: Map<String, Exercise> = emptyMap(),
 ) {
-    val canSave: Boolean get() = name.isNotBlank() && sets.isNotEmpty() && sets.all { (it.reps.toIntOrNull() ?: 0) > 0 }
+    val canSave: Boolean get() = name.isNotBlank() && sets.isNotEmpty() && sets.all { it.reps > 0 }
 }
 
 internal class PlanEditViewModel(
@@ -121,14 +119,12 @@ internal class PlanEditViewModel(
             }
             val plan = planService.observePlan(planId).first() ?: return@launch
             state.update {
-                it.copy(isLoading = false, isNew = false, name = plan.name, date = plan.date, sets = plan.sets.map { set -> set.toEditable() })
+                it.copy(isLoading = false, isNew = false, name = plan.name, sets = plan.sets.map { set -> set.toEditable() })
             }
         }
     }
 
     fun changeName(name: String) = state.update { it.copy(name = name) }
-
-    fun changeDate(date: LocalDate?) = state.update { it.copy(date = date) }
 
     fun addExercise(exerciseKey: String) {
         viewModelScope.launch {
@@ -136,8 +132,8 @@ internal class PlanEditViewModel(
             val set = EditableSet(
                 id = nextSetId++,
                 exerciseKey = exerciseKey,
-                weight = last?.weightKg?.takeIf { it > 0 }?.let(::plainNumber).orEmpty(),
-                reps = (last?.reps ?: DEFAULT_REPS).toString(),
+                weightKg = last?.weightKg ?: 0.0,
+                reps = last?.reps ?: DEFAULT_REPS,
                 rpe = null,
                 isWarmup = false,
             )
@@ -156,9 +152,9 @@ internal class PlanEditViewModel(
 
     fun removeSet(setId: Long) = state.update { it.copy(sets = it.sets.filter { set -> set.id != setId }) }
 
-    fun changeWeight(setId: Long, weight: String) = changeSet(setId) { it.copy(weight = weight) }
+    fun changeWeight(setId: Long, kg: Double) = changeSet(setId) { it.copy(weightKg = kg) }
 
-    fun changeReps(setId: Long, reps: String) = changeSet(setId) { it.copy(reps = reps) }
+    fun changeReps(setId: Long, reps: Int) = changeSet(setId) { it.copy(reps = reps) }
 
     fun changeRpe(setId: Long, rpe: Double?) = changeSet(setId) { it.copy(rpe = rpe) }
 
@@ -167,7 +163,7 @@ internal class PlanEditViewModel(
     fun save(onSaved: (planId: Long) -> Unit) {
         val current = state.value
         if (!current.canSave) return
-        val draft = PlanDraft(current.name.trim(), current.date, current.sets.map { it.toPlanned() })
+        val draft = PlanDraft(current.name.trim(), current.sets.map { it.toPlanned() })
         viewModelScope.launch {
             val id = loadedPlanId?.takeIf { it != NEW_PLAN_ID }
             if (id == null) onSaved(planService.createPlan(draft, PlanAuthor.USER))
@@ -192,19 +188,17 @@ internal class PlanEditViewModel(
     private fun PlannedSet.toEditable() = EditableSet(
         id = nextSetId++,
         exerciseKey = exerciseKey,
-        weight = weightKg.takeIf { it > 0 }?.let(::plainNumber).orEmpty(),
-        reps = reps.toString(),
+        weightKg = weightKg,
+        reps = reps,
         rpe = rpe,
         isWarmup = isWarmup,
     )
 
     private fun EditableSet.toPlanned() = PlannedSet(
         exerciseKey = exerciseKey,
-        reps = reps.toInt(),
-        weightKg = weight.trim().replace(',', '.').toDoubleOrNull() ?: 0.0,
+        reps = reps,
+        weightKg = weightKg,
         rpe = rpe,
         isWarmup = isWarmup,
     )
-
-    private fun plainNumber(value: Double): String = if (value % 1.0 == 0.0) value.toInt().toString() else value.toString()
 }

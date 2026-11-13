@@ -34,7 +34,6 @@ internal fun LogWorkoutScreen(
     onOpenProposal: (Long) -> Unit,
     onOpenCoach: () -> Unit,
     onOpenPlan: (Long) -> Unit,
-    onEditPlan: (Long) -> Unit,
     onNewPlan: () -> Unit,
     onResumeWorkout: () -> Unit,
 ) {
@@ -45,7 +44,6 @@ internal fun LogWorkoutScreen(
             override fun startEmpty() = viewModel.startEmptyWorkout()
             override fun startPlan(planId: Long) = viewModel.startWorkoutFromPlan(planId)
             override fun openPlan(planId: Long) = onOpenPlan(planId)
-            override fun editPlan(planId: Long) = onEditPlan(planId)
             override fun newPlan() = onNewPlan()
             override fun resumeWorkout() = onResumeWorkout()
             override fun openWorkout(sessionId: Long) = onOpenWorkout(sessionId)

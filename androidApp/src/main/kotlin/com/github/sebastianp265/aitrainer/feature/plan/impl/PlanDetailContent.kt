@@ -47,13 +47,11 @@ import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.plan.Plan
 import com.github.sebastianp265.aitrainer.integration.plan.PlanAuthor
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
-import com.github.sebastianp265.aitrainer.shared.localization.formatLongWeekdayDate
 import com.github.sebastianp265.aitrainer.shared.state.LocalCoachEnabled
 import com.github.sebastianp265.aitrainer.shared.state.LocalOpenCoach
 import com.github.sebastianp265.aitrainer.shared.workout.PlanExercise
 import com.github.sebastianp265.aitrainer.shared.workout.PlanLineRows
 import com.github.sebastianp265.aitrainer.shared.workout.planExercises
-import kotlinx.datetime.LocalDate
 import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
 import com.github.sebastianp265.aitrainer.shared.design.DesignOutlinedButton
 
@@ -127,12 +125,10 @@ internal fun PlanDetailContent(
 
 @Composable
 private fun planSubtitle(plan: Plan): String {
-    val date = plan.date?.let { formatLongWeekdayDate(it) } ?: stringResource(R.string.plan_no_date)
-    val author = when (plan.author) {
+    return when (plan.author) {
         PlanAuthor.USER -> stringResource(R.string.plan_written_by_you)
         PlanAuthor.COACH -> stringResource(R.string.plan_written_by_coach)
     }
-    return stringResource(R.string.plan_subtitle, date, author)
 }
 
 @Composable
@@ -184,7 +180,7 @@ private fun PlanDetailPreview() {
             state = PlanDetailUiState(
                 isLoading = false,
                 plan = Plan(
-                    1, "Push A", LocalDate(2026, 11, 12), PlanAuthor.COACH,
+                    1, "Push A", PlanAuthor.COACH,
                     listOf(
                         PlannedSet("BENCH", 10, 40.0, null, true),
                         PlannedSet("BENCH", 8, 82.5, 8.0, false),

@@ -1,7 +1,5 @@
 package com.github.sebastianp265.aitrainer.integration.plan
 
-import kotlinx.datetime.LocalDate
-
 data class PlannedSet(
     val exerciseKey: String,
     val reps: Int,
@@ -13,7 +11,6 @@ data class PlannedSet(
 data class Plan(
     val id: Long,
     val name: String,
-    val date: LocalDate?,
     val author: PlanAuthor,
     val sets: List<PlannedSet>,
     val coachNote: String? = null,
@@ -21,7 +18,6 @@ data class Plan(
 
 data class PlanDraft(
     val name: String,
-    val date: LocalDate?,
     val sets: List<PlannedSet>,
     val coachNote: String? = null,
 )

@@ -52,7 +52,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.datetime.DatePeriod
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
@@ -112,13 +111,10 @@ internal class DefaultCoachService(
         if (lastReviewed != null && lastReviewed >= weekStart) return
         val weekEnd = weekStart.plus(DatePeriod(days = 6))
         val sessions = workouts.observeFinishedSessions(weekStart, weekEnd).first()
-        val plannedUndone = plans.observeUpcoming().first().count { it.date != null && it.date in weekStart..weekEnd }
-        val fromPlans = sessions.count { it.planId != null }
         val reports = sessions.mapNotNull { workouts.observeWorkoutReport(it.id).first() }
         val summary = reviewSummary(
             weekStart = weekStart,
             workouts = sessions.size,
-            plannedWorkouts = (fromPlans + plannedUndone).takeIf { it > 0 },
             records = reports.sumOf { it.records.size },
             thisWeek = health.observeDays(weekStart, weekEnd).first(),
             weekBefore = health.observeDays(weekStart.minus(DatePeriod(days = 7)), weekStart.minus(DatePeriod(days = 1))).first(),
@@ -263,7 +259,7 @@ internal class DefaultCoachService(
         val created = mutableListOf<CreatedPlan>()
         val previous = mutableListOf<PreviousPlan>()
         payload.plans.map { it.toProposedPlan() }.forEachIndexed { index, plan ->
-            val draft = PlanDraft(plan.name, plan.date, plan.sets, coachNote = note)
+            val draft = PlanDraft(plan.name, plan.sets, coachNote = note)
             val existing = plan.planId?.let { plans.observePlan(it).first() }
             if (existing == null) {
                 created += CreatedPlan(plans.createPlan(draft, PlanAuthor.COACH), index)
@@ -299,7 +295,7 @@ internal class DefaultCoachService(
         val undo = coachJson.decodeFromString(UndoPayload.serializer(), checkNotNull(entity.undo))
         undo.createdPlans.forEach { plans.deletePlan(it.planId) }
         undo.previousPlans.forEach { (plan, note) ->
-            plans.updatePlan(checkNotNull(plan.planId), PlanDraft(plan.name, plan.date?.let(LocalDate::parse), plan.toProposedPlan().sets, note))
+            plans.updatePlan(checkNotNull(plan.planId), PlanDraft(plan.name, plan.toProposedPlan().sets, note))
         }
         undo.previousTarget?.let { volume.setTarget(it.groupKey, it.minSets, it.maxSets, it.source, it.reason) }
         if (entity.type == ProposalType.NUTRITION_TARGET) {
@@ -399,7 +395,7 @@ private fun CoachProposalEntity.isUndoable(payload: ProposalPayload, context: Un
 }
 
 private fun Plan.isAsAccepted(accepted: PlanPayload) =
-    name == accepted.name.trim() && date == accepted.date?.let(LocalDate::parse) && sets == accepted.sets.map { it.toPlannedSet() }
+    name == accepted.name.trim() && sets == accepted.sets.map { it.toPlannedSet() }
 
 private fun ProposalPayload.matchesSetsOf(current: List<SetEntry>) = exerciseKeys.all { key ->
     current.filter { it.exerciseKey == key }.sortedBy { it.positionInSession }.map { PlannedSet(it.exerciseKey, it.reps, it.weightKg, it.rpe, it.isWarmup) } ==
@@ -409,6 +405,5 @@ private fun ProposalPayload.matchesSetsOf(current: List<SetEntry>) = exerciseKey
 private fun Plan.toPayload() = PlanPayload(
     planId = id,
     name = name,
-    date = date?.toString(),
     sets = sets.map { it.toPayload() },
 )

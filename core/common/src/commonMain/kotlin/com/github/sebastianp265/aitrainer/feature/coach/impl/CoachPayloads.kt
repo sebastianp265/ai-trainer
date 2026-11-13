@@ -3,7 +3,6 @@ package com.github.sebastianp265.aitrainer.feature.coach.impl
 import com.github.sebastianp265.aitrainer.integration.plan.PlannedSet
 import com.github.sebastianp265.aitrainer.integration.coach.ProposedPlan
 import com.github.sebastianp265.aitrainer.integration.volume.TargetSource
-import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -25,7 +24,6 @@ internal data class PlannedSetPayload(
 internal data class PlanPayload(
     val planId: Long? = null,
     val name: String,
-    val date: String? = null,
     val sets: List<PlannedSetPayload>,
 )
 
@@ -78,7 +76,6 @@ internal data class PreviousTarget(
 internal fun PlanPayload.toProposedPlan() = ProposedPlan(
     planId = planId,
     name = name,
-    date = date?.let(LocalDate::parse),
     sets = sets.map { it.toPlannedSet() },
 )
 

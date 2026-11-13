@@ -7,16 +7,14 @@ import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.hasAnyDescendant
 import androidx.compose.ui.test.hasContentDescription
-import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextClearance
-import androidx.compose.ui.test.performTextInput
 import androidx.test.espresso.Espresso
 import com.github.sebastianp265.aitrainer.feature.workout.impl.ActiveWorkoutTags
+import com.github.sebastianp265.aitrainer.shared.workout.SetRowTags
 import com.github.sebastianp265.aitrainer.feature.workout.impl.LogWorkoutTags
 import com.github.sebastianp265.aitrainer.feature.workout.impl.TrainingTab
 
@@ -34,19 +32,19 @@ class LogWorkoutScreen(
     fun openExercisePicker() = clickText(addExerciseText)
 
     fun typeWeight(exercise: String, setIndex: Int, kg: String) {
-        nodeInCard(hasTestTag(ActiveWorkoutTags.WEIGHT), exercise, setIndex).performClick()
+        nodeInCard(hasTestTag(SetRowTags.WEIGHT), exercise, setIndex).performClick()
         typeIntoNumberDialog(kg)
     }
 
     fun decreaseReps(exercise: String) = nodeInCard(hasContentDescription("Decrease reps"), exercise, 0).performClick()
 
     fun chooseRpe(exercise: String, setIndex: Int, rpe: String) {
-        nodeInCard(hasTestTag(ActiveWorkoutTags.RPE), exercise, setIndex).performClick()
+        nodeInCard(hasTestTag(SetRowTags.RPE), exercise, setIndex).performClick()
         compose.onNode(hasText(rpe) and hasAnyAncestor(hasContentDescription("RPE of set ${setIndex + 1}"))).performClick()
     }
 
     fun toggleWarmup(exercise: String, setIndex: Int) {
-        nodeInCard(hasTestTag(ActiveWorkoutTags.WARMUP_TOGGLE), exercise, setIndex).performClick()
+        nodeInCard(hasTestTag(SetRowTags.WARMUP_TOGGLE), exercise, setIndex).performClick()
     }
 
     fun addSet() = clickText("+ Set")
@@ -96,7 +94,7 @@ class LogWorkoutScreen(
     }
 
     fun assertRpe(exercise: String, setIndex: Int, expected: String) {
-        val matcher = hasTestTag(ActiveWorkoutTags.RPE) and inExerciseCard(exercise)
+        val matcher = hasTestTag(SetRowTags.RPE) and inExerciseCard(exercise)
         compose.waitUntil(TEST_TIMEOUT_MS) {
             val nodes = compose.onAllNodes(matcher, useUnmergedTree = true).fetchSemanticsNodes()
             nodes.getOrNull(setIndex)?.config?.get(SemanticsProperties.Text)?.joinToString("") { it.text } == expected
@@ -133,12 +131,6 @@ class LogWorkoutScreen(
         scrollTo(hasTestTag(LogWorkoutTags.SESSION_ROW) and (hasText(summary, substring = true) or hasAnyDescendant(hasText(summary, substring = true))))
     }
 
-    private fun typeIntoNumberDialog(text: String) {
-        val field = compose.onNode(hasSetTextAction() and hasAnyAncestor(isDialog()))
-        field.performTextClearance()
-        field.performTextInput(text)
-        compose.onNode(hasText("OK") and hasAnyAncestor(isDialog())).performClick()
-    }
 
     private fun lastTimeText(matcher: SemanticsMatcher): String? =
         compose.onAllNodes(matcher, useUnmergedTree = true).fetchSemanticsNodes().firstOrNull()
@@ -155,7 +147,7 @@ class LogWorkoutScreen(
         hasAnyAncestor(hasTestTag(ActiveWorkoutTags.exerciseCard(exercise)))
 
     private fun weightAndRepsPerSet(exercise: String): List<Pair<String, String>> {
-        val weightOrReps = hasTestTag(ActiveWorkoutTags.WEIGHT) or hasTestTag(ActiveWorkoutTags.REPS)
+        val weightOrReps = hasTestTag(SetRowTags.WEIGHT) or hasTestTag(SetRowTags.REPS)
         return compose.onAllNodes(weightOrReps and inExerciseCard(exercise), useUnmergedTree = true)
             .fetchSemanticsNodes()
             .map { node -> node.config[SemanticsProperties.Text].joinToString("") { it.text } }

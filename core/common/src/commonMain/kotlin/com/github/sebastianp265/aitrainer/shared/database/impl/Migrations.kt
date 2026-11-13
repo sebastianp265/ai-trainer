@@ -69,3 +69,6 @@ internal class Migration15To16 : AutoMigrationSpec {
         connection.execSQL("UPDATE coach_message SET topic_kind = NULL, topic_id = NULL, topic_label = NULL WHERE topic_kind = 'EXTERNAL_WORKOUT'")
     }
 }
+
+@DeleteColumn(tableName = "plan", columnName = "date")
+internal class Migration17To18 : AutoMigrationSpec

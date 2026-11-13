@@ -9,11 +9,11 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isDialog
 import androidx.compose.ui.test.junit4.ComposeTestRule
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import com.github.sebastianp265.aitrainer.feature.plan.impl.PlanTags
 import com.github.sebastianp265.aitrainer.feature.workout.impl.LogWorkoutTags
 import com.github.sebastianp265.aitrainer.feature.workout.impl.TrainingTab
+import com.github.sebastianp265.aitrainer.shared.workout.SetRowTags
 
 class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
 
@@ -49,10 +49,9 @@ class PlanScreen(compose: ComposeTestRule) : Screen(compose) {
     }
 
     fun typeWeight(setIndex: Int, kg: String) {
-        waitFor(hasTestTag(PlanTags.SET_WEIGHT))
-        val field = compose.onAllNodes(hasTestTag(PlanTags.SET_WEIGHT))[setIndex]
-        field.performTextClearance()
-        field.performTextInput(kg)
+        waitFor(hasTestTag(SetRowTags.WEIGHT))
+        compose.onAllNodes(hasTestTag(SetRowTags.WEIGHT), useUnmergedTree = true)[setIndex].performClick()
+        typeIntoNumberDialog(kg)
     }
 
     fun save() {

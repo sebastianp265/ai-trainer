@@ -12,7 +12,7 @@ internal interface PlanDao {
         """
         SELECT * FROM plan p
         WHERE NOT EXISTS (SELECT 1 FROM workout_session s WHERE s.planId = p.id AND s.finishedAt IS NOT NULL)
-        ORDER BY p.date IS NULL, p.date, p.id
+        ORDER BY p.id
         """
     )
     fun observeUpcomingPlans(): Flow<List<PlanEntity>>
@@ -47,8 +47,8 @@ internal interface PlanDao {
     @Insert
     suspend fun insertPlannedSets(sets: List<PlannedSetEntity>)
 
-    @Query("UPDATE plan SET name = :name, date = :date, coachNote = :coachNote WHERE id = :id")
-    suspend fun updatePlan(id: Long, name: String, date: kotlinx.datetime.LocalDate?, coachNote: String?)
+    @Query("UPDATE plan SET name = :name, coachNote = :coachNote WHERE id = :id")
+    suspend fun updatePlan(id: Long, name: String, coachNote: String?)
 
     @Query("DELETE FROM planned_set WHERE planId = :planId")
     suspend fun deletePlannedSets(planId: Long)

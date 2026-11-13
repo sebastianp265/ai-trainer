@@ -172,6 +172,21 @@ class AppDatabaseMigrationUTest {
     }
 
     @Test
+    fun `migration from 17 to 18 drops the plan date and keeps plans with their sets`() {
+        helper.createDatabase(17).use { connection ->
+            connection.execSQL("INSERT INTO plan (id, name, date, author, createdAt, coachNote) VALUES (1, 'Push A', '2026-11-12', 'COACH', 1000, NULL)")
+            connection.execSQL("INSERT INTO equipment (key) VALUES ('BARBELL')")
+            connection.execSQL("INSERT INTO exercise (key, equipmentKey) VALUES ('BENCH', 'BARBELL')")
+            connection.execSQL("INSERT INTO planned_set (id, planId, exerciseKey, positionInPlan, reps, weightKg, rpe, isWarmup) VALUES (1, 1, 'BENCH', 0, 8, 80.0, NULL, 0)")
+        }
+
+        helper.runMigrationsAndValidate(18).use { connection ->
+            assertEquals(1, connection.count("plan WHERE name = 'Push A'"))
+            assertEquals(1, connection.count("planned_set WHERE planId = 1"))
+        }
+    }
+
+    @Test
     fun `a backup of schema 12 migrates to the current schema and keeps workouts, plans and the coach`() {
         helper.createDatabase(12).use { connection ->
             connection.execSQL("INSERT INTO workout_session (id, date, startedAt, finishedAt, planId, notes) VALUES (1, '2026-11-01', 1000, 2000, NULL, 'felt good')")
