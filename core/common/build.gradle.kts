@@ -27,11 +27,11 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.androidx.sqlite.bundled)
         }
         jvmTest.dependencies {
             implementation(project.dependencies.platform(libs.junit.bom))
             implementation(libs.androidx.room.testing)
-            implementation(libs.androidx.sqlite.bundled)
             runtimeOnly(libs.junit.platform.launcher)
         }
     }

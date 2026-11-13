@@ -21,7 +21,7 @@ class DefaultWorkoutServiceUTest {
     private val clock = object : Clock {
         override fun now() = now
     }
-    private val database = inMemoryDatabase().also { it.seedExercises("bench", "squat") }
+    private val database = inMemoryDatabase(seedExercises("bench", "squat"))
     private val service = DefaultWorkoutService(database.workoutDao(), database.planDao(), DefaultPlanService(database.planDao(), clock), clock)
 
     @AfterTest

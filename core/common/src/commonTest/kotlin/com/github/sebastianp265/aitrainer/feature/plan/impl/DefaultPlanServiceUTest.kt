@@ -21,7 +21,7 @@ class DefaultPlanServiceUTest {
     private val clock = object : Clock {
         override fun now() = Instant.parse("2026-11-10T10:00:00Z")
     }
-    private val database = inMemoryDatabase().also { it.seedExercises("bench", "squat") }
+    private val database = inMemoryDatabase(seedExercises("bench", "squat"))
     private val plans = DefaultPlanService(database.planDao(), clock)
     private val workouts = DefaultWorkoutService(database.workoutDao(), database.planDao(), plans, clock)
 

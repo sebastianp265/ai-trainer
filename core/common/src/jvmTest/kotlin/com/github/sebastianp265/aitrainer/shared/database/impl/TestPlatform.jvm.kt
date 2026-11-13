@@ -4,23 +4,17 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
+import androidx.room.RoomDatabase
 import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import java.nio.file.Files
 import java.nio.file.Path
 
-internal actual fun emptyInMemoryDatabase(): AppDatabase =
+internal actual fun inMemoryDatabaseBuilder(): RoomDatabase.Builder<AppDatabase> =
     Room.inMemoryDatabaseBuilder<AppDatabase>(factory = { AppDatabaseConstructor.initialize() })
-        .setDriver(BundledSQLiteDriver())
-        .setQueryCoroutineContext(Dispatchers.Unconfined)
-        .build()
 
 internal actual fun temporaryDataStore(name: String): DataStore<Preferences> =
     PreferenceDataStoreFactory.create(produceFile = { Files.createTempDirectory(name).resolve("$name.preferences_pb").toFile() })
-
-internal actual fun <T> blocking(block: suspend () -> T): T = runBlocking { block() }
 
 internal actual fun newMigrationHelper() = MigrationTestHelper(
     schemaDirectoryPath = Path.of(checkNotNull(System.getProperty("roomSchemaDirectory"))),

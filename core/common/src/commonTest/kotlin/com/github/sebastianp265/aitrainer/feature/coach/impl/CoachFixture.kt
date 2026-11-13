@@ -66,13 +66,13 @@ internal class CoachFixture {
     val clock = object : Clock {
         override fun now() = now
     }
-    val database = inMemoryDatabase().also {
-        it.seedExercises("bench", "squat")
-        it.seedExerciseName("bench", "Bench Press")
-        it.seedExerciseName("squat", "Back Squat")
-        it.seedExerciseMuscles("bench", "CHEST", "ARMS")
-        it.seedExerciseMuscles("squat", "LEGS")
-    }
+    val database = inMemoryDatabase(
+        seedExercises("bench", "squat"),
+        seedExerciseName("bench", "Bench Press"),
+        seedExerciseName("squat", "Back Squat"),
+        seedExerciseMuscles("bench", "CHEST", "ARMS"),
+        seedExerciseMuscles("squat", "LEGS"),
+    )
     val responder = ScriptedResponder()
     val plans = DefaultPlanService(database.planDao(), clock)
     val workouts = DefaultWorkoutService(database.workoutDao(), database.planDao(), plans, clock)

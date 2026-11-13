@@ -1,6 +1,6 @@
 # :core:common
 
-Kotlin Multiplatform library, JVM target only, no Android SDK. Code is in `commonMain`, tests are in `commonTest`; `jvmTest` holds only the JVM `actual`s of `TestPlatform` (the in-memory database, a temporary DataStore file, `runBlocking`, the migration test helper, reading a resource). The tests run with `:core:common:jvmTest`. Room uses **KSP** (`kspJvm`), not kapt.
+Kotlin Multiplatform library, JVM target only, no Android SDK. Code is in `commonMain`, tests are in `commonTest`; `jvmTest` holds only the JVM `actual`s of `TestPlatform` (the in-memory database builder, a temporary DataStore file, the migration test helper, reading a resource). Test data is inserted by the database callback, so fixtures need no blocking call. The tests run with `:core:common:jvmTest`. Room uses **KSP** (`kspJvm`), not kapt.
 
 ## Persistence
 

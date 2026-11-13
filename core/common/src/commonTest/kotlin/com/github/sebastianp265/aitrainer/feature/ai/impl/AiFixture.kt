@@ -101,13 +101,13 @@ internal class AiFixture {
     val clock = object : Clock {
         override fun now() = now
     }
-    val database = inMemoryDatabase().also {
-        it.seedExercises("bench", "squat")
-        it.seedExerciseName("bench", "Bench Press")
-        it.seedExerciseName("squat", "Back Squat")
-        it.seedExerciseMuscles("bench", "CHEST", "ARMS")
-        it.seedExerciseMuscles("squat", "LEGS")
-    }
+    val database = inMemoryDatabase(
+        seedExercises("bench", "squat"),
+        seedExerciseName("bench", "Bench Press"),
+        seedExerciseName("squat", "Back Squat"),
+        seedExerciseMuscles("bench", "CHEST", "ARMS"),
+        seedExerciseMuscles("squat", "LEGS"),
+    )
     val client = ScriptedAi()
     val desk = RecordingDesk()
     val secrets = InMemorySecretStore()

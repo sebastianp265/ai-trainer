@@ -23,10 +23,10 @@ class DefaultVolumeServiceUTest {
     private val clock = object : Clock {
         override fun now() = Instant.parse("2026-11-10T10:00:00Z")
     }
-    private val database = inMemoryDatabase().also {
-        it.seedExercises("bench")
-        it.seedExerciseMuscles("bench", "CHEST", "ARMS", "SHOULDERS")
-    }
+    private val database = inMemoryDatabase(
+        seedExercises("bench"),
+        seedExerciseMuscles("bench", "CHEST", "ARMS", "SHOULDERS"),
+    )
     private val workouts = DefaultWorkoutService(database.workoutDao(), database.planDao(), DefaultPlanService(database.planDao(), clock), clock)
     private val volume = DefaultVolumeService(database.volumeDao(), clock)
     private val week = LocalDate(2026, 11, 9) to LocalDate(2026, 11, 15)
