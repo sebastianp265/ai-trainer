@@ -90,7 +90,6 @@ Run Gradle from the project root. On this Windows machine the wrapper is `./grad
 
 | Goal                                                                                                                                                             | Command                                                                                                               |
 |------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| **Fast check while working:** every quick JVM test (architecture rules + core and app unit tests)                                                                       | `./gradlew.bat unitTest`                                                                                              |
 | Build everything and check it (compiles every module, unit tests, architecture tests, lint, release build); slow, run it before a commit, not after every change | `./gradlew.bat build`                                                                                                 |
 | Run the app on a device or emulator                                                                                                                              | Android Studio: pick a device, run the `androidApp` configuration. Terminal: `./gradlew.bat :androidApp:installDebug` |
 | Architecture rules only                                                                                                                                          | `./gradlew.bat :architectureTest:test`                                                                                |
@@ -102,7 +101,7 @@ Run Gradle from the project root. On this Windows machine the wrapper is `./grad
 | Compile the instrumented tests without a device                                                                                                                  | `./gradlew.bat :androidApp:compileDebugAndroidTestKotlin :core:android:compileDebugAndroidTestKotlin`                 |
 | One test class                                                                                                                                                   | add `--tests "*ClassName"` to a test task                                                                             |
 
-Don't run `clean` by default: it throws away Gradle's incremental work and makes every build take minutes. Use it only when a build looks stale or after moving files between modules. After a change run the narrowest task that covers it (`unitTest`, or one modules compile task).
+Don't run `clean` by default: it throws away Gradle's incremental work and makes every build take minutes. Use it only when a build looks stale or after moving files between modules. After a change run the narrowest task that covers it (one module's test or compile task).
 
 The SDK levels (`compileSdk`, `minSdk`, `targetSdk`) and the Java version are set once, in the root `build.gradle.kts`; module build files don't repeat them.
 

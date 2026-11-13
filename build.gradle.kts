@@ -15,12 +15,6 @@ plugins {
     alias(libs.plugins.room) apply false
 }
 
-tasks.register("unitTest") {
-    group = "verification"
-    description = "Runs all fast JVM tests: the architecture rules, the core unit tests (common and Android) and the app unit tests"
-    dependsOn(":architectureTest:test", ":core:common:jvmTest", ":core:android:testDebugUnitTest", ":androidApp:testDebugUnitTest")
-}
-
 val androidCompileSdk = 37
 val androidMinSdk = 34
 val androidTargetSdk = 37
