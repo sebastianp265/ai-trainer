@@ -1,17 +1,17 @@
-package com.github.sebastianp265.aitrainer.shared.claude.impl
+package com.github.sebastianp265.aitrainer.shared.ai.impl
 
 import com.anthropic.client.okhttp.AnthropicOkHttpClient
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeCacheDuration
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeContent
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeEffort
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeFailureKind
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeMessage
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeRequest
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeResult
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeRole
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeThinking
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTool
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
+import com.github.sebastianp265.aitrainer.integration.ai.AiCacheDuration
+import com.github.sebastianp265.aitrainer.integration.ai.AiContent
+import com.github.sebastianp265.aitrainer.integration.ai.AiEffort
+import com.github.sebastianp265.aitrainer.integration.ai.AiFailureKind
+import com.github.sebastianp265.aitrainer.integration.ai.AiMessage
+import com.github.sebastianp265.aitrainer.integration.ai.AiRequest
+import com.github.sebastianp265.aitrainer.integration.ai.AiResult
+import com.github.sebastianp265.aitrainer.integration.ai.AiRole
+import com.github.sebastianp265.aitrainer.integration.ai.AiThinking
+import com.github.sebastianp265.aitrainer.integration.ai.AiTool
+import com.github.sebastianp265.aitrainer.integration.ai.AiTuning
 import com.github.sebastianp265.aitrainer.integration.settings.Secret
 import com.github.sebastianp265.aitrainer.integration.settings.SecretStore
 import kotlinx.coroutines.flow.Flow
@@ -58,12 +58,12 @@ class SdkClaudeClientUTest {
         secretStore,
     )
 
-    private val request = ClaudeRequest(
+    private val request = AiRequest(
         model = "claude-sonnet-5-5",
         system = "You are a coach.",
-        messages = listOf(ClaudeMessage(ClaudeRole.USER, listOf(ClaudeContent.Text("Plan my week")))),
-        tools = listOf(ClaudeTool("get_plans", "Lists plans", """{"type":"object","properties":{}}""")),
-        tuning = ClaudeTuning(maxTokens = 2048),
+        messages = listOf(AiMessage(AiRole.USER, listOf(AiContent.Text("Plan my week")))),
+        tools = listOf(AiTool("get_plans", "Lists plans", """{"type":"object","properties":{}}""")),
+        tuning = AiTuning(maxTokens = 2048),
     )
 
     @After
@@ -73,7 +73,7 @@ class SdkClaudeClientUTest {
         server.enqueue(MockResponse().setResponseCode(status).setHeader("Content-Type", "application/json").setBody(body))
     }
 
-    private suspend fun send(sent: ClaudeRequest = request, body: String = TEXT_ANSWER): Pair<ClaudeResult, RecordedRequest> {
+    private suspend fun send(sent: AiRequest = request, body: String = TEXT_ANSWER): Pair<AiResult, RecordedRequest> {
         answer(body)
         val result = client.send(sent)
         return result to server.takeRequest()
@@ -81,7 +81,7 @@ class SdkClaudeClientUTest {
 
     private fun RecordedRequest.json(): JsonObject = Json.parseToJsonElement(body.readUtf8()).jsonObject
 
-    private suspend fun thinkingSentFor(sent: ClaudeRequest): String? =
+    private suspend fun thinkingSentFor(sent: AiRequest): String? =
         send(sent).second.json()["thinking"]?.jsonObject?.getValue("type")?.jsonPrimitive?.content
 
     @Test
@@ -106,8 +106,8 @@ class SdkClaudeClientUTest {
     @Test
     fun `the tools and the system text can stay cached for an hour while the growing conversation stays for minutes`() = runBlocking {
         val withTwoTools = request.copy(
-            tools = request.tools + ClaudeTool("get_workouts", "Lists workouts", """{"type":"object","properties":{}}"""),
-            tuning = ClaudeTuning(cacheDuration = ClaudeCacheDuration.ONE_HOUR),
+            tools = request.tools + AiTool("get_workouts", "Lists workouts", """{"type":"object","properties":{}}"""),
+            tuning = AiTuning(cacheDuration = AiCacheDuration.ONE_HOUR),
         )
 
         val body = send(withTwoTools).second.json()
@@ -128,7 +128,7 @@ class SdkClaudeClientUTest {
 
     @Test
     fun `uncached, cached and newly cached input tokens are read apart`() = runBlocking {
-        val response = (send(body = CACHED_ANSWER).first as ClaudeResult.Success).response
+        val response = (send(body = CACHED_ANSWER).first as AiResult.Success).response
 
         assertEquals(listOf(10, 2000, 300, 5), listOf(response.inputTokens, response.cacheReadTokens, response.cacheWriteTokens, response.outputTokens))
     }
@@ -143,16 +143,16 @@ class SdkClaudeClientUTest {
 
     @Test
     fun `thinking stays on when asked for or above high effort`() = runBlocking {
-        assertNull(thinkingSentFor(request.copy(tuning = ClaudeTuning(thinking = ClaudeThinking.ADAPTIVE))))
-        assertNull(thinkingSentFor(request.copy(tuning = ClaudeTuning(effort = ClaudeEffort.XHIGH))))
-        assertEquals("between_tools", thinkingSentFor(request.copy(tuning = ClaudeTuning(effort = ClaudeEffort.HIGH))))
+        assertNull(thinkingSentFor(request.copy(tuning = AiTuning(thinking = AiThinking.ADAPTIVE))))
+        assertNull(thinkingSentFor(request.copy(tuning = AiTuning(effort = AiEffort.XHIGH))))
+        assertEquals("between_tools", thinkingSentFor(request.copy(tuning = AiTuning(effort = AiEffort.HIGH))))
     }
 
     @Test
     fun `the effort is sent only when chosen`() = runBlocking {
         assertTrue("output_config" !in send().second.json())
 
-        val body = send(request.copy(tuning = ClaudeTuning(effort = ClaudeEffort.LOW, maxTokens = 4_000))).second.json()
+        val body = send(request.copy(tuning = AiTuning(effort = AiEffort.LOW, maxTokens = 4_000))).second.json()
 
         assertEquals("low", body.getValue("output_config").jsonObject.getValue("effort").jsonPrimitive.content)
         assertEquals(4_000, body.getValue("max_tokens").jsonPrimitive.content.toInt())
@@ -160,16 +160,16 @@ class SdkClaudeClientUTest {
 
     @Test
     fun `the highest answer limit is sent as typed`() = runBlocking {
-        val body = send(request.copy(tuning = ClaudeTuning(maxTokens = ClaudeTuning.HIGHEST_MAX_TOKENS))).second.json()
+        val body = send(request.copy(tuning = AiTuning(maxTokens = AiTuning.HIGHEST_MAX_TOKENS))).second.json()
 
-        assertEquals(ClaudeTuning.HIGHEST_MAX_TOKENS, body.getValue("max_tokens").jsonPrimitive.content.toInt())
+        assertEquals(AiTuning.HIGHEST_MAX_TOKENS, body.getValue("max_tokens").jsonPrimitive.content.toInt())
     }
 
     @Test
     fun `text and tool calls of the answer are read with the token counts`() = runBlocking {
-        val response = (send(body = TOOL_ANSWER).first as ClaudeResult.Success).response
+        val response = (send(body = TOOL_ANSWER).first as AiResult.Success).response
 
-        assertEquals(listOf(ClaudeContent.Text("Let me look."), ClaudeContent.ToolUse("toolu_1", "get_plans", """{"limit":3}""")), response.content)
+        assertEquals(listOf(AiContent.Text("Let me look."), AiContent.ToolUse("toolu_1", "get_plans", """{"limit":3}""")), response.content)
         assertEquals("tool_use", response.stopReason)
         assertEquals(120 to 45, response.inputTokens to response.outputTokens)
     }
@@ -178,8 +178,8 @@ class SdkClaudeClientUTest {
     fun `tool results are sent back as a user message`() = runBlocking {
         val withResult = request.copy(
             messages = request.messages + listOf(
-                ClaudeMessage(ClaudeRole.ASSISTANT, listOf(ClaudeContent.ToolUse("toolu_1", "get_plans", "{}"))),
-                ClaudeMessage(ClaudeRole.USER, listOf(ClaudeContent.ToolResult("toolu_1", "no plans", isError = false))),
+                AiMessage(AiRole.ASSISTANT, listOf(AiContent.ToolUse("toolu_1", "get_plans", "{}"))),
+                AiMessage(AiRole.USER, listOf(AiContent.ToolResult("toolu_1", "no plans", isError = false))),
             ),
         )
 
@@ -191,8 +191,8 @@ class SdkClaudeClientUTest {
 
     @Test
     fun `a thinking block of the answer is sent back unchanged`() = runBlocking {
-        val answered = (send(body = THINKING_ANSWER).first as ClaudeResult.Success).response
-        val next = request.copy(messages = request.messages + ClaudeMessage(ClaudeRole.ASSISTANT, answered.content))
+        val answered = (send(body = THINKING_ANSWER).first as AiResult.Success).response
+        val next = request.copy(messages = request.messages + AiMessage(AiRole.ASSISTANT, answered.content))
 
         val sentBack = send(next).second.json().getValue("messages").jsonArray.last().jsonObject.getValue("content").jsonArray.first().jsonObject
 
@@ -210,27 +210,27 @@ class SdkClaudeClientUTest {
     fun `without a stored key nothing is sent`() = runBlocking {
         storedKey = null
 
-        val result = client.send(request) as ClaudeResult.Failure
+        val result = client.send(request) as AiResult.Failure
 
-        assertEquals(ClaudeFailureKind.NO_KEY, result.kind)
+        assertEquals(AiFailureKind.NO_KEY, result.kind)
         assertEquals(0, server.requestCount)
     }
 
     @Test
     fun `a rejected key, an overloaded service and a lost connection are told apart`() = runBlocking {
         answer(ERROR_BODY, 401)
-        val rejected = client.send(request) as ClaudeResult.Failure
+        val rejected = client.send(request) as AiResult.Failure
         answer(ERROR_BODY, 529)
-        val overloaded = client.send(request) as ClaudeResult.Failure
+        val overloaded = client.send(request) as AiResult.Failure
         answer(ERROR_BODY, 429)
-        val rateLimited = client.send(request) as ClaudeResult.Failure
+        val rateLimited = client.send(request) as AiResult.Failure
         server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START))
-        val offline = client.send(request) as ClaudeResult.Failure
+        val offline = client.send(request) as AiResult.Failure
 
-        assertEquals(ClaudeFailureKind.KEY_REJECTED, rejected.kind)
-        assertEquals(ClaudeFailureKind.OVERLOADED, overloaded.kind)
-        assertEquals(ClaudeFailureKind.OVERLOADED, rateLimited.kind)
-        assertEquals(ClaudeFailureKind.NO_NETWORK, offline.kind)
+        assertEquals(AiFailureKind.KEY_REJECTED, rejected.kind)
+        assertEquals(AiFailureKind.OVERLOADED, overloaded.kind)
+        assertEquals(AiFailureKind.OVERLOADED, rateLimited.kind)
+        assertEquals(AiFailureKind.NO_NETWORK, offline.kind)
         assertEquals("invalid x-api-key", rejected.message)
     }
 
@@ -241,6 +241,6 @@ class SdkClaudeClientUTest {
         assertEquals("good-key", server.takeRequest().getHeader("x-api-key"))
 
         server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START))
-        assertEquals(ClaudeFailureKind.NO_NETWORK, client.checkApiKey("any-key"))
+        assertEquals(AiFailureKind.NO_NETWORK, client.checkApiKey("any-key"))
     }
 }

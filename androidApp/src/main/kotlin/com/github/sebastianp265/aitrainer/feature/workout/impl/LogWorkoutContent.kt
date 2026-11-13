@@ -159,7 +159,6 @@ private fun LazyListScope.plansTab(
     actions: TrainingActions,
 ) {
     if (noPlans) item { HintText(stringResource(R.string.training_no_plans)) }
-    if (plans.size > 1) item(key = "reorder-hint") { HintText(stringResource(R.string.training_reorder_hint)) }
     itemsIndexed(plans, key = { _, plan -> plan.id }) { index, plan ->
         ReorderableItem(reorderState, key = plan.id) { isDragging ->
             PlanRow(

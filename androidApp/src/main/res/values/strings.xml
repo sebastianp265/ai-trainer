@@ -543,7 +543,6 @@
     <string name="training_start_plan_description">Start %1$s</string>
     <string name="training_edit_plan_description">Edit %1$s</string>
     <string name="training_plan_next_tag">Next</string>
-    <string name="training_reorder_hint">Drag a plan by its handle to change the order. The first one is next.</string>
     <string name="training_drag_handle_description">Drag %1$s to change its place</string>
     <string name="training_edit_workout_description">Edit workout from %1$s</string>
     <string name="cancel_edit_title">Discard changes?</string>

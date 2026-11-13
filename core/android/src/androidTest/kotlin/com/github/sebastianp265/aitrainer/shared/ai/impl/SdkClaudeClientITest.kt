@@ -1,4 +1,4 @@
-package com.github.sebastianp265.aitrainer.shared.claude.impl
+package com.github.sebastianp265.aitrainer.shared.ai.impl
 
 import android.Manifest
 import android.content.pm.PackageManager
