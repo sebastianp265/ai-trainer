@@ -82,4 +82,16 @@ class WorkoutReportFlowE2ETest : AbstractE2ETest() {
 
         report.assertDetailSetShown("80 kg")
     }
+
+    @Test
+    fun `a finished workout deleted from its page is gone from the history`() {
+        given.finishedWorkout(sets(BENCH_PRESS, kg = 80.0))
+        launchApp()
+        training.openRecentWorkout("Workout")
+
+        report.delete()
+        report.confirmDelete()
+
+        training.assertNoRecentWorkouts()
+    }
 }
