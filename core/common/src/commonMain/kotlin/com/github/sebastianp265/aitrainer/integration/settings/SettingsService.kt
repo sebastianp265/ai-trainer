@@ -1,19 +1,23 @@
 package com.github.sebastianp265.aitrainer.integration.settings
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.datetime.LocalDate
+import kotlin.time.Instant
 
 interface SettingsService {
-    fun observeClaudeModel(): Flow<String>
+    fun observeShowTargets(): Flow<Boolean>
 
-    suspend fun setClaudeModel(modelId: String)
+    suspend fun setShowTargets(show: Boolean)
 
-    fun observeIsClaudeApiKeyStored(): Flow<Boolean>
+    fun observeCoachEnabled(): Flow<Boolean>
 
-    suspend fun saveClaudeApiKey(apiKey: String)
+    suspend fun setCoachEnabled(enabled: Boolean)
 
-    suspend fun removeClaudeApiKey()
+    fun observeLastReviewedWeek(): Flow<LocalDate?>
 
-    companion object {
-        const val DEFAULT_CLAUDE_MODEL = "claude-sonnet-5-5"
-    }
+    suspend fun setLastReviewedWeek(weekStart: LocalDate)
+
+    fun observeLastExport(): Flow<Instant?>
+
+    suspend fun setLastExport(at: Instant)
 }

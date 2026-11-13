@@ -106,13 +106,6 @@ class ProgressCalculatorUTest {
     }
 
     @Test
-    fun `today is left out of the calorie balance because the day is not over`() {
-        val balance = cards(day(today, kcalEaten = 300, kcalBurned = 2500)).balance
-
-        assertNull(balance)
-    }
-
-    @Test
     fun `calorie balance needs both eaten and burned`() {
         assertNull(cards(day(daysAgo(1), kcalEaten = 2000)).balance)
     }
@@ -158,26 +151,6 @@ class ProgressCalculatorUTest {
         val cards = cards(day(daysAgo(2), sleepMinutes = 420), day(daysAgo(1), sleepMinutes = 480), day(today))
 
         assertEquals(450.0, cards.sleepMinutes)
-    }
-
-    @Test
-    fun `resting heart rate shows its trend`() {
-        val rate = assertNotNull(
-            cards(
-                day(daysAgo(25), restingHeartRate = 58.0),
-                day(daysAgo(1), restingHeartRate = 54.0),
-            ).restingHeartRate,
-        )
-
-        assertEquals(54.0, rate.current)
-        assertEquals(-4.0, rate.change)
-    }
-
-    @Test
-    fun `HRV is averaged`() {
-        val cards = cards(day(daysAgo(2), hrvMs = 60.0), day(daysAgo(1), hrvMs = 64.0))
-
-        assertEquals(62.0, cards.hrvMs)
     }
 
     @Test

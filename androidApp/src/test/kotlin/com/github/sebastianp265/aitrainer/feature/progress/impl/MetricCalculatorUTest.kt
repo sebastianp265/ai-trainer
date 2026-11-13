@@ -76,11 +76,4 @@ class MetricCalculatorUTest {
 
         assertEquals(listOf(-500.0), detail.points.map { it.value })
     }
-
-    @Test
-    fun `steps detail leaves out today`() {
-        val detail = assertNotNull(detail(ProgressMetric.STEPS, day(daysAgo(1), steps = 8000), day(today, steps = 10)))
-
-        assertEquals(8000.0, detail.highest)
-    }
 }

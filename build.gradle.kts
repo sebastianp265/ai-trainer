@@ -1,6 +1,7 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.dsl.LibraryExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 plugins {
@@ -12,12 +13,6 @@ plugins {
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.room) apply false
-}
-
-tasks.register("unitTest") {
-    group = "verification"
-    description = "Runs all fast JVM tests: the architecture rules, the core unit tests and the app unit tests"
-    dependsOn(":architectureTest:test", ":core:common:jvmTest", ":androidApp:testDebugUnitTest")
 }
 
 val androidCompileSdk = 37
@@ -60,6 +55,18 @@ subprojects {
                     jvmTarget.set(JvmTarget.fromTarget(javaVersion.toString()))
                 }
             }
+        }
+    }
+
+    plugins.withId("org.jetbrains.kotlin.jvm") {
+        extensions.configure<KotlinJvmProjectExtension> {
+            compilerOptions {
+                jvmTarget.set(JvmTarget.fromTarget(javaVersion.toString()))
+            }
+        }
+        extensions.configure<JavaPluginExtension> {
+            sourceCompatibility = javaVersion
+            targetCompatibility = javaVersion
         }
     }
 }

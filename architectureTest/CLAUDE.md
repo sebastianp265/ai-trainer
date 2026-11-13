@@ -1,6 +1,6 @@
 # :architectureTest
 
-Kotlin/JVM, tests only, **Konsist** on JUnit 5. It reads the other modules' source files as text, so it depends on no other Gradle module; its `test` task declares all source files as inputs, so Gradle reruns it whenever any of them changes.
+Kotlin/JVM, tests only, **Konsist** on JUnit 5. It reads the other modules' source files as text, so it depends on no other Gradle module; its `test` task declares all source, XML and Gradle files as inputs, so Gradle reruns it whenever any of them changes, and passes the project root as the `projectRoot` system property.
 
 ## Where the structure is declared
 
@@ -10,7 +10,7 @@ Kotlin/JVM, tests only, **Konsist** on JUnit 5. It reads the other modules' sour
 
 ## The rules
 
-The rules are the test names in `ArchitectureUTest`.
+The rules are the test names in `ArchitectureUTest` (structure and dependencies) and `ConventionsUTest` (code conventions from the root `CLAUDE.md`).
 
 ## Principles
 

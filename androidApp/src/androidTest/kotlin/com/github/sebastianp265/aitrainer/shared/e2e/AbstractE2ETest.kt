@@ -11,6 +11,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.test.core.app.ActivityScenario
 import androidx.test.platform.app.InstrumentationRegistry
 import com.github.sebastianp265.aitrainer.feature.app.impl.MainActivity
+import com.github.sebastianp265.aitrainer.integration.ai.AiClient
 import com.github.sebastianp265.aitrainer.integration.health.HealthDataSource
 import kotlinx.coroutines.runBlocking
 import org.junit.Rule
@@ -27,10 +28,13 @@ abstract class AbstractE2ETest {
 
     protected open val appLanguage = "en"
 
+    protected val given = Given()
+
     private val context = InstrumentationRegistry.getInstrumentation().targetContext
     private val localeManager = context.getSystemService(LocaleManager::class.java)
     private var scenario: ActivityScenario<MainActivity>? = null
     private var realHealthDataSource: HealthDataSource? = null
+    private var realAiClient: AiClient? = null
 
     @BeforeTest
     fun startWithFreshData() {
@@ -49,9 +53,15 @@ abstract class AbstractE2ETest {
         localeManager.applicationLocales = LocaleList.getEmptyLocaleList()
         realHealthDataSource?.let { real -> loadKoinModules(module { single<HealthDataSource> { real } }) }
         realHealthDataSource = null
+        realAiClient?.let { real -> loadKoinModules(module { factory<AiClient> { real } }) }
+        realAiClient = null
     }
 
-    protected fun launchApp(healthDataSource: HealthDataSource? = null) {
+    protected fun launchApp(healthDataSource: HealthDataSource? = null, aiClient: AiClient? = null) {
+        if (aiClient != null) {
+            realAiClient = GlobalContext.get().get<AiClient>()
+            loadKoinModules(module { factory<AiClient> { aiClient } })
+        }
         if (healthDataSource != null) {
             realHealthDataSource = GlobalContext.get().get<HealthDataSource>()
             loadKoinModules(module { single<HealthDataSource> { healthDataSource } })
@@ -78,8 +88,9 @@ abstract class AbstractE2ETest {
         context.openOrCreateDatabase(DATABASE_NAME, Context.MODE_PRIVATE, null).use { database ->
             database.execSQL("DELETE FROM set_entry")
             database.execSQL("DELETE FROM workout_session")
-            database.execSQL("DELETE FROM health_day")
-            database.execSQL("DELETE FROM health_workout")
+            database.execSQL("DELETE FROM planned_set")
+            database.execSQL("DELETE FROM plan")
+            listOf("coach_message", "coach_proposal", "coach_note", "coach_profile", "ai_usage", "weekly_target").forEach { database.execSQL("DELETE FROM $it") }
         }
     }
 

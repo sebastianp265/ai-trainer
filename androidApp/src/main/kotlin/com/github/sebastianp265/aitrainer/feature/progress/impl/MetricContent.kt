@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.feature.progress.impl
 
+import com.github.sebastianp265.aitrainer.shared.charts.LineChart
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -10,9 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,9 +28,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.shared.design.CardLabel
+import com.github.sebastianp265.aitrainer.shared.design.StatTile
+import com.github.sebastianp265.aitrainer.shared.design.extendedColors
+import com.github.sebastianp265.aitrainer.shared.localization.formatWeekdayDate
+import androidx.compose.material3.Card
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetric
 import com.github.sebastianp265.aitrainer.integration.health.HealthDay
-import com.github.sebastianp265.aitrainer.shared.localization.formatDate
 import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
 import kotlinx.datetime.LocalDate
 import kotlin.math.roundToInt
@@ -45,42 +51,56 @@ internal fun MetricContent(metric: ProgressMetric, days: List<HealthDay>?, today
     var range by rememberSaveable { mutableStateOf(ProgressRange.THREE_MONTHS) }
     val detail = remember(days, metric, range, today) { MetricCalculator.calculate(days, metric, range, today) }
     LazyColumn(
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize().testTag(MetricTags.METRIC),
     ) {
-        item { Text(stringResource(metric.titleRes()), style = MaterialTheme.typography.headlineSmall) }
+        item { Text(stringResource(metric.titleRes()), Modifier.padding(vertical = 8.dp), style = MaterialTheme.typography.titleLarge) }
         item { RangeSwitch(range) { range = it } }
         if (detail == null) {
-            item { Text(stringResource(R.string.metric_no_data), style = MaterialTheme.typography.bodyMedium) }
+            item { Text(stringResource(R.string.metric_no_data), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
             return@LazyColumn
         }
         item { Headline(metric, detail, range) }
-        item { LineChart(detail.points, detail.averageSeries) }
         item { Extremes(metric, detail) }
-        item { Text(stringResource(R.string.metric_values), style = MaterialTheme.typography.titleMedium) }
-        items(detail.newestFirst, key = { it.date.toString() }) { point ->
-            Column(Modifier.fillMaxWidth().clickable { onOpenDay(point.date) }) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(formatDate(point.date))
-                    Text(formatMetricValue(metric, point.value), style = MaterialTheme.typography.titleSmall)
+        item {
+            Card(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    CardLabel(stringResource(R.string.metric_values))
+                    detail.newestFirst.forEach { point ->
+                        Row(
+                            Modifier.fillMaxWidth().clickable { onOpenDay(point.date) }.padding(vertical = 4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                        ) {
+                            Text(formatWeekdayDate(point.date), style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp))
+                            Text(formatMetricValue(metric, point.value), style = MaterialTheme.typography.bodyLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Medium))
+                        }
+                    }
                 }
-                HorizontalDivider()
             }
         }
-        item { Text(stringResource(R.string.metric_footnote), style = MaterialTheme.typography.bodySmall) }
+        item { Text(stringResource(R.string.metric_footnote), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
     }
 }
 
 @Composable
 private fun Headline(metric: ProgressMetric, detail: MetricDetail, range: ProgressRange) {
-    Column {
-        Text(stringResource(R.string.metric_average), style = MaterialTheme.typography.labelMedium)
-        Text(formatMetricValue(metric, detail.average), style = MaterialTheme.typography.headlineMedium)
-        detail.change?.let {
-            Text(
-                stringResource(R.string.progress_change, formatMetricDelta(metric, it), stringResource(range.inRangeRes())),
-                style = MaterialTheme.typography.bodyMedium,
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            CardLabel(stringResource(R.string.metric_average))
+            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(formatMetricValue(metric, detail.average), style = MaterialTheme.typography.headlineMedium.copy(fontSize = 28.sp))
+                detail.change?.let {
+                    Row(Modifier.padding(bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(formatMetricDelta(metric, it), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium), color = extendedColors.success)
+                        Text(stringResource(range.inRangeRes()), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+            LineChart(detail.points, detail.averageSeries, valueLabel = { formatMetricValue(metric, it) })
+            ChartLegend(
+                MaterialTheme.colorScheme.inversePrimary to stringResource(R.string.progress_legend_daily),
+                MaterialTheme.colorScheme.primary to stringResource(R.string.progress_legend_average),
             )
         }
     }
@@ -88,18 +108,10 @@ private fun Headline(metric: ProgressMetric, detail: MetricDetail, range: Progre
 
 @Composable
 private fun Extremes(metric: ProgressMetric, detail: MetricDetail) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Stat(formatMetricValue(metric, detail.lowest), R.string.metric_lowest)
-        Stat(formatMetricValue(metric, detail.highest), R.string.metric_highest)
-        detail.changePerWeek?.let { Stat(stringResource(R.string.metric_per_week, formatMetricDelta(metric, it)), null) }
-    }
-}
-
-@Composable
-private fun Stat(value: String, @StringRes label: Int?) {
-    Column {
-        Text(value, style = MaterialTheme.typography.titleMedium)
-        label?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall) }
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        StatTile(formatMetricValue(metric, detail.lowest), stringResource(R.string.metric_lowest), Modifier.weight(1f))
+        StatTile(formatMetricValue(metric, detail.highest), stringResource(R.string.metric_highest), Modifier.weight(1f))
+        detail.changePerWeek?.let { StatTile(formatMetricDelta(metric, it), stringResource(R.string.metric_per_week_label), Modifier.weight(1f)) }
     }
 }
 

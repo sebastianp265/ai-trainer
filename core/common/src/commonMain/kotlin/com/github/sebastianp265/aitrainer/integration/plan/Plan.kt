@@ -1,0 +1,23 @@
+package com.github.sebastianp265.aitrainer.integration.plan
+
+data class PlannedSet(
+    val exerciseKey: String,
+    val reps: Int,
+    val weightKg: Double,
+    val rpe: Double?,
+    val isWarmup: Boolean,
+)
+
+data class Plan(
+    val id: Long,
+    val name: String,
+    val author: PlanAuthor,
+    val sets: List<PlannedSet>,
+    val coachNote: String? = null,
+)
+
+data class PlanDraft(
+    val name: String,
+    val sets: List<PlannedSet>,
+    val coachNote: String? = null,
+)

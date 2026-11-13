@@ -8,5 +8,4 @@ enum class HealthDataType {
     SLEEP,
     RESTING_HEART_RATE,
     HEART_RATE_VARIABILITY,
-    WORKOUTS,
 }

@@ -14,6 +14,9 @@ class BottomBarScreen(compose: ComposeTestRule) : Screen(compose) {
         tabNode(tab).performClick()
     }
 
+    fun assertTabHidden(tab: String) =
+        compose.waitUntil(TEST_TIMEOUT_MS) { compose.onAllNodes(hasText(tab) and hasClickAction()).fetchSemanticsNodes().isEmpty() }
+
     fun assertSelected(tab: String) = tabNode(tab).assertIsSelected()
 
     private fun tabNode(tab: String) = compose.onAllNodes(hasText(tab) and hasClickAction()).onFirst()

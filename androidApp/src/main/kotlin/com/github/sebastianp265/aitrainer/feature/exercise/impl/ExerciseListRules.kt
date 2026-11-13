@@ -24,3 +24,10 @@ internal fun List<ExerciseListItem>.searchByDisplayThenEnglishName(query: String
     val (byDisplayName, others) = partition { it.displayName.contains(q, ignoreCase = true) }
     return byDisplayName + others.filter { it.englishName.contains(q, ignoreCase = true) }
 }
+
+internal val muscleGroupKeysInOrder = listOf("CHEST", "BACK", "LEGS", "SHOULDERS", "ARMS", "ABS")
+
+internal fun muscleGroupOrder(key: String): Int = muscleGroupKeysInOrder.indexOf(key)
+
+internal fun List<ExerciseListItem>.inPrimaryGroup(groupKey: String?): List<ExerciseListItem> =
+    if (groupKey == null) this else filter { item -> item.exercise.primaryMuscles.any { it.key == groupKey } }

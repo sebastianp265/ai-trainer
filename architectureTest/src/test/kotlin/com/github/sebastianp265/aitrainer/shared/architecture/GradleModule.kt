@@ -1,22 +1,38 @@
 package com.github.sebastianp265.aitrainer.shared.architecture
 
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_NUTRITION
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_NUTRITION
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_NUTRITION
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_APP
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_EXERCISE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_HEALTH
-import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_HISTORY
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_EXERCISE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_HEALTH
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_PLAN
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_COACH
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_COACH
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_COACH
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_AI
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_AI
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_AI
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_SETTINGS
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_VOLUME
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_VOLUME
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_VOLUME
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_SHARED
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_WORKOUT
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_MODULE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_PLAN
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_PROGRESS
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_SETTINGS
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_BACKUP
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_CHARTS
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_DESIGN
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_DATABASE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_EXERCISE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_HEALTH
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_LOCALIZATION
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_PLAN
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_PLATFORM
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_SECURITY
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_STATE
@@ -34,22 +50,22 @@ enum class GradleModule(
         directoryName = "core/common",
         packageModules = setOf(
             INTEGRATION_MODULE,
-            INTEGRATION_EXERCISE, INTEGRATION_WORKOUT, INTEGRATION_HEALTH, INTEGRATION_SETTINGS, INTEGRATION_SHARED,
-            SHARED_EXERCISE, SHARED_WORKOUT, SHARED_HEALTH, SHARED_DATABASE,
-            FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_HEALTH, FEATURE_SETTINGS,
+            INTEGRATION_AI, INTEGRATION_EXERCISE, INTEGRATION_WORKOUT, INTEGRATION_PLAN, INTEGRATION_VOLUME, INTEGRATION_NUTRITION, INTEGRATION_COACH, INTEGRATION_HEALTH, INTEGRATION_SETTINGS, INTEGRATION_SHARED,
+            SHARED_EXERCISE, SHARED_WORKOUT, SHARED_PLAN, SHARED_VOLUME, SHARED_NUTRITION, SHARED_COACH, SHARED_AI, SHARED_DATABASE,
+            FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_PLAN, FEATURE_VOLUME, FEATURE_NUTRITION, FEATURE_COACH, FEATURE_AI, FEATURE_HEALTH, FEATURE_SETTINGS,
         ),
     ),
     CORE_ANDROID(
         directoryName = "core/android",
-        packageModules = setOf(INTEGRATION_MODULE, SHARED_HEALTH, SHARED_SECURITY, SHARED_PLATFORM),
+        packageModules = setOf(INTEGRATION_MODULE, SHARED_HEALTH, SHARED_SECURITY, SHARED_PLATFORM, SHARED_AI, SHARED_BACKUP),
         dependencies = { setOf(CORE_COMMON) },
     ),
     ANDROID_APP(
         directoryName = "androidApp",
         packageModules = setOf(
             FEATURE_APP,
-            SHARED_LOCALIZATION, SHARED_STATE, SHARED_HEALTH,
-            FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_HEALTH, FEATURE_SETTINGS, FEATURE_PROGRESS, FEATURE_PLAN, FEATURE_HISTORY,
+            SHARED_LOCALIZATION, SHARED_STATE, SHARED_WORKOUT, SHARED_CHARTS, SHARED_DESIGN, SHARED_COACH,
+            FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_HEALTH, FEATURE_SETTINGS, FEATURE_PROGRESS, FEATURE_PLAN, FEATURE_VOLUME, FEATURE_COACH, FEATURE_AI,
         ),
         dependencies = { setOf(CORE_COMMON, CORE_ANDROID) },
     );

@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.feature.progress.impl
 
+import com.github.sebastianp265.aitrainer.shared.charts.DailyPoint
 import com.github.sebastianp265.aitrainer.feature.progress.ProgressMetric
 import com.github.sebastianp265.aitrainer.integration.health.HealthDay
 import kotlinx.datetime.DatePeriod

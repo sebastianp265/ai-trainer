@@ -20,9 +20,7 @@ current phase in `CLAUDE.md`, then summarize what was done and what to check by 
 
 | Situation | Do |
 |---|---|
-| Requirements and a mockup disagree | Follow the requirements |
-| Both are silent on a detail | Pick the simplest option consistent with the rest, add one line to `decisions.md`, continue |
-| A mockup detail is awkward in Compose | Use the standard Material 3 component, continue |
+| The requirements are silent on a detail | Pick the simplest option consistent with the rest, add one line to `decisions.md`, continue |
 | A task turns out to need a later task | Do the needed part now, note it under that task |
 | A test can't run without an emulator | Compile it, note it in `status.md`, continue |
 | A build or test fails after three different attempts to fix it | Note what was tried in `decisions.md`, skip to the next independent task |
@@ -46,7 +44,7 @@ the phase, one commit per ticked task, never push.
 
 ### Every task also means
 
-- Strings in both `values/strings.xml` (English) and `values-pl/strings.xml` (Polish, from the mockups).
+- Strings in both `values/strings.xml` (English) and `values-pl/strings.xml` (Polish).
 - Every schema change has a migration and a migration test; the schema JSON is committed.
 - New logic has a unit test. Each new screen is reached by at least one end-to-end test that
   uses fakes at the `integration` seam.
@@ -87,60 +85,60 @@ Requirements 3, 4, 5, 6. Screens: `Main`, `StartSheet`, `ActiveWorkout`, `Workou
 `WorkoutDetail`, `TrainingEmpty`, `ExercisePicker`, `ExerciseHistory`, `MainNoCoach`, `Plan`,
 `PlanDetail`, `PlanEdit`, `PlanEmpty`, `PlanNew`, `VolumeTargets`, `SettingsNoCoach`.
 
-- [ ] 5.1 Exercises get a primary and secondary muscle groups; the migration fills them for the
+- [x] 5.1 Exercises get a primary and secondary muscle groups; the migration fills them for the
       seeded exercises. Done when: a test asserts every seeded exercise has a primary group.
-- [ ] 5.2 RPE per set (migration), picker under the set row.
-- [ ] 5.3 Set row as designed: typed weight, reps stepper, RPE, delete; several warm-up sets.
-- [ ] 5.4 "Last time" label with the format rules. Done when: unit tests cover equal sets,
+- [x] 5.2 RPE per set (migration), picker under the set row.
+- [x] 5.3 Set row as designed: typed weight, reps stepper, RPE, delete; several warm-up sets.
+- [x] 5.4 "Last time" label with the format rules. Done when: unit tests cover equal sets,
       different sets, mixed RPE, no RPE, bodyweight, overflow to `+N`, and no previous workout.
-- [ ] 5.5 Discard confirmation.
-- [ ] 5.6 Exercise picker: search, muscle filter, recently used, create an exercise.
-- [ ] 5.7 Exercise history: stats, 1RM chart, RPE chart, past sessions.
-- [ ] 5.8 Plan tables (plan, planned exercise, planned set; author; optional date; done link to
+- [x] 5.5 Discard confirmation.
+- [x] 5.6 Exercise picker: search, muscle filter, recently used, create an exercise.
+- [x] 5.7 Exercise history: stats, 1RM chart, RPE chart, past sessions.
+- [x] 5.8 Plan tables (plan, planned exercise, planned set; author; optional date; done link to
       a workout) with a migration.
-- [ ] 5.9 Plan list, empty state, details, new, edit, delete with confirmation.
-- [ ] 5.10 Start screen with the next plan, the plan picker sheet, starting empty, first launch.
-- [ ] 5.11 Starting a workout from a plan fills it; saving links the workout and marks the plan done.
+- [x] 5.9 Plan list, empty state, details, new, edit, delete with confirmation.
+- [x] 5.10 Start screen with the next plan, the plan picker sheet, starting empty, first launch.
+- [x] 5.11 Starting a workout from a plan fills it; saving links the workout and marks the plan done.
       Done when: an end-to-end test starts from a plan, removes a set, changes a weight, finishes,
       and sees the changed sets in the finished workout and the plan gone from the list.
-- [ ] 5.12 Summary after finishing: stats, records, comparison with the plan.
-- [ ] 5.13 Finished workout: details with plan comparison, edit, delete.
-- [ ] 5.14 Weekly sets: fractional counting, Monday to Sunday. Done when: unit tests cover
+- [x] 5.12 Summary after finishing: stats, records, comparison with the plan.
+- [x] 5.13 Finished workout: details with plan comparison, edit, delete.
+- [x] 5.14 Weekly sets: fractional counting, Monday to Sunday. Done when: unit tests cover
       primary and secondary counting, warm-ups excluded, week boundaries.
-- [ ] 5.15 Weekly targets: table with defaults 10–20, source, date, reason; targets screen with
+- [x] 5.15 Weekly targets: table with defaults 10–20, source, date, reason; targets screen with
       manual edit, restore defaults, show-targets switch.
-- [ ] 5.16 Sets-per-group card in Progress with the info box; week strip and "sets this week"
+- [x] 5.16 Sets-per-group card in Progress with the info box; week strip and "sets this week"
       card in Plan.
-- [ ] 5.17 Coach switch in Settings (stored). With it off: three tabs, no coach elements.
+- [x] 5.17 Coach switch in Settings (stored). With it off: three tabs, no coach elements.
 
 ## Phase 6: the coach
 
 Requirement 9, 10. Screens: `Coach`, `CoachEmpty`, `CoachNoKey`, `CoachError`, `CoachProposal`,
-`CoachTargets`, `CoachMemory`, `ApiKey`, `ModelPicker`, `Debug`.
+`CoachTargets`, `CoachMemory`, `ApiKey`, `ModelPicker`.
 
-- [ ] 6.1 Claude client behind an `integration` interface, with a fake. Use the `claude-api`
+- [x] 6.1 Claude client behind an `integration` interface, with a fake. Use the `claude-api`
       skill for the request shape, tool use and model ids. HTTP with Ktor.
-- [ ] 6.2 Tables: conversation messages, proposals (type, payload, state), coach notes, profile.
-- [ ] 6.3 Request builder: profile, notes, targets, data summary, conversation. Done when: a unit
+- [x] 6.2 Tables: conversation messages, proposals (type, payload, state), coach notes, profile.
+- [x] 6.3 Request builder: profile, notes, targets, data summary, conversation. Done when: a unit
       test asserts the request for a known database state.
-- [ ] 6.4 Read tools. Done when: each tool has a unit test against an in-memory database.
-- [ ] 6.5 Proposal tools and lifecycle: pending, accepted, superseded; accepting applies the change.
+- [x] 6.4 Read tools. Done when: each tool has a unit test against an in-memory database.
+- [x] 6.5 Proposal tools and lifecycle: pending, accepted, superseded; accepting applies the change.
       Done when: unit tests cover accept, supersede, and a target change leaving plans untouched.
-- [ ] 6.6 Memory tools and the memory screen.
-- [ ] 6.7 Chat screen: messages, proposal cards, "Sprawdzono" line, tool-in-progress indicator.
+- [x] 6.6 Memory tools and the memory screen.
+- [x] 6.7 Chat screen: messages, proposal cards, "Sprawdzono" line, tool-in-progress indicator.
       Done when: an end-to-end test with the fake client asks for a plan, accepts it, and finds it
       on the Plan tab.
-- [ ] 6.8 Proposal preview with changes marked; pending proposal card on Trening, Plan, targets.
-- [ ] 6.9 Fourth tab; first conversation; no key; API key screen with a check call; model screen
+- [x] 6.8 Proposal preview with changes marked; pending proposal card on Trening, Plan, targets.
+- [x] 6.9 Fourth tab; first conversation; no key; API key screen with a check call; model screen
       with the local usage counter.
-- [ ] 6.10 Errors: no network, rejected key, no answer.
-- [ ] 6.11 Debug screen.
+- [x] 6.10 Errors: no network, rejected key, no answer.
+- [x] 6.11 Debug screen. Removed afterwards on the owner's request (see `decisions.md`).
 
 ## Phase 7: weekly review, backup, polish
 
 Requirements 9 (weekly review), 10 (backup). Screens: `CoachWeekly`, `DataBackup`.
 
-- [ ] 7.1 Weekly review, with several plans in one proposal and "Akceptuj wszystkie".
-- [ ] 7.2 Export and import.
-- [ ] 7.3 Loading states for sync, charts and chat.
-- [ ] 7.4 Full pass over empty and error states on every screen.
+- [x] 7.1 Weekly review, with several plans in one proposal and "Akceptuj wszystkie".
+- [x] 7.2 Export and import.
+- [x] 7.3 Loading states for sync, charts and chat.
+- [x] 7.4 Full pass over empty and error states on every screen.

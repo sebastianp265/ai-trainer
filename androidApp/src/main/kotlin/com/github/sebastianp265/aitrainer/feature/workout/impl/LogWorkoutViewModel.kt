@@ -4,113 +4,90 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.integration.exercise.Exercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
-import com.github.sebastianp265.aitrainer.shared.state.WhileUiSubscribed
-import com.github.sebastianp265.aitrainer.integration.workout.ExerciseBlock
+import com.github.sebastianp265.aitrainer.integration.plan.Plan
+import com.github.sebastianp265.aitrainer.integration.plan.PlanService
 import com.github.sebastianp265.aitrainer.integration.workout.SessionSummary
-import com.github.sebastianp265.aitrainer.integration.workout.SetEntry
-import com.github.sebastianp265.aitrainer.integration.workout.WorkoutSession
-import com.github.sebastianp265.aitrainer.integration.workout.CopyResult
-import com.github.sebastianp265.aitrainer.integration.workout.SetChange
 import com.github.sebastianp265.aitrainer.integration.workout.WorkoutService
+import com.github.sebastianp265.aitrainer.integration.workout.WorkoutSession
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import com.github.sebastianp265.aitrainer.shared.state.WhileUiSubscribed
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Month
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
+import kotlin.time.Clock
 
-internal data class ActiveSessionUi(
-    val session: WorkoutSession,
-    val blocks: List<ExerciseBlock>,
-)
-
-internal sealed interface LogMessage {
-    data object WorkoutSaved : LogMessage
-    data class NoPreviousSets(val exercise: Exercise) : LogMessage
-}
+internal data class ActiveWorkout(val session: WorkoutSession, val planName: String?)
 
 internal data class LogUiState(
     val isLoading: Boolean = true,
-    val activeSession: ActiveSessionUi? = null,
-    val recentSessions: List<SessionSummary> = emptyList(),
-    val message: LogMessage? = null,
+    val activeWorkout: ActiveWorkout? = null,
+    val plans: List<Plan> = emptyList(),
+    val historyMonths: List<HistoryMonth> = emptyList(),
+    val exercises: Map<String, Exercise> = emptyMap(),
 )
+
+internal data class HistoryMonth(val year: Int, val month: Month, val isCurrentYear: Boolean, val sessions: List<SessionSummary>)
+
+internal fun historyMonths(sessions: List<SessionSummary>, today: LocalDate): List<HistoryMonth> =
+    sessions.sortedByDescending { it.startedAt }
+        .groupBy { it.date.year to it.date.month }
+        .map { (yearAndMonth, monthSessions) ->
+            val (year, month) = yearAndMonth
+            HistoryMonth(year, month, isCurrentYear = year == today.year, sessions = monthSessions)
+        }
 
 internal class LogWorkoutViewModel(
     private val workoutService: WorkoutService,
+    private val planService: PlanService,
     exerciseService: ExerciseService,
+    clock: Clock,
 ) : ViewModel() {
 
-    private val exercisesByKey = flow { emit(exerciseService.exercises().associateBy { it.key }) }
+    private companion object {
+        val EARLIEST_DAY = LocalDate(2000, 1, 1)
+    }
 
-    private val message = MutableStateFlow<LogMessage?>(null)
+    private val today = clock.todayIn(TimeZone.currentSystemDefault())
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val activeSessionWithSets = workoutService.observeActiveSession().flatMapLatest { session ->
-        if (session == null) flowOf(null)
-        else workoutService.observeSets(session.id).map { sets -> session to sets }
-    }
-
-    val uiState: StateFlow<LogUiState> = combine(
-        activeSessionWithSets,
-        workoutService.observeRecentSessions(),
-        exercisesByKey,
-        message,
-    ) { active, recent, exercisesByKey, msg ->
-        LogUiState(
-            isLoading = false,
-            activeSession = active?.let { (session, sets) ->
-                ActiveSessionUi(session, workoutService.groupSetsByExercise(sets, exercisesByKey))
-            },
-            recentSessions = recent,
-            message = msg,
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = WhileUiSubscribed,
-        initialValue = LogUiState(),
-    )
-
-    fun startSession() = launch { workoutService.startSession() }
-
-    fun finishSession() = withActiveSession { session ->
-        workoutService.finishSession(session.id)
-        message.value = LogMessage.WorkoutSaved
-    }
-
-    fun discardSession() = withActiveSession { session -> workoutService.discardSession(session.id) }
-
-    fun addExercise(exercise: Exercise) = withActiveSession { session -> workoutService.addExercise(session.id, exercise.key) }
-
-    fun addSet(block: ExerciseBlock) = withActiveSession { session -> workoutService.addSet(session.id, block) }
-
-    fun copySetsFromLastTime(block: ExerciseBlock) = withActiveSession { session ->
-        if (workoutService.copySetsFromLastTime(session.id, block.exercise.key) == CopyResult.NO_PREVIOUS_SETS) {
-            message.value = LogMessage.NoPreviousSets(block.exercise)
+    private val activeWorkout = workoutService.observeActiveSession().flatMapLatest { session ->
+        val planId = session?.planId
+        when {
+            session == null -> flowOf(null)
+            planId == null -> flowOf(ActiveWorkout(session, planName = null))
+            else -> planService.observePlan(planId).map { plan -> ActiveWorkout(session, plan?.name) }
         }
     }
 
-    fun changeReps(set: SetEntry, delta: Int) = launch { workoutService.changeSet(set.id, SetChange.Reps(delta)) }
+    val uiState: StateFlow<LogUiState> = combine(
+        activeWorkout,
+        planService.observeUpcoming(),
+        workoutService.observeFinishedSessions(EARLIEST_DAY, today),
+        exerciseService.observeExercisesByKey(),
+    ) { active, plans, sessions, exercises ->
+        LogUiState(isLoading = false, activeWorkout = active, plans = plans, historyMonths = historyMonths(sessions, today), exercises = exercises)
+    }.stateIn(viewModelScope, WhileUiSubscribed, LogUiState())
 
-    fun changeWeight(set: SetEntry, deltaKg: Double) = launch { workoutService.changeSet(set.id, SetChange.Weight(deltaKg)) }
-
-    fun toggleWarmup(set: SetEntry) = launch { workoutService.changeSet(set.id, SetChange.ToggleWarmup) }
-
-    fun deleteSet(set: SetEntry) = launch { workoutService.deleteSet(set.id) }
-
-    fun messageShown() {
-        message.value = null
+    fun startEmptyWorkout() {
+        viewModelScope.launch { workoutService.startSession() }
     }
 
-    private fun launch(block: suspend () -> Unit) {
-        viewModelScope.launch { block() }
+    fun startWorkoutFromPlan(planId: Long) {
+        viewModelScope.launch { workoutService.startSession(planId) }
     }
 
-    private fun withActiveSession(block: suspend (WorkoutSession) -> Unit) = launch {
-        uiState.value.activeSession?.session?.let { block(it) }
+    fun movePlan(planId: Long, toIndex: Int) {
+        viewModelScope.launch { planService.movePlan(planId, toIndex) }
+    }
+    fun editWorkout(sessionId: Long) {
+        viewModelScope.launch { workoutService.startEditing(sessionId) }
     }
 }

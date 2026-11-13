@@ -1,9 +1,9 @@
 package com.github.sebastianp265.aitrainer.shared.architecture
 
-enum class Group(val path: String) {
-    INTEGRATION("integration"),
-    SHARED("shared"),
-    FEATURE("feature"),
+enum class Group(val path: String, val holdsImplementation: Boolean) {
+    INTEGRATION("integration", holdsImplementation = false),
+    SHARED("shared", holdsImplementation = true),
+    FEATURE("feature", holdsImplementation = true),
 }
 
 enum class PackageModule(val path: String) {
@@ -11,27 +11,46 @@ enum class PackageModule(val path: String) {
     INTEGRATION_MODULE("integration.module"),
     INTEGRATION_EXERCISE("integration.exercise"),
     INTEGRATION_WORKOUT("integration.workout"),
+    INTEGRATION_PLAN("integration.plan"),
+    INTEGRATION_VOLUME("integration.volume"),
+    INTEGRATION_NUTRITION("integration.nutrition"),
+    INTEGRATION_AI("integration.ai"),
+    INTEGRATION_COACH("integration.coach"),
     INTEGRATION_HEALTH("integration.health"),
     INTEGRATION_SETTINGS("integration.settings"),
     INTEGRATION_SHARED("integration.shared"),
     SHARED_EXERCISE("shared.exercise"),
     SHARED_WORKOUT("shared.workout"),
+    SHARED_PLAN("shared.plan"),
+    SHARED_VOLUME("shared.volume"),
+    SHARED_NUTRITION("shared.nutrition"),
+    SHARED_COACH("shared.coach"),
     SHARED_HEALTH("shared.health"),
     SHARED_DATABASE("shared.database"),
     SHARED_SECURITY("shared.security"),
     SHARED_PLATFORM("shared.platform"),
+    SHARED_AI("shared.ai"),
+    SHARED_BACKUP("shared.backup"),
     SHARED_LOCALIZATION("shared.localization"),
     SHARED_STATE("shared.state"),
+    SHARED_CHARTS("shared.charts"),
+    SHARED_DESIGN("shared.design"),
     FEATURE_EXERCISE("feature.exercise"),
     FEATURE_WORKOUT("feature.workout"),
     FEATURE_HEALTH("feature.health"),
     FEATURE_SETTINGS("feature.settings"),
     FEATURE_PROGRESS("feature.progress"),
     FEATURE_PLAN("feature.plan"),
-    FEATURE_HISTORY("feature.history");
+    FEATURE_VOLUME("feature.volume"),
+    FEATURE_NUTRITION("feature.nutrition"),
+    FEATURE_COACH("feature.coach"),
+    FEATURE_AI("feature.ai");
 
     val group: Group
         get() = Group.entries.single { it.path == path.substringBefore('.') }
+
+    val isAi: Boolean
+        get() = path.substringAfter('.') == "ai"
 
     val rootPackage: String
         get() = "$BASE_PACKAGE.$path"

@@ -3,7 +3,7 @@ package com.github.sebastianp265.aitrainer.feature.health.impl
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.github.sebastianp265.aitrainer.integration.health.HealthConnectAccess
 import com.github.sebastianp265.aitrainer.integration.health.HealthConnectAvailability
 import com.github.sebastianp265.aitrainer.integration.health.HealthDataSource
@@ -15,97 +15,98 @@ import com.github.sebastianp265.aitrainer.integration.health.HealthDataType.REST
 import com.github.sebastianp265.aitrainer.integration.health.HealthDataType.SLEEP
 import com.github.sebastianp265.aitrainer.integration.health.HealthDataType.STEPS
 import com.github.sebastianp265.aitrainer.integration.health.HealthDataType.WEIGHT
-import com.github.sebastianp265.aitrainer.integration.health.HealthDataType.WORKOUTS
 import com.github.sebastianp265.aitrainer.integration.health.HealthDay
 import com.github.sebastianp265.aitrainer.integration.health.HealthService
 import com.github.sebastianp265.aitrainer.integration.health.HealthStatus
-import com.github.sebastianp265.aitrainer.integration.health.HealthWorkout
 import com.github.sebastianp265.aitrainer.integration.health.NutritionTotals
-import com.github.sebastianp265.aitrainer.shared.health.HealthDao
-import com.github.sebastianp265.aitrainer.shared.health.HealthDayEntity
-import com.github.sebastianp265.aitrainer.shared.health.HealthWorkoutEntity
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.datetime.DatePeriod
+import kotlinx.coroutines.flow.update
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
-import kotlinx.datetime.minus
-import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
-import kotlin.time.Clock
-import kotlin.time.Instant
+
+internal class HealthReloads {
+    private val reloads = MutableStateFlow(0)
+    val count: StateFlow<Int> = reloads.asStateFlow()
+
+    fun next() = reloads.update { it + 1 }
+}
 
 internal class DefaultHealthService(
     private val dataSource: HealthDataSource,
-    private val dao: HealthDao,
     private val preferences: DataStore<Preferences>,
-    private val clock: Clock,
+    private val reloads: HealthReloads,
     private val zone: TimeZone,
 ) : HealthService {
 
-    private val lastSyncKey = longPreferencesKey("last_sync_epoch_millis")
-
-    override val permissionsToRequest: Set<String> get() = dataSource.permissionsToRequest
+    private val disabledTypesKey = stringSetPreferencesKey("disabled_types")
 
     override suspend fun status(): HealthStatus = when (dataSource.availability()) {
         HealthConnectAvailability.UNAVAILABLE -> HealthStatus(HealthConnectAccess.UNAVAILABLE, emptySet(), false)
         HealthConnectAvailability.UPDATE_REQUIRED -> HealthStatus(HealthConnectAccess.UPDATE_REQUIRED, emptySet(), false)
         HealthConnectAvailability.AVAILABLE -> {
-            val granted = dataSource.grantedTypes()
-            val access = if (granted.isEmpty()) HealthConnectAccess.NOT_CONNECTED else HealthConnectAccess.CONNECTED
-            HealthStatus(access, granted, dataSource.hasHistoryPermission())
+            val enabled = enabledTypes()
+            val access = if (enabled.isEmpty()) HealthConnectAccess.NOT_CONNECTED else HealthConnectAccess.CONNECTED
+            HealthStatus(access, enabled, dataSource.missingHistoryPermissions().isEmpty())
         }
     }
 
-    override suspend fun sync() {
-        val status = status()
-        if (status.access != HealthConnectAccess.CONNECTED) return
-        val today = clock.todayIn(zone)
-        val isFirstSync = observeLastSync().first() == null
-        val firstDay = today.minus(DatePeriod(days = daysToRead(isFirstSync, status.hasHistoryPermission) - 1))
-        syncDays(status.grantedTypes, firstDay, today)
-        if (WORKOUTS in status.grantedTypes) syncWorkouts(firstDay, today)
-        preferences.edit { it[lastSyncKey] = clock.now().toEpochMilliseconds() }
+    override suspend fun enable(type: HealthDataType): Set<String> {
+        setDisabled(type, false)
+        return dataSource.missingPermissions(type)
     }
+
+    override suspend fun disable(type: HealthDataType) = setDisabled(type, true)
+
+    override suspend fun missingHistoryPermissions(): Set<String> = dataSource.missingHistoryPermissions()
+
+    override fun reload() = reloads.next()
 
     override fun observeDays(from: LocalDate, toInclusive: LocalDate): Flow<List<HealthDay>> =
-        dao.observeDays(from, toInclusive).map { days -> days.map { it.toModel() } }
+        reloads.count.map { readOrNothing { readDays(from, toInclusive) } }
 
-    override fun observeWorkouts(): Flow<List<HealthWorkout>> =
-        dao.observeWorkouts().map { workouts -> workouts.map { it.toModel() } }
-
-    override fun observeLastSync(): Flow<Instant?> =
-        preferences.data.map { data -> data[lastSyncKey]?.let(Instant::fromEpochMilliseconds) }
-
-    private fun daysToRead(isFirstSync: Boolean, hasHistory: Boolean): Int = when {
-        !isFirstSync -> RESYNC_DAYS
-        hasHistory -> FIRST_SYNC_DAYS_WITH_HISTORY
-        else -> FIRST_SYNC_DAYS
+    private suspend fun setDisabled(type: HealthDataType, disabled: Boolean) {
+        preferences.edit { data ->
+            val types = data.disabledTypes().let { if (disabled) it + type else it - type }
+            data[disabledTypesKey] = types.map { it.name }.toSet()
+        }
+        reload()
     }
 
-    private suspend fun syncDays(granted: Set<HealthDataType>, from: LocalDate, today: LocalDate) {
-        val readings = DayReadings.read(dataSource, granted, from, today, zone)
-        val existing = dao.getDays(from, today).associateBy { it.date }
-        val window = generateSequence(from) { it.plus(DatePeriod(days = 1)).takeIf { next -> next <= today } }.toList()
-        val rows = window
-            .map { date -> readings.applyTo(existing[date] ?: HealthDayEntity.empty(date), date, granted) }
-            .filterNot { it.isEmpty() }
-        dao.replaceDays(window, rows)
+    private suspend fun enabledTypes(): Set<HealthDataType> =
+        if (dataSource.availability() == HealthConnectAvailability.AVAILABLE) {
+            dataSource.grantedTypes() - preferences.data.first().disabledTypes()
+        } else {
+            emptySet()
+        }
+
+    private suspend fun readDays(from: LocalDate, toInclusive: LocalDate): List<HealthDay> {
+        val enabled = enabledTypes()
+        if (enabled.isEmpty()) return emptyList()
+        val readings = DayReadings.read(dataSource, enabled, from, toInclusive, zone)
+        return readings.dates()
+            .filter { it in from..toInclusive }
+            .sortedDescending()
+            .map(readings::dayOf)
+            .filter { it.hasAnyValue() }
     }
 
-    private suspend fun syncWorkouts(from: LocalDate, today: LocalDate) {
-        val workouts = dataSource.readWorkouts(from, today)
-            .filterNot { it.writtenByThisApp }
-            .map { HealthWorkoutEntity(0, it.type, it.startedAt, it.durationMinutes, it.distanceM, it.kcal, it.averageHeartRate) }
-        dao.replaceWorkouts(from.atStartOfDayIn(zone), today.plus(DatePeriod(days = 1)).atStartOfDayIn(zone), workouts)
+    private suspend fun <T> readOrNothing(read: suspend () -> List<T>): List<T> = try {
+        read()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (_: Exception) {
+        emptyList()
     }
 
-    private companion object {
-        const val RESYNC_DAYS = 14
-        const val FIRST_SYNC_DAYS = 30
-        const val FIRST_SYNC_DAYS_WITH_HISTORY = 365
+    private fun Preferences.disabledTypes(): Set<HealthDataType> {
+        val names = this[disabledTypesKey] ?: emptySet()
+        return HealthDataType.entries.filter { it.name in names }.toSet()
     }
 }
 
@@ -118,53 +119,53 @@ private class DayReadings(
     val restingHeartRates: Map<LocalDate, Double>,
     val heartRateVariabilities: Map<LocalDate, Double>,
 ) {
-    fun applyTo(base: HealthDayEntity, date: LocalDate, granted: Set<HealthDataType>): HealthDayEntity {
-        var row = base
-        if (NUTRITION in granted) {
-            val totals = nutrition[date]
-            row = row.copy(
-                kcalEaten = totals?.kcal,
-                proteinG = totals?.proteinG,
-                carbsG = totals?.carbsG,
-                sugarG = totals?.sugarG,
-                fatG = totals?.fatG,
-                saturatedFatG = totals?.saturatedFatG,
-                fiberG = totals?.fiberG,
-                sodiumMg = totals?.sodiumMg,
-            )
-        }
-        if (CALORIES_BURNED in granted) row = row.copy(kcalBurned = caloriesBurned[date])
-        if (STEPS in granted) row = row.copy(steps = steps[date])
-        if (WEIGHT in granted) row = row.copy(weightKg = weights[date])
-        if (SLEEP in granted) row = row.copy(sleepMinutes = sleep[date])
-        if (RESTING_HEART_RATE in granted) row = row.copy(restingHeartRate = restingHeartRates[date])
-        if (HEART_RATE_VARIABILITY in granted) row = row.copy(hrvMs = heartRateVariabilities[date])
-        return row
+    fun dates(): Set<LocalDate> =
+        nutrition.keys + caloriesBurned.keys + steps.keys + weights.keys + sleep.keys + restingHeartRates.keys + heartRateVariabilities.keys
+
+    fun dayOf(date: LocalDate): HealthDay {
+        val totals = nutrition[date]
+        return HealthDay(
+            date = date,
+            kcalEaten = totals?.kcal,
+            proteinG = totals?.proteinG,
+            carbsG = totals?.carbsG,
+            sugarG = totals?.sugarG,
+            fatG = totals?.fatG,
+            saturatedFatG = totals?.saturatedFatG,
+            fiberG = totals?.fiberG,
+            sodiumMg = totals?.sodiumMg,
+            kcalBurned = caloriesBurned[date],
+            weightKg = weights[date],
+            steps = steps[date],
+            sleepMinutes = sleep[date],
+            restingHeartRate = restingHeartRates[date],
+            hrvMs = heartRateVariabilities[date],
+        )
     }
 
     companion object {
         suspend fun read(
             source: HealthDataSource,
-            granted: Set<HealthDataType>,
+            enabled: Set<HealthDataType>,
             from: LocalDate,
             to: LocalDate,
             zone: TimeZone,
         ) = DayReadings(
-            nutrition = if (NUTRITION in granted) source.readNutrition(from, to).associateBy { it.date } else emptyMap(),
-            caloriesBurned = if (CALORIES_BURNED in granted) {
+            nutrition = if (NUTRITION in enabled) source.readNutrition(from, to).associateBy { it.date } else emptyMap(),
+            caloriesBurned = if (CALORIES_BURNED in enabled) {
                 source.readCaloriesBurned(from, to).associate { it.date to it.amount }
             } else {
                 emptyMap()
             },
-            steps = if (STEPS in granted) source.readSteps(from, to).associate { it.date to it.amount } else emptyMap(),
-            weights = if (WEIGHT in granted) HealthDayRules.lastOfDay(source.readWeights(from, to), zone) else emptyMap(),
-            sleep = if (SLEEP in granted) HealthDayRules.sleepOnWakingDay(source.readSleep(from, to), zone) else emptyMap(),
-            restingHeartRates = if (RESTING_HEART_RATE in granted) {
+            steps = if (STEPS in enabled) source.readSteps(from, to).associate { it.date to it.amount } else emptyMap(),
+            weights = if (WEIGHT in enabled) HealthDayRules.lastOfDay(source.readWeights(from, to), zone) else emptyMap(),
+            sleep = if (SLEEP in enabled) HealthDayRules.sleepOnWakingDay(source.readSleep(from, to), zone) else emptyMap(),
+            restingHeartRates = if (RESTING_HEART_RATE in enabled) {
                 HealthDayRules.averageOfDay(source.readRestingHeartRates(from, to), zone)
             } else {
                 emptyMap()
             },
-            heartRateVariabilities = if (HEART_RATE_VARIABILITY in granted) {
+            heartRateVariabilities = if (HEART_RATE_VARIABILITY in enabled) {
                 HealthDayRules.averageOfDay(source.readHeartRateVariabilities(from, to), zone)
             } else {
                 emptyMap()
@@ -173,10 +174,6 @@ private class DayReadings(
     }
 }
 
-private fun HealthDayEntity.toModel() = HealthDay(
-    date, kcalEaten, proteinG, carbsG, sugarG, fatG, saturatedFatG, fiberG, sodiumMg,
-    kcalBurned, weightKg, steps, sleepMinutes, restingHeartRate, hrvMs,
-)
-
-private fun HealthWorkoutEntity.toModel() =
-    HealthWorkout(type, startedAt, durationMinutes, distanceM, kcal, averageHeartRate)
+private fun HealthDay.hasAnyValue(): Boolean =
+    listOf(kcalEaten, kcalBurned, steps, sleepMinutes).any { it != null } ||
+        listOf(proteinG, carbsG, sugarG, fatG, saturatedFatG, fiberG, sodiumMg, weightKg, restingHeartRate, hrvMs).any { it != null }

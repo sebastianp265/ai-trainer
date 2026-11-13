@@ -5,9 +5,6 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.aggregate.AggregateMetric
 import androidx.health.connect.client.aggregate.AggregationResultGroupedByPeriod
 import androidx.health.connect.client.permission.HealthPermission
-import androidx.health.connect.client.records.DistanceRecord
-import androidx.health.connect.client.records.ExerciseSessionRecord
-import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.HeartRateVariabilityRmssdRecord
 import androidx.health.connect.client.records.NutritionRecord
 import androidx.health.connect.client.records.Record
@@ -17,11 +14,9 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.records.WeightRecord
 import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
-import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
 import com.github.sebastianp265.aitrainer.integration.health.DailyAmount
-import com.github.sebastianp265.aitrainer.integration.health.ExternalWorkoutReading
 import com.github.sebastianp265.aitrainer.integration.health.HealthConnectAvailability
 import com.github.sebastianp265.aitrainer.integration.health.HealthDataSource
 import com.github.sebastianp265.aitrainer.integration.health.HealthDataType
@@ -48,13 +43,7 @@ internal class HealthConnectDataSource(private val context: Context) : HealthDat
         HealthDataType.SLEEP to read(SleepSessionRecord::class),
         HealthDataType.RESTING_HEART_RATE to read(RestingHeartRateRecord::class),
         HealthDataType.HEART_RATE_VARIABILITY to read(HeartRateVariabilityRmssdRecord::class),
-        HealthDataType.WORKOUTS to read(ExerciseSessionRecord::class),
     )
-
-    private val workoutDetailPermissions = setOf(read(DistanceRecord::class), read(HeartRateRecord::class))
-
-    override val permissionsToRequest: Set<String> =
-        permissionByType.values.toSet() + workoutDetailPermissions + HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY
 
     private val client by lazy { HealthConnectClient.getOrCreate(context) }
 
@@ -69,8 +58,11 @@ internal class HealthConnectDataSource(private val context: Context) : HealthDat
         return permissionByType.filterValues { it in granted }.keys
     }
 
-    override suspend fun hasHistoryPermission(): Boolean =
-        HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY in grantedPermissions()
+    override suspend fun missingPermissions(type: HealthDataType): Set<String> =
+        setOf(permissionByType.getValue(type)) - grantedPermissions()
+
+    override suspend fun missingHistoryPermissions(): Set<String> =
+        setOf(HealthPermission.PERMISSION_READ_HEALTH_DATA_HISTORY) - grantedPermissions()
 
     override suspend fun readNutrition(from: LocalDate, toInclusive: LocalDate): List<NutritionTotals> =
         dailyBuckets(
@@ -126,45 +118,6 @@ internal class HealthConnectDataSource(private val context: Context) : HealthDat
         readAll<HeartRateVariabilityRmssdRecord>(from, toInclusive)
             .map { TimedValue(it.time.toKotlin(), it.heartRateVariabilityMillis) }
 
-    override suspend fun readWorkouts(from: LocalDate, toInclusive: LocalDate): List<ExternalWorkoutReading> {
-        val granted = grantedPermissions()
-        return readAll<ExerciseSessionRecord>(from, toInclusive).map { session ->
-            val details = workoutDetails(session, granted)
-            ExternalWorkoutReading(
-                type = exerciseTypeName(session.exerciseType),
-                startedAt = session.startTime.toKotlin(),
-                durationMinutes = Duration.between(session.startTime, session.endTime).toMinutes().toInt(),
-                distanceM = details.distanceM,
-                kcal = details.kcal,
-                averageHeartRate = details.averageHeartRate,
-                writtenByThisApp = session.metadata.dataOrigin.packageName == context.packageName,
-            )
-        }
-    }
-
-    private class WorkoutDetails(val distanceM: Double?, val kcal: Int?, val averageHeartRate: Int?)
-
-    private suspend fun workoutDetails(session: ExerciseSessionRecord, granted: Set<String>): WorkoutDetails {
-        val metrics = buildSet<AggregateMetric<*>> {
-            if (read(DistanceRecord::class) in granted) add(DistanceRecord.DISTANCE_TOTAL)
-            if (read(TotalCaloriesBurnedRecord::class) in granted) add(TotalCaloriesBurnedRecord.ENERGY_TOTAL)
-            if (read(HeartRateRecord::class) in granted) add(HeartRateRecord.BPM_AVG)
-        }
-        if (metrics.isEmpty()) return WorkoutDetails(null, null, null)
-        val result = client.aggregate(
-            AggregateRequest(
-                metrics = metrics,
-                timeRangeFilter = TimeRangeFilter.between(session.startTime, session.endTime),
-                dataOriginFilter = setOf(session.metadata.dataOrigin),
-            ),
-        )
-        return WorkoutDetails(
-            distanceM = result[DistanceRecord.DISTANCE_TOTAL]?.inMeters,
-            kcal = result[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories?.roundToInt(),
-            averageHeartRate = result[HeartRateRecord.BPM_AVG]?.toInt(),
-        )
-    }
-
     private suspend fun grantedPermissions(): Set<String> =
         if (availability() == HealthConnectAvailability.AVAILABLE) client.permissionController.getGrantedPermissions() else emptySet()
 
@@ -200,27 +153,6 @@ internal class HealthConnectDataSource(private val context: Context) : HealthDat
             pageToken = response.pageToken
         } while (pageToken != null)
         return records
-    }
-
-    private fun exerciseTypeName(type: Int): String = when (type) {
-        ExerciseSessionRecord.EXERCISE_TYPE_RUNNING -> "running"
-        ExerciseSessionRecord.EXERCISE_TYPE_RUNNING_TREADMILL -> "running_treadmill"
-        ExerciseSessionRecord.EXERCISE_TYPE_BIKING -> "biking"
-        ExerciseSessionRecord.EXERCISE_TYPE_BIKING_STATIONARY -> "biking_stationary"
-        ExerciseSessionRecord.EXERCISE_TYPE_WALKING -> "walking"
-        ExerciseSessionRecord.EXERCISE_TYPE_HIKING -> "hiking"
-        ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_POOL -> "swimming_pool"
-        ExerciseSessionRecord.EXERCISE_TYPE_SWIMMING_OPEN_WATER -> "swimming_open_water"
-        ExerciseSessionRecord.EXERCISE_TYPE_ROWING -> "rowing"
-        ExerciseSessionRecord.EXERCISE_TYPE_ROWING_MACHINE -> "rowing_machine"
-        ExerciseSessionRecord.EXERCISE_TYPE_ELLIPTICAL -> "elliptical"
-        ExerciseSessionRecord.EXERCISE_TYPE_YOGA -> "yoga"
-        ExerciseSessionRecord.EXERCISE_TYPE_PILATES -> "pilates"
-        ExerciseSessionRecord.EXERCISE_TYPE_STRETCHING -> "stretching"
-        ExerciseSessionRecord.EXERCISE_TYPE_WEIGHTLIFTING -> "weightlifting"
-        ExerciseSessionRecord.EXERCISE_TYPE_STRENGTH_TRAINING -> "strength_training"
-        ExerciseSessionRecord.EXERCISE_TYPE_HIGH_INTENSITY_INTERVAL_TRAINING -> "high_intensity_interval_training"
-        else -> "other"
     }
 
     private fun java.time.Instant.toKotlin(): Instant = Instant.fromEpochMilliseconds(toEpochMilli())

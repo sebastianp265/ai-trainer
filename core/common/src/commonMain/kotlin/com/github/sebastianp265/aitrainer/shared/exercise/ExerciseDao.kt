@@ -1,28 +1,51 @@
 package com.github.sebastianp265.aitrainer.shared.exercise
 
 import androidx.room.Dao
+import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 internal interface ExerciseDao {
     @Query("SELECT * FROM exercise")
-    suspend fun exercises(): List<ExerciseEntity>
+    fun observeExercises(): Flow<List<ExerciseEntity>>
 
     @Query("SELECT * FROM exercise_translation")
-    suspend fun exerciseTranslations(): List<ExerciseTranslationEntity>
+    fun observeExerciseTranslations(): Flow<List<ExerciseTranslationEntity>>
 
     @Query("SELECT * FROM exercise_muscle")
-    suspend fun exerciseMuscles(): List<ExerciseMuscleEntity>
+    fun observeExerciseMuscles(): Flow<List<ExerciseMuscleEntity>>
 
     @Query("SELECT * FROM muscle_group")
-    suspend fun muscleGroups(): List<MuscleGroupEntity>
+    fun observeMuscleGroups(): Flow<List<MuscleGroupEntity>>
 
     @Query("SELECT * FROM muscle_group_translation")
-    suspend fun muscleGroupTranslations(): List<MuscleGroupTranslationEntity>
+    fun observeMuscleGroupTranslations(): Flow<List<MuscleGroupTranslationEntity>>
 
     @Query("SELECT * FROM equipment")
-    suspend fun equipment(): List<EquipmentEntity>
+    fun observeEquipment(): Flow<List<EquipmentEntity>>
 
     @Query("SELECT * FROM equipment_translation")
-    suspend fun equipmentTranslations(): List<EquipmentTranslationEntity>
+    fun observeEquipmentTranslations(): Flow<List<EquipmentTranslationEntity>>
+
+    @Insert
+    suspend fun insertExercise(exercise: ExerciseEntity)
+
+    @Insert
+    suspend fun insertTranslation(translation: ExerciseTranslationEntity)
+
+    @Insert
+    suspend fun insertMuscles(muscles: List<ExerciseMuscleEntity>)
+
+    @Transaction
+    suspend fun insertExerciseWithMuscles(
+        exercise: ExerciseEntity,
+        translation: ExerciseTranslationEntity,
+        muscles: List<ExerciseMuscleEntity>,
+    ) {
+        insertExercise(exercise)
+        insertTranslation(translation)
+        insertMuscles(muscles)
+    }
 }

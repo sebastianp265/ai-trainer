@@ -8,6 +8,7 @@ data class WorkoutSession(
     val date: LocalDate,
     val startedAt: Instant,
     val finishedAt: Instant?,
-    val planSessionRef: String?,
+    val planId: Long?,
     val notes: String?,
+    val editedSessionId: Long?,
 )

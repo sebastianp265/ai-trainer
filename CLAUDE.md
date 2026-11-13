@@ -1,10 +1,10 @@
 # AI Trainer — Android app
 
-Personal, single-user Android app that acts as an AI personal trainer. The only required data is the gym workouts logged in the app. Everything else comes from Health Connect (calories eaten and burned, nutrition, body weight, steps, sleep, resting heart rate, HRV, workouts from other apps), whichever apps write it there, and is optional: the app and the coach work with whatever is available. The AI coach (Claude API) talks to me in a chat and has tools to read my data and change the app: it writes planned workouts (exercises, sets, target weights and reps) and adjusts them when I reply. Nothing changes automatically; I decide in the chat. I start a workout from a plan in the Log, add or remove sets while training, and the sets saved at the end are what I did.
+Personal, single-user Android app that acts as an AI personal trainer. The only required data is the gym workouts logged in the app. Everything else comes from Health Connect (calories eaten and burned, nutrition, body weight, steps, sleep, resting heart rate, HRV), whichever apps write it there, and is optional: the app and the coach work with whatever is available. The AI coach (Claude API) talks to me in a chat and has tools to read my data and change the app: it writes planned workouts (exercises, sets, target weights and reps) and adjusts them when I reply. Nothing changes automatically; I decide in the chat. I start a workout from a plan in the Log, add or remove sets while training, and the sets saved at the end are what I did.
 
 ## Current phase
 
-**Phase 5: training, plans and weekly sets, without the coach.** The tasks, their order and how to work through them without asking are in `docs/plan.md`. What the app must do is in `docs/requirements.md`; the mockups of every screen are in `docs/design/`. Finish each phase in a working, runnable state (builds, tests pass, app launches), then summarize what was done and what I should check manually.
+**Phase 7: weekly review, backup, polish (done; all phases ticked).** The tasks, their order and how to work through them without asking are in `docs/plan.md`. What the app must do is in `docs/requirements.md`; the look is defined by the app itself (`AITrainerTheme`, `shared.design`). Finish each phase in a working, runnable state (builds, tests pass, app launches), then summarize what was done and what I should check manually.
 
 `docs/status.md` tells me how to run the app, what works and what doesn't. Update it at the end of each phase and whenever a change affects what I'd see when running the app (new or removed screens/features, known bugs, things to verify manually).
 
@@ -30,7 +30,7 @@ One shared library (the `core` modules) plus one application module per platform
 | `:core:common` (`core/common/`)           | Pure Kotlin Multiplatform library (JVM target for now): the `integration` contract, feature logic, the Room database, Koin modules. Depends on no Gradle module.       |
 | `:core:android` (`core/android/`)         | Android implementations of the platform interfaces from `:core:common`'s `integration` (Keystore, Health Connect, Room/DataStore builders). Depends on `:core:common`. |
 | `:androidApp` (`androidApp/`)             | Android application, frontend only: screens, ViewModels, navigation, resources. Depends on both `core` modules, but uses only their `integration` package.             |
-| `:architectureTest` (`architectureTest/`) | Kotlin/JVM, tests only: the Konsist architecture rules. Depends on no other Gradle module.                                                                             |
+| `:architectureTest` (`architectureTest/`) | Kotlin/JVM, tests only: the Konsist architecture rules and the conventions. Depends on no other Gradle module.                                                         |
 
 ## Package modules (the same in every Gradle module)
 
@@ -64,6 +64,8 @@ Every domain has the same name in all three groups: `integration.workout`, `shar
 
 Nothing may depend on `feature.app` or `integration.module`. No cycles between package modules.
 
+`ai` (`integration.ai`, `feature.ai`, `shared.ai`) is a plug-in behind the coach: only itself, `feature.app`, `integration.module` and `shared.database` may depend on it. The coach (`integration.coach`, `feature.coach`) knows only `CoachResponder`, the port that answers in the chat, so what answers (a model, a person, a rule engine) is chosen in `integration.module`.
+
 ### Where to put new code
 
 | New thing                                           | Goes to                                                                  |
@@ -88,18 +90,18 @@ Run Gradle from the project root. On this Windows machine the wrapper is `./grad
 
 | Goal                                                                                                                                                             | Command                                                                                                               |
 |------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
-| **Fast check while working:** every quick JVM test (architecture rules + core and app unit tests)                                                                       | `./gradlew.bat unitTest`                                                                                              |
 | Build everything and check it (compiles every module, unit tests, architecture tests, lint, release build); slow, run it before a commit, not after every change | `./gradlew.bat build`                                                                                                 |
 | Run the app on a device or emulator                                                                                                                              | Android Studio: pick a device, run the `androidApp` configuration. Terminal: `./gradlew.bat :androidApp:installDebug` |
 | Architecture rules only                                                                                                                                          | `./gradlew.bat :architectureTest:test`                                                                                |
 | Core unit tests (Room, sync, rules) | `./gradlew.bat :core:common:jvmTest` |
+| Android core unit tests (Claude client) | `./gradlew.bat :core:android:testDebugUnitTest` |
 | App unit tests (Koin graph, UI logic) | `./gradlew.bat :androidApp:testDebugUnitTest` |
 | Instrumented tests of the Android core (Keystore, exercise seed); emulator only                                                                                  | `./gradlew.bat :core:android:connectedDebugAndroidTest`                                                               |
 | End-to-end tests; emulator only, they uninstall the app and delete its data                                                                                      | `./gradlew.bat :androidApp:connectedDebugAndroidTest`                                                                 |
 | Compile the instrumented tests without a device                                                                                                                  | `./gradlew.bat :androidApp:compileDebugAndroidTestKotlin :core:android:compileDebugAndroidTestKotlin`                 |
 | One test class                                                                                                                                                   | add `--tests "*ClassName"` to a test task                                                                             |
 
-Don't run `clean` by default: it throws away Gradle's incremental work and makes every build take minutes. Use it only when a build looks stale or after moving files between modules. After a change run the narrowest task that covers it (`unitTest`, or one modules compile task).
+Don't run `clean` by default: it throws away Gradle's incremental work and makes every build take minutes. Use it only when a build looks stale or after moving files between modules. After a change run the narrowest task that covers it (one module's test or compile task).
 
 The SDK levels (`compileSdk`, `minSdk`, `targetSdk`) and the Java version are set once, in the root `build.gradle.kts`; module build files don't repeat them.
 
@@ -107,8 +109,11 @@ The emulator needs API 34+ with a *Google Play* image (Health Connect is built i
 
 ## Conventions
 
-- Placing multiple declarations (classes, top-level functions or properties) in the same Kotlin source file is encouraged as long as these declarations are closely related to each other semantically and the file size remains reasonable (not exceeding a few hundred lines).
-- **No comments in code** (Kotlin, XML, Gradle, tests). When something isn't clear, rename, extract a well-named function/constant/type, or restructure. Explain Android concepts and design reasons in your reply.
+The conventions a test can check are the test names in `ConventionsUTest` (`architectureTest`); keep them passing. Beyond them:
+
+- Closely related declarations share one Kotlin file.
+- When code needs a comment, rename, extract a well-named function/constant/type, or restructure instead. Explain Android concepts and design reasons in your reply.
+- Back returns to the previous screen or view; only back on the start tab leaves the app, and ongoing work (a running workout) stays reachable from where back leads.
 - Commit-sized changes; don't refactor unrelated code.
 - Never commit secrets, keystores or `local.properties`.
 - `.idea` is a whitelist in `.gitignore` (`/.idea/*` plus `!` exceptions); add a line there to share another IDE file.

@@ -10,4 +10,6 @@ data class SessionSummary(
     val finishedAt: Instant?,
     val exerciseCount: Int,
     val setCount: Int,
+    val planId: Long?,
+    val planName: String?,
 )

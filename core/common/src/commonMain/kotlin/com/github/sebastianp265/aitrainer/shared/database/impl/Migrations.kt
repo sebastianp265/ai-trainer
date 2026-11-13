@@ -1,0 +1,84 @@
+package com.github.sebastianp265.aitrainer.shared.database.impl
+
+import androidx.room.DeleteColumn
+import androidx.room.DeleteTable
+import androidx.room.RenameTable
+import androidx.room.migration.AutoMigrationSpec
+import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
+import androidx.sqlite.execSQL
+
+internal val migration7To8 = object : Migration(7, 8) {
+    override fun migrate(connection: SQLiteConnection) {
+        listOf(
+            "INSERT OR IGNORE INTO muscle_group (key) VALUES ('BACK'), ('LEGS'), ('SHOULDERS'), ('ARMS')",
+            """
+            INSERT OR REPLACE INTO muscle_group_translation (muscleGroupKey, language, name) VALUES
+            ('CHEST', 'en', 'Chest'), ('CHEST', 'pl', 'Klatka'), ('BACK', 'en', 'Back'), ('BACK', 'pl', 'Plecy'),
+            ('LEGS', 'en', 'Legs'), ('LEGS', 'pl', 'Nogi'), ('SHOULDERS', 'en', 'Shoulders'), ('SHOULDERS', 'pl', 'Barki'),
+            ('ARMS', 'en', 'Arms'), ('ARMS', 'pl', 'Ramiona'), ('ABS', 'en', 'Abs'), ('ABS', 'pl', 'Brzuch')
+            """,
+            "CREATE TEMP TABLE muscle_map (oldKey TEXT PRIMARY KEY, newKey TEXT NOT NULL)",
+            """
+            INSERT INTO muscle_map (oldKey, newKey) VALUES
+            ('CHEST', 'CHEST'), ('LATS', 'BACK'), ('UPPER_BACK', 'BACK'), ('LOWER_BACK', 'BACK'), ('TRAPS', 'BACK'),
+            ('FRONT_DELTS', 'SHOULDERS'), ('SIDE_DELTS', 'SHOULDERS'), ('REAR_DELTS', 'SHOULDERS'),
+            ('BICEPS', 'ARMS'), ('TRICEPS', 'ARMS'), ('FOREARMS', 'ARMS'), ('ABS', 'ABS'), ('OBLIQUES', 'ABS'),
+            ('GLUTES', 'LEGS'), ('QUADS', 'LEGS'), ('HAMSTRINGS', 'LEGS'), ('ADDUCTORS', 'LEGS'), ('CALVES', 'LEGS')
+            """,
+            """
+            CREATE TEMP TABLE new_primary AS
+            SELECT em.exerciseKey AS exerciseKey, m.newKey AS muscleGroupKey, 1 AS isPrimary, MIN(em.rowid) AS firstRow
+            FROM exercise_muscle em JOIN muscle_map m ON m.oldKey = em.muscleGroupKey
+            WHERE em.isPrimary = 1
+            GROUP BY em.exerciseKey
+            """,
+            """
+            CREATE TEMP TABLE new_secondary AS
+            SELECT DISTINCT em.exerciseKey AS exerciseKey, m.newKey AS muscleGroupKey, 0 AS isPrimary
+            FROM exercise_muscle em JOIN muscle_map m ON m.oldKey = em.muscleGroupKey
+            WHERE NOT EXISTS (
+                SELECT 1 FROM new_primary p WHERE p.exerciseKey = em.exerciseKey AND p.muscleGroupKey = m.newKey
+            )
+            """,
+            "DELETE FROM exercise_muscle",
+            "INSERT INTO exercise_muscle (exerciseKey, muscleGroupKey, isPrimary) SELECT exerciseKey, muscleGroupKey, isPrimary FROM new_primary ORDER BY firstRow",
+            "INSERT INTO exercise_muscle (exerciseKey, muscleGroupKey, isPrimary) SELECT exerciseKey, muscleGroupKey, isPrimary FROM new_secondary",
+            "DELETE FROM muscle_group_translation WHERE muscleGroupKey NOT IN ('CHEST', 'BACK', 'LEGS', 'SHOULDERS', 'ARMS', 'ABS')",
+            "DELETE FROM muscle_group WHERE key NOT IN ('CHEST', 'BACK', 'LEGS', 'SHOULDERS', 'ARMS', 'ABS')",
+            "INSERT OR IGNORE INTO equipment (key) VALUES ('OTHER')",
+            "INSERT OR IGNORE INTO equipment_translation (equipmentKey, language, name) VALUES ('OTHER', 'en', 'Other'), ('OTHER', 'pl', 'Inne')",
+            "DROP TABLE new_secondary",
+            "DROP TABLE new_primary",
+            "DROP TABLE muscle_map",
+        ).forEach(connection::execSQL)
+    }
+}
+
+internal val allMigrations = arrayOf(migration7To8)
+
+@DeleteColumn(tableName = "workout_session", columnName = "planSessionRef")
+internal class Migration8To9 : AutoMigrationSpec
+
+@DeleteTable(tableName = "coach_log")
+internal class Migration12To13 : AutoMigrationSpec
+
+@DeleteTable(tableName = "health_day")
+@DeleteTable(tableName = "health_workout")
+internal class Migration15To16 : AutoMigrationSpec {
+    override fun onPostMigrate(connection: SQLiteConnection) {
+        connection.execSQL("UPDATE coach_message SET topic_kind = NULL, topic_id = NULL, topic_label = NULL WHERE topic_kind = 'EXTERNAL_WORKOUT'")
+    }
+}
+
+@DeleteColumn(tableName = "plan", columnName = "date")
+internal class Migration17To18 : AutoMigrationSpec
+
+internal class Migration18To19 : AutoMigrationSpec {
+    override fun onPostMigrate(connection: SQLiteConnection) {
+        connection.execSQL("UPDATE plan SET position = id")
+    }
+}
+
+@RenameTable(fromTableName = "coach_usage", toTableName = "ai_usage")
+internal class Migration19To20 : AutoMigrationSpec

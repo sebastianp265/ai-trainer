@@ -1,7 +1,6 @@
 package com.github.sebastianp265.aitrainer.integration.health
 
 import kotlinx.datetime.LocalDate
-import kotlin.time.Instant
 
 data class HealthDay(
     val date: LocalDate,
@@ -19,13 +18,4 @@ data class HealthDay(
     val sleepMinutes: Int?,
     val restingHeartRate: Double?,
     val hrvMs: Double?,
-)
-
-data class HealthWorkout(
-    val type: String,
-    val startedAt: Instant,
-    val durationMinutes: Int,
-    val distanceM: Double?,
-    val kcal: Int?,
-    val averageHeartRate: Int?,
 )

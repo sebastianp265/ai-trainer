@@ -2,31 +2,47 @@ package com.github.sebastianp265.aitrainer.feature.settings.impl
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.github.sebastianp265.aitrainer.integration.settings.Secret
-import com.github.sebastianp265.aitrainer.integration.settings.SecretStore
 import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.datetime.LocalDate
+import kotlin.time.Instant
 
 internal class DefaultSettingsService(
     private val settings: DataStore<Preferences>,
-    private val secretStore: SecretStore,
 ) : SettingsService {
 
-    private val claudeModelKey = stringPreferencesKey("claude_model")
+    private val showTargetsKey = booleanPreferencesKey("show_targets")
+    private val coachEnabledKey = booleanPreferencesKey("coach_enabled")
+    private val lastReviewedWeekKey = stringPreferencesKey("last_reviewed_week")
+    private val lastExportKey = longPreferencesKey("last_export")
 
-    override fun observeClaudeModel(): Flow<String> =
-        settings.data.map { it[claudeModelKey]?.ifBlank { null } ?: SettingsService.DEFAULT_CLAUDE_MODEL }
+    override fun observeShowTargets(): Flow<Boolean> = settings.data.map { it[showTargetsKey] ?: true }
 
-    override suspend fun setClaudeModel(modelId: String) {
-        settings.edit { it[claudeModelKey] = modelId.trim() }
+    override suspend fun setShowTargets(show: Boolean) {
+        settings.edit { it[showTargetsKey] = show }
     }
 
-    override fun observeIsClaudeApiKeyStored(): Flow<Boolean> = secretStore.observeIsStored(Secret.CLAUDE_API_KEY)
+    override fun observeCoachEnabled(): Flow<Boolean> = settings.data.map { it[coachEnabledKey] ?: true }
 
-    override suspend fun saveClaudeApiKey(apiKey: String) = secretStore.write(Secret.CLAUDE_API_KEY, apiKey)
+    override fun observeLastReviewedWeek(): Flow<LocalDate?> = settings.data.map { preferences -> preferences[lastReviewedWeekKey]?.let(LocalDate::parse) }
 
-    override suspend fun removeClaudeApiKey() = secretStore.delete(Secret.CLAUDE_API_KEY)
+    override suspend fun setLastReviewedWeek(weekStart: LocalDate) {
+        settings.edit { it[lastReviewedWeekKey] = weekStart.toString() }
+    }
+
+    override fun observeLastExport(): Flow<Instant?> =
+        settings.data.map { preferences -> preferences[lastExportKey]?.let(Instant::fromEpochMilliseconds) }
+
+    override suspend fun setLastExport(at: Instant) {
+        settings.edit { it[lastExportKey] = at.toEpochMilliseconds() }
+    }
+
+    override suspend fun setCoachEnabled(enabled: Boolean) {
+        settings.edit { it[coachEnabledKey] = enabled }
+    }
 }

@@ -20,13 +20,3 @@ data class DailyAmount(val date: LocalDate, val amount: Int)
 data class TimedValue(val at: Instant, val value: Double)
 
 data class SleepSession(val endedAt: Instant, val minutes: Int)
-
-data class ExternalWorkoutReading(
-    val type: String,
-    val startedAt: Instant,
-    val durationMinutes: Int,
-    val distanceM: Double?,
-    val kcal: Int?,
-    val averageHeartRate: Int?,
-    val writtenByThisApp: Boolean,
-)

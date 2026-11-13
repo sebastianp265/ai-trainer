@@ -15,7 +15,7 @@ internal class KeystoreSecretStore(
     private val cipher: KeystoreAesGcmCipher,
 ) : SecretStore {
 
-    suspend fun read(secret: Secret): String? =
+    override suspend fun read(secret: Secret): String? =
         encryptedValues.data.first()[secret.preferenceKey()]?.let(cipher::decrypt)
 
     override suspend fun write(secret: Secret, value: String) {

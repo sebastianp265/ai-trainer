@@ -16,3 +16,23 @@ interface PreferencesStores {
 interface BundledFiles {
     fun read(path: String): String
 }
+
+const val DATABASE_SCHEMA_VERSION = 20
+
+const val OLDEST_MIGRATED_SCHEMA_VERSION = 6
+
+interface DatabaseBackup {
+    suspend fun export(destination: String): Boolean
+
+    suspend fun inspect(source: String): BackupContents?
+
+    suspend fun import(source: String): Boolean
+}
+
+data class BackupContents(
+    val schemaVersion: Int,
+    val workouts: Int,
+    val plans: Int,
+    val coachNotes: Int,
+    val coachMessages: Int,
+)

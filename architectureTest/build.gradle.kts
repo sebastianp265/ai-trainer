@@ -12,7 +12,13 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-    inputs.files(fileTree(rootDir) { include("*/src/**/*.kt", "*/*/src/**/*.kt") })
+    systemProperty("projectRoot", rootDir.absolutePath)
+    inputs.files(
+        fileTree(rootDir) {
+            include("*/src/**/*.kt", "*/*/src/**/*.kt", "*/src/**/*.xml", "*/*/src/**/*.xml", "**/*.kts")
+            exclude("**/build/**")
+        },
+    )
         .withPathSensitivity(PathSensitivity.RELATIVE)
         .withPropertyName("projectSources")
 }

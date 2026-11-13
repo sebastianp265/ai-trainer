@@ -23,15 +23,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
+import com.github.sebastianp265.aitrainer.shared.design.CardLabel
+import androidx.compose.material3.Card
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.integration.health.HealthDay
-import com.github.sebastianp265.aitrainer.integration.health.HealthWorkout
 import com.github.sebastianp265.aitrainer.integration.workout.SessionSummary
-import com.github.sebastianp265.aitrainer.shared.health.externalWorkoutDetails
-import com.github.sebastianp265.aitrainer.shared.health.externalWorkoutTitle
 import com.github.sebastianp265.aitrainer.shared.localization.formatDateLong
 import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
 import kotlinx.datetime.LocalDate
-import kotlin.time.Instant
 
 @Composable
 internal fun DayDetailContent(state: DayDetailUiState?) {
@@ -41,12 +41,16 @@ internal fun DayDetailContent(state: DayDetailUiState?) {
     }
     val day = state.day
     LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize().testTag(DayDetailTags.DAY),
     ) {
-        item { Text(formatDateLong(state.date), style = MaterialTheme.typography.headlineSmall) }
-        item { Text(stringResource(R.string.day_detail_subtitle), style = MaterialTheme.typography.bodyMedium) }
+        item {
+            Column(Modifier.padding(vertical = 4.dp)) {
+                Text(formatDateLong(state.date), style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.day_detail_subtitle), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
         val calories = day?.calorieRows().orEmpty()
         if (calories.isNotEmpty()) section(R.string.day_section_calories, calories)
         val nutrition = day?.nutritionRows().orEmpty()
@@ -54,18 +58,19 @@ internal fun DayDetailContent(state: DayDetailUiState?) {
         val body = day?.bodyRows().orEmpty()
         if (body.isNotEmpty()) section(R.string.day_section_body, body)
         val activity = day?.stepsRow().orEmpty()
-        if (activity.isNotEmpty() || state.externalWorkouts.isNotEmpty() || state.gymSessions.isNotEmpty()) {
-            item { SectionTitle(R.string.day_section_activity) }
-            activity.forEach { item { DetailRow(it) } }
-            state.gymSessions.forEach { session -> item { GymRow(session) } }
-            state.externalWorkouts.forEach { workout -> item { ExternalRow(workout) } }
+        if (activity.isNotEmpty() || state.gymSessions.isNotEmpty()) {
+            item {
+                DetailCard(R.string.day_section_activity) {
+                    activity.forEach { DetailRow(it) }
+                    state.gymSessions.forEach { session -> GymRow(session) }
+                }
+            }
         }
     }
 }
 
 private fun androidx.compose.foundation.lazy.LazyListScope.section(@StringRes title: Int, rows: List<DetailLine>) {
-    item { SectionTitle(title) }
-    rows.forEach { row -> item { DetailRow(row) } }
+    item { DetailCard(title) { rows.forEach { DetailRow(it) } } }
 }
 
 internal data class DetailLine(@StringRes val label: Int, val value: @Composable () -> String, val indented: Boolean = false)
@@ -105,19 +110,26 @@ private fun kcal(value: Int, signed: Boolean = false) =
 private fun grams(value: Double) = stringResource(R.string.value_grams, formatNumber(value))
 
 @Composable
-private fun SectionTitle(@StringRes title: Int) {
-    Text(stringResource(title), style = MaterialTheme.typography.titleMedium, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+private fun DetailCard(@StringRes title: Int, content: @Composable () -> Unit) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            CardLabel(stringResource(title))
+            content()
+        }
+    }
 }
 
 @Composable
 private fun DetailRow(row: DetailLine) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+    val size = if (row.indented) 14.sp else 15.sp
+    val color = if (row.indented) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface
+    Row(Modifier.fillMaxWidth().padding(start = if (row.indented) 14.dp else 0.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(stringResource(row.label), style = MaterialTheme.typography.bodyLarge.copy(fontSize = size), color = color)
         Text(
-            stringResource(row.label),
-            style = if (row.indented) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(start = if (row.indented) 16.dp else 0.dp),
+            row.value(),
+            style = MaterialTheme.typography.bodyLarge.copy(fontSize = size, fontWeight = if (row.indented) FontWeight.Normal else FontWeight.Medium),
+            color = color,
         )
-        Text(row.value(), style = MaterialTheme.typography.titleSmall)
     }
 }
 
@@ -131,18 +143,8 @@ private fun GymRow(session: SessionSummary) {
                 pluralStringResource(R.plurals.exercise_count, session.exerciseCount, session.exerciseCount),
                 pluralStringResource(R.plurals.set_count, session.setCount, session.setCount),
             ),
-            style = MaterialTheme.typography.bodySmall,
-        )
-    }
-}
-
-@Composable
-private fun ExternalRow(workout: HealthWorkout) {
-    Column {
-        Text(externalWorkoutTitle(workout), style = MaterialTheme.typography.bodyMedium)
-        Text(
-            stringResource(R.string.workout_from_health_connect, externalWorkoutDetails(workout)),
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -165,7 +167,6 @@ private fun DayDetailContentPreview() {
                         LocalDate(2026, 11, 8), 2410, 172.0, 240.0, 58.0, 72.0, 21.0, 26.0, 2100.0,
                         2580, 82.5, 9120, 460, 53.0, 64.0,
                     ),
-                    externalWorkouts = listOf(HealthWorkout("running", Instant.parse("2026-11-08T07:40:00Z"), 42, 6800.0, 480, 148)),
                     gymSessions = emptyList(),
                 ),
             )
