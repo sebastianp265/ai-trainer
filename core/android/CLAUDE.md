@@ -1,13 +1,13 @@
 # :core:android
 
-Android library: implementations of the platform interfaces declared in `:core:common`'s `integration` (`SecretStore`, `HealthDataSource`, `DatabaseBuilders`, `PreferencesStores`, `BundledFiles`, `ClaudeClient`) and their Koin modules (`androidModules`).
+Android library: implementations of the platform interfaces declared in `:core:common`'s `integration` (`SecretStore`, `HealthDataSource`, `DatabaseBuilders`, `PreferencesStores`, `BundledFiles`, `AiClient`) and their Koin modules (`androidModules`).
 
 ## Layout
 
 - `shared.security`: Keystore-backed `SecretStore` (`impl` has the cipher and the store).
 - `shared.platform`: Room and DataStore builders and the bundled-file reader (`impl`).
 - `shared.health`: the Health Connect data source (`impl`).
-- `shared.claude`: `ClaudeClient` on the official Anthropic Java SDK (`impl`); the key is read from `SecretStore` on every request.
+- `shared.ai`: `AiClient` on the official Anthropic Java SDK (`impl`); the key is read from `SecretStore` on every request.
 
 ## Secret storage
 

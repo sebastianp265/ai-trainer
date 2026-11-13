@@ -1,5 +1,6 @@
 package com.github.sebastianp265.aitrainer.integration.coach
 
+import com.github.sebastianp265.aitrainer.integration.ai.AiFailureKind
 import kotlinx.coroutines.flow.Flow
 
 interface CoachService {
@@ -49,5 +50,5 @@ sealed interface CoachActivity {
 
     data class Working(val tool: String?) : CoachActivity
 
-    data class Failed(val kind: ClaudeFailureKind, val message: String) : CoachActivity
+    data class Failed(val kind: AiFailureKind, val message: String) : CoachActivity
 }

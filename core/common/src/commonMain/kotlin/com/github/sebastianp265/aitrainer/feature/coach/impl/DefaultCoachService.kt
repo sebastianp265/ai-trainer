@@ -10,12 +10,12 @@ import com.github.sebastianp265.aitrainer.integration.nutrition.NutritionTarget
 import com.github.sebastianp265.aitrainer.integration.nutrition.NutritionService
 import com.github.sebastianp265.aitrainer.integration.exercise.NewExercise
 import com.github.sebastianp265.aitrainer.integration.exercise.ExerciseService
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeClient
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeContent
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeMessage
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeResponse
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeResult
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeRole
+import com.github.sebastianp265.aitrainer.integration.ai.AiClient
+import com.github.sebastianp265.aitrainer.integration.ai.AiContent
+import com.github.sebastianp265.aitrainer.integration.ai.AiMessage
+import com.github.sebastianp265.aitrainer.integration.ai.AiResponse
+import com.github.sebastianp265.aitrainer.integration.ai.AiResult
+import com.github.sebastianp265.aitrainer.integration.ai.AiRole
 import com.github.sebastianp265.aitrainer.integration.coach.CoachActivity
 import com.github.sebastianp265.aitrainer.integration.coach.CoachMessage
 import com.github.sebastianp265.aitrainer.integration.coach.CoachNote
@@ -61,7 +61,7 @@ import kotlin.time.Clock
 import kotlin.time.Duration
 
 internal class DefaultCoachService(
-    private val claudeClient: () -> ClaudeClient,
+    private val claudeClient: () -> AiClient,
     private val settings: SettingsService,
     private val dao: CoachDao,
     private val toolbox: CoachToolbox,
@@ -137,29 +137,29 @@ internal class DefaultCoachService(
         val conversation = request.messages.toMutableList()
         repeat(MAX_TOOL_ROUNDS) {
             when (val result = claudeClient().send(request.copy(messages = conversation.toList()))) {
-                is ClaudeResult.Failure -> {
+                is AiResult.Failure -> {
                     activity.value = CoachActivity.Failed(result.kind, result.message)
                     return false
                 }
-                is ClaudeResult.Success -> {
+                is AiResult.Success -> {
                     val response = result.response
                     addUsage(response.inputTokens + response.cacheReadTokens + response.cacheWriteTokens, response.outputTokens)
                     run = run.after(response, clock.now() - startedAt)
                     lastRun.value = run
-                    val toolUses = result.response.content.filterIsInstance<ClaudeContent.ToolUse>()
+                    val toolUses = result.response.content.filterIsInstance<AiContent.ToolUse>()
                     if (toolUses.isEmpty()) {
-                        finish(result.response.content.filterIsInstance<ClaudeContent.Text>().joinToString("\n") { it.text }, checked, proposalIds, review)
+                        finish(result.response.content.filterIsInstance<AiContent.Text>().joinToString("\n") { it.text }, checked, proposalIds, review)
                         return true
                     }
-                    conversation += ClaudeMessage(ClaudeRole.ASSISTANT, result.response.content)
+                    conversation += AiMessage(AiRole.ASSISTANT, result.response.content)
                     val results = toolUses.map { use ->
                         activity.value = CoachActivity.Working(use.name)
                         val run = toolbox.run(use.name, use.inputJson)
                         run.checked?.let { if (it !in checked) checked += it }
                         run.proposalId?.let { proposalIds += it }
-                        ClaudeContent.ToolResult(use.id, run.text, run.isError)
+                        AiContent.ToolResult(use.id, run.text, run.isError)
                     }
-                    conversation += ClaudeMessage(ClaudeRole.USER, results)
+                    conversation += AiMessage(AiRole.USER, results)
                 }
             }
         }
@@ -340,7 +340,7 @@ internal class DefaultCoachService(
         dao.observeUsage(currentMonth()).map { it?.let { u -> CoachUsage(u.messages, u.inputTokens, u.outputTokens) } ?: CoachUsage(0, 0, 0) }
 }
 
-private fun CoachRun.after(response: ClaudeResponse, elapsed: Duration) = CoachRun(
+private fun CoachRun.after(response: AiResponse, elapsed: Duration) = CoachRun(
     rounds = rounds + 1,
     inputTokens = inputTokens + response.inputTokens,
     cacheReadTokens = cacheReadTokens + response.cacheReadTokens,

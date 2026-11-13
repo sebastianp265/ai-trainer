@@ -12,7 +12,8 @@ import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTE
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_COACH
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_COACH
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_COACH
-import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_CLAUDE
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.SHARED_AI
+import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_AI
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_SETTINGS
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.INTEGRATION_VOLUME
 import com.github.sebastianp265.aitrainer.shared.architecture.PackageModule.FEATURE_VOLUME
@@ -48,14 +49,14 @@ enum class GradleModule(
         directoryName = "core/common",
         packageModules = setOf(
             INTEGRATION_MODULE,
-            INTEGRATION_EXERCISE, INTEGRATION_WORKOUT, INTEGRATION_PLAN, INTEGRATION_VOLUME, INTEGRATION_NUTRITION, INTEGRATION_COACH, INTEGRATION_HEALTH, INTEGRATION_SETTINGS, INTEGRATION_SHARED,
+            INTEGRATION_AI, INTEGRATION_EXERCISE, INTEGRATION_WORKOUT, INTEGRATION_PLAN, INTEGRATION_VOLUME, INTEGRATION_NUTRITION, INTEGRATION_COACH, INTEGRATION_HEALTH, INTEGRATION_SETTINGS, INTEGRATION_SHARED,
             SHARED_EXERCISE, SHARED_WORKOUT, SHARED_PLAN, SHARED_VOLUME, SHARED_NUTRITION, SHARED_COACH, SHARED_DATABASE,
             FEATURE_EXERCISE, FEATURE_WORKOUT, FEATURE_PLAN, FEATURE_VOLUME, FEATURE_NUTRITION, FEATURE_COACH, FEATURE_HEALTH, FEATURE_SETTINGS,
         ),
     ),
     CORE_ANDROID(
         directoryName = "core/android",
-        packageModules = setOf(INTEGRATION_MODULE, SHARED_HEALTH, SHARED_SECURITY, SHARED_PLATFORM, SHARED_CLAUDE, SHARED_BACKUP),
+        packageModules = setOf(INTEGRATION_MODULE, SHARED_HEALTH, SHARED_SECURITY, SHARED_PLATFORM, SHARED_AI, SHARED_BACKUP),
         dependencies = { setOf(CORE_COMMON) },
     ),
     ANDROID_APP(

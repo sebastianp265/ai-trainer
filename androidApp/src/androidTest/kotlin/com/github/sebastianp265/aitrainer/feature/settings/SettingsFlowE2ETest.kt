@@ -1,10 +1,10 @@
 package com.github.sebastianp265.aitrainer.feature.settings
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeFailureKind
+import com.github.sebastianp265.aitrainer.integration.ai.AiFailureKind
 import com.github.sebastianp265.aitrainer.shared.e2e.AbstractE2ETest
 import com.github.sebastianp265.aitrainer.shared.e2e.BottomBarScreen
-import com.github.sebastianp265.aitrainer.shared.e2e.FakeClaudeClient
+import com.github.sebastianp265.aitrainer.shared.e2e.FakeAiClient
 import org.junit.runner.RunWith
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -14,7 +14,7 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
 
     private val settings = SettingsScreen(compose)
     private val tabs = BottomBarScreen(compose)
-    private val claude = FakeClaudeClient()
+    private val claude = FakeAiClient()
 
     @BeforeTest
     fun start() = launchApp(claudeClient = claude)
@@ -51,7 +51,7 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
 
     @Test
     fun `a rejected key is reported and not saved`() {
-        claude.keyCheckResult = ClaudeFailureKind.KEY_REJECTED
+        claude.keyCheckResult = AiFailureKind.KEY_REJECTED
         settings.open()
         settings.openApiKey()
 
@@ -65,7 +65,7 @@ class SettingsFlowE2ETest : AbstractE2ETest() {
 
     @Test
     fun `a key that cannot be checked is not saved`() {
-        claude.keyCheckResult = ClaudeFailureKind.NO_NETWORK
+        claude.keyCheckResult = AiFailureKind.NO_NETWORK
         settings.open()
         settings.openApiKey()
 

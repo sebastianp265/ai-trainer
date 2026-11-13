@@ -8,12 +8,12 @@ import com.github.sebastianp265.aitrainer.feature.plan.impl.DefaultPlanService
 import com.github.sebastianp265.aitrainer.feature.settings.impl.DefaultSettingsService
 import com.github.sebastianp265.aitrainer.feature.volume.impl.DefaultVolumeService
 import com.github.sebastianp265.aitrainer.feature.workout.impl.DefaultWorkoutService
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeClient
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeContent
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeFailureKind
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeRequest
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeResponse
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeResult
+import com.github.sebastianp265.aitrainer.integration.ai.AiClient
+import com.github.sebastianp265.aitrainer.integration.ai.AiContent
+import com.github.sebastianp265.aitrainer.integration.ai.AiFailureKind
+import com.github.sebastianp265.aitrainer.integration.ai.AiRequest
+import com.github.sebastianp265.aitrainer.integration.ai.AiResponse
+import com.github.sebastianp265.aitrainer.integration.ai.AiResult
 import com.github.sebastianp265.aitrainer.integration.settings.Secret
 import com.github.sebastianp265.aitrainer.integration.settings.SecretStore
 import com.github.sebastianp265.aitrainer.shared.database.impl.inMemoryDatabase
@@ -27,30 +27,30 @@ import java.nio.file.Files
 import kotlin.time.Clock
 import kotlin.time.Instant
 
-internal class ScriptedClaude : ClaudeClient {
-    val requests = mutableListOf<ClaudeRequest>()
+internal class ScriptedClaude : AiClient {
+    val requests = mutableListOf<AiRequest>()
     var whileAnswering: () -> Unit = {}
-    private val script = ArrayDeque<ClaudeResult>()
+    private val script = ArrayDeque<AiResult>()
 
     fun answer(text: String) {
-        script.addLast(ClaudeResult.Success(ClaudeResponse(listOf(ClaudeContent.Text(text)), "end_turn", inputTokens = 100, cacheReadTokens = 0, cacheWriteTokens = 0, outputTokens = 20)))
+        script.addLast(AiResult.Success(AiResponse(listOf(AiContent.Text(text)), "end_turn", inputTokens = 100, cacheReadTokens = 0, cacheWriteTokens = 0, outputTokens = 20)))
     }
 
     fun callTool(name: String, inputJson: String) {
-        script.addLast(ClaudeResult.Success(ClaudeResponse(listOf(ClaudeContent.ToolUse("toolu_${script.size}", name, inputJson)), "tool_use", inputTokens = 100, cacheReadTokens = 0, cacheWriteTokens = 0, outputTokens = 20)))
+        script.addLast(AiResult.Success(AiResponse(listOf(AiContent.ToolUse("toolu_${script.size}", name, inputJson)), "tool_use", inputTokens = 100, cacheReadTokens = 0, cacheWriteTokens = 0, outputTokens = 20)))
     }
 
-    fun fail(kind: ClaudeFailureKind) {
-        script.addLast(ClaudeResult.Failure(kind, "failure"))
+    fun fail(kind: AiFailureKind) {
+        script.addLast(AiResult.Failure(kind, "failure"))
     }
 
-    override suspend fun send(request: ClaudeRequest): ClaudeResult {
+    override suspend fun send(request: AiRequest): AiResult {
         requests += request
         whileAnswering()
         return script.removeFirst()
     }
 
-    override suspend fun checkApiKey(apiKey: String): ClaudeFailureKind? = null
+    override suspend fun checkApiKey(apiKey: String): AiFailureKind? = null
 }
 
 internal class CoachFixture {

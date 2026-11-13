@@ -31,10 +31,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeCacheDuration
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeEffort
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeThinking
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
+import com.github.sebastianp265.aitrainer.integration.ai.AiCacheDuration
+import com.github.sebastianp265.aitrainer.integration.ai.AiEffort
+import com.github.sebastianp265.aitrainer.integration.ai.AiThinking
+import com.github.sebastianp265.aitrainer.integration.ai.AiTuning
 import com.github.sebastianp265.aitrainer.integration.coach.CoachRun
 import com.github.sebastianp265.aitrainer.shared.design.CardLabel
 import com.github.sebastianp265.aitrainer.shared.design.DesignIcons
@@ -42,7 +42,7 @@ import com.github.sebastianp265.aitrainer.shared.localization.formatNumber
 import kotlin.time.Duration.Companion.seconds
 
 @Composable
-internal fun ModelTuningSection(model: String, tuning: ClaudeTuning, onTune: (ClaudeTuning) -> Unit) {
+internal fun ModelTuningSection(model: String, tuning: AiTuning, onTune: (AiTuning) -> Unit) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(
@@ -58,15 +58,15 @@ internal fun ModelTuningSection(model: String, tuning: ClaudeTuning, onTune: (Cl
 }
 
 @Composable
-private fun TuningOptions(model: String, tuning: ClaudeTuning, onTune: (ClaudeTuning) -> Unit) {
-    val canTurnThinkingOff = model in ClaudeTuning.MODELS_WITH_THINKING_OFF &&
-        (tuning.effort ?: ClaudeTuning.HIGHEST_EFFORT_WITH_THINKING_OFF) <= ClaudeTuning.HIGHEST_EFFORT_WITH_THINKING_OFF
-    val thinking = if (canTurnThinkingOff) tuning.thinking else ClaudeThinking.ADAPTIVE
+private fun TuningOptions(model: String, tuning: AiTuning, onTune: (AiTuning) -> Unit) {
+    val canTurnThinkingOff = model in AiTuning.MODELS_WITH_THINKING_OFF &&
+        (tuning.effort ?: AiTuning.HIGHEST_EFFORT_WITH_THINKING_OFF) <= AiTuning.HIGHEST_EFFORT_WITH_THINKING_OFF
+    val thinking = if (canTurnThinkingOff) tuning.thinking else AiThinking.ADAPTIVE
     Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.surfaceContainer) {
         Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Choice(stringResource(R.string.model_effort), stringResource(R.string.model_effort_hint)) {
                 Option(stringResource(R.string.model_default), tuning.effort == null, ModelTuningTags.option("effort", "default")) { onTune(tuning.copy(effort = null)) }
-                ClaudeEffort.entries.forEach { effort ->
+                AiEffort.entries.forEach { effort ->
                     Option(stringResource(effort.labelRes()), tuning.effort == effort, ModelTuningTags.option("effort", effort.name)) { onTune(tuning.copy(effort = effort)) }
                 }
             }
@@ -74,42 +74,42 @@ private fun TuningOptions(model: String, tuning: ClaudeTuning, onTune: (ClaudeTu
                 stringResource(R.string.model_thinking),
                 stringResource(if (canTurnThinkingOff) R.string.model_thinking_hint else R.string.model_thinking_always_on),
             ) {
-                Option(stringResource(R.string.model_thinking_adaptive), thinking == ClaudeThinking.ADAPTIVE, ModelTuningTags.option("thinking", "adaptive")) {
-                    onTune(tuning.copy(thinking = ClaudeThinking.ADAPTIVE))
+                Option(stringResource(R.string.model_thinking_adaptive), thinking == AiThinking.ADAPTIVE, ModelTuningTags.option("thinking", "adaptive")) {
+                    onTune(tuning.copy(thinking = AiThinking.ADAPTIVE))
                 }
-                Option(stringResource(R.string.model_thinking_off), thinking == ClaudeThinking.OFF, ModelTuningTags.option("thinking", "off"), enabled = canTurnThinkingOff) {
-                    onTune(tuning.copy(thinking = ClaudeThinking.OFF))
+                Option(stringResource(R.string.model_thinking_off), thinking == AiThinking.OFF, ModelTuningTags.option("thinking", "off"), enabled = canTurnThinkingOff) {
+                    onTune(tuning.copy(thinking = AiThinking.OFF))
                 }
             }
             MaxTokensField(tuning.maxTokens) { onTune(tuning.copy(maxTokens = it)) }
             Choice(stringResource(R.string.model_cache), stringResource(R.string.model_cache_hint)) {
-                Option(stringResource(R.string.model_cache_minutes), tuning.cacheDuration == ClaudeCacheDuration.FIVE_MINUTES, ModelTuningTags.option("cache", "minutes")) {
-                    onTune(tuning.copy(cacheDuration = ClaudeCacheDuration.FIVE_MINUTES))
+                Option(stringResource(R.string.model_cache_minutes), tuning.cacheDuration == AiCacheDuration.FIVE_MINUTES, ModelTuningTags.option("cache", "minutes")) {
+                    onTune(tuning.copy(cacheDuration = AiCacheDuration.FIVE_MINUTES))
                 }
-                Option(stringResource(R.string.model_cache_hour), tuning.cacheDuration == ClaudeCacheDuration.ONE_HOUR, ModelTuningTags.option("cache", "hour")) {
-                    onTune(tuning.copy(cacheDuration = ClaudeCacheDuration.ONE_HOUR))
+                Option(stringResource(R.string.model_cache_hour), tuning.cacheDuration == AiCacheDuration.ONE_HOUR, ModelTuningTags.option("cache", "hour")) {
+                    onTune(tuning.copy(cacheDuration = AiCacheDuration.ONE_HOUR))
                 }
             }
-            TextButton(onClick = { onTune(ClaudeTuning()) }, enabled = tuning != ClaudeTuning(), modifier = Modifier.testTag(ModelTuningTags.RESET)) {
+            TextButton(onClick = { onTune(AiTuning()) }, enabled = tuning != AiTuning(), modifier = Modifier.testTag(ModelTuningTags.RESET)) {
                 Text(stringResource(R.string.model_tuning_reset))
             }
         }
     }
 }
 
-private fun ClaudeEffort.labelRes() = when (this) {
-    ClaudeEffort.LOW -> R.string.model_effort_low
-    ClaudeEffort.MEDIUM -> R.string.model_effort_medium
-    ClaudeEffort.HIGH -> R.string.model_effort_high
-    ClaudeEffort.XHIGH -> R.string.model_effort_xhigh
-    ClaudeEffort.MAX -> R.string.model_effort_max
+private fun AiEffort.labelRes() = when (this) {
+    AiEffort.LOW -> R.string.model_effort_low
+    AiEffort.MEDIUM -> R.string.model_effort_medium
+    AiEffort.HIGH -> R.string.model_effort_high
+    AiEffort.XHIGH -> R.string.model_effort_xhigh
+    AiEffort.MAX -> R.string.model_effort_max
 }
 
 @Composable
 private fun MaxTokensField(maxTokens: Int, onChange: (Int) -> Unit) {
     var text by rememberSaveable(maxTokens) { mutableStateOf(maxTokens.toString()) }
-    val valid = text.toIntOrNull() in 1..ClaudeTuning.HIGHEST_MAX_TOKENS
-    val highest = formatNumber(ClaudeTuning.HIGHEST_MAX_TOKENS.toDouble())
+    val valid = text.toIntOrNull() in 1..AiTuning.HIGHEST_MAX_TOKENS
+    val highest = formatNumber(AiTuning.HIGHEST_MAX_TOKENS.toDouble())
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(stringResource(R.string.model_max_tokens), style = MaterialTheme.typography.bodyLarge)
         Text(stringResource(R.string.model_max_tokens_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -117,7 +117,7 @@ private fun MaxTokensField(maxTokens: Int, onChange: (Int) -> Unit) {
             value = text,
             onValueChange = { typed ->
                 text = typed.filter(Char::isDigit)
-                text.toIntOrNull()?.takeIf { it in 1..ClaudeTuning.HIGHEST_MAX_TOKENS }?.let(onChange)
+                text.toIntOrNull()?.takeIf { it in 1..AiTuning.HIGHEST_MAX_TOKENS }?.let(onChange)
             },
             singleLine = true,
             isError = !valid,
@@ -191,7 +191,7 @@ private fun ModelTuningPreview() {
     MaterialTheme {
         Surface {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                TuningOptions("claude-sonnet-5-5", ClaudeTuning(effort = ClaudeEffort.LOW), onTune = {})
+                TuningOptions("claude-sonnet-5-5", AiTuning(effort = AiEffort.LOW), onTune = {})
                 LastRunCard(CoachRun(rounds = 3, inputTokens = 412, cacheReadTokens = 7_930, cacheWriteTokens = 640, outputTokens = 380, duration = 9.seconds, stopReason = "end_turn"))
             }
         }

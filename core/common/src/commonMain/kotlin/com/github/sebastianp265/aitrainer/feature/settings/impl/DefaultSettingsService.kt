@@ -7,10 +7,10 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeCacheDuration
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeEffort
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeThinking
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
+import com.github.sebastianp265.aitrainer.integration.ai.AiCacheDuration
+import com.github.sebastianp265.aitrainer.integration.ai.AiEffort
+import com.github.sebastianp265.aitrainer.integration.ai.AiThinking
+import com.github.sebastianp265.aitrainer.integration.ai.AiTuning
 import com.github.sebastianp265.aitrainer.integration.settings.Secret
 import com.github.sebastianp265.aitrainer.integration.settings.SecretStore
 import com.github.sebastianp265.aitrainer.integration.settings.SettingsService
@@ -76,17 +76,17 @@ internal class DefaultSettingsService(
         settings.edit { it[claudeModelKey] = modelId.trim() }
     }
 
-    override fun observeClaudeTuning(): Flow<ClaudeTuning> = settings.data.map { preferences ->
-        val defaults = ClaudeTuning()
-        ClaudeTuning(
-            effort = preferences[effortKey]?.let(ClaudeEffort::valueOf),
-            thinking = preferences[thinkingKey]?.let(ClaudeThinking::valueOf) ?: defaults.thinking,
+    override fun observeClaudeTuning(): Flow<AiTuning> = settings.data.map { preferences ->
+        val defaults = AiTuning()
+        AiTuning(
+            effort = preferences[effortKey]?.let(AiEffort::valueOf),
+            thinking = preferences[thinkingKey]?.let(AiThinking::valueOf) ?: defaults.thinking,
             maxTokens = preferences[maxTokensKey] ?: defaults.maxTokens,
-            cacheDuration = preferences[cacheDurationKey]?.let(ClaudeCacheDuration::valueOf) ?: defaults.cacheDuration,
+            cacheDuration = preferences[cacheDurationKey]?.let(AiCacheDuration::valueOf) ?: defaults.cacheDuration,
         )
     }
 
-    override suspend fun setClaudeTuning(tuning: ClaudeTuning) {
+    override suspend fun setClaudeTuning(tuning: AiTuning) {
         settings.edit { preferences ->
             val effort = tuning.effort
             if (effort == null) preferences.remove(effortKey) else preferences[effortKey] = effort.name

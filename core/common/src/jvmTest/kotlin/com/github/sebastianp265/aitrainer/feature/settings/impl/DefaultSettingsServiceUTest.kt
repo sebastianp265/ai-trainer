@@ -1,10 +1,10 @@
 package com.github.sebastianp265.aitrainer.feature.settings.impl
 
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeCacheDuration
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeEffort
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeThinking
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
+import com.github.sebastianp265.aitrainer.integration.ai.AiCacheDuration
+import com.github.sebastianp265.aitrainer.integration.ai.AiEffort
+import com.github.sebastianp265.aitrainer.integration.ai.AiThinking
+import com.github.sebastianp265.aitrainer.integration.ai.AiTuning
 import com.github.sebastianp265.aitrainer.integration.settings.Secret
 import com.github.sebastianp265.aitrainer.integration.settings.SecretStore
 import kotlinx.coroutines.flow.Flow
@@ -61,8 +61,8 @@ class DefaultSettingsServiceUTest {
 
     @Test
     fun `the model tuning starts at the defaults and is remembered`() = runBlocking {
-        assertEquals(ClaudeTuning(), service.observeClaudeTuning().first())
-        val tuning = ClaudeTuning(effort = ClaudeEffort.MAX, thinking = ClaudeThinking.ADAPTIVE, maxTokens = 8_000, cacheDuration = ClaudeCacheDuration.FIVE_MINUTES)
+        assertEquals(AiTuning(), service.observeClaudeTuning().first())
+        val tuning = AiTuning(effort = AiEffort.MAX, thinking = AiThinking.ADAPTIVE, maxTokens = 8_000, cacheDuration = AiCacheDuration.FIVE_MINUTES)
 
         service.setClaudeTuning(tuning)
 
@@ -71,11 +71,11 @@ class DefaultSettingsServiceUTest {
 
     @Test
     fun `back at the default effort no effort is stored`() = runBlocking {
-        service.setClaudeTuning(ClaudeTuning(effort = ClaudeEffort.LOW))
+        service.setClaudeTuning(AiTuning(effort = AiEffort.LOW))
 
-        service.setClaudeTuning(ClaudeTuning())
+        service.setClaudeTuning(AiTuning())
 
-        assertEquals(ClaudeTuning(), service.observeClaudeTuning().first())
+        assertEquals(AiTuning(), service.observeClaudeTuning().first())
     }
 
     @Test

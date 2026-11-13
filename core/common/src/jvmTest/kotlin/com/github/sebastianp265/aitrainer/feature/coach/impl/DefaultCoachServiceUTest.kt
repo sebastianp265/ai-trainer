@@ -1,14 +1,14 @@
 package com.github.sebastianp265.aitrainer.feature.coach.impl
 
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeCacheDuration
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeEffort
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeThinking
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
+import com.github.sebastianp265.aitrainer.integration.ai.AiCacheDuration
+import com.github.sebastianp265.aitrainer.integration.ai.AiEffort
+import com.github.sebastianp265.aitrainer.integration.ai.AiThinking
+import com.github.sebastianp265.aitrainer.integration.ai.AiTuning
 import com.github.sebastianp265.aitrainer.integration.coach.CoachRun
 import kotlin.time.Duration.Companion.seconds
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeContent
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeFailureKind
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeRole
+import com.github.sebastianp265.aitrainer.integration.ai.AiContent
+import com.github.sebastianp265.aitrainer.integration.ai.AiFailureKind
+import com.github.sebastianp265.aitrainer.integration.ai.AiRole
 import com.github.sebastianp265.aitrainer.integration.coach.CoachActivity
 import com.github.sebastianp265.aitrainer.integration.coach.CoachRole
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalState
@@ -48,8 +48,8 @@ class DefaultCoachServiceUTest {
         assertTrue("ABS: 6-10 (user)" in request.system)
         assertTrue("CHEST: 10-20 (default)" in request.system)
         assertTrue("1 exercises, 1 working sets" in request.system)
-        assertEquals(listOf(ClaudeRole.USER), request.messages.map { it.role })
-        assertEquals(ClaudeContent.Text("How am I doing?"), request.messages.single().content.single())
+        assertEquals(listOf(AiRole.USER), request.messages.map { it.role })
+        assertEquals(AiContent.Text("How am I doing?"), request.messages.single().content.single())
         assertEquals(18, request.tools.size)
     }
 
@@ -61,7 +61,7 @@ class DefaultCoachServiceUTest {
         f.coach.send("Is this too much?", topic)
 
         assertEquals(topic, f.coach.observeMessages().first().first().topic)
-        val sent = f.claude.requests.single().messages.single().content.single() as ClaudeContent.Text
+        val sent = f.claude.requests.single().messages.single().content.single() as AiContent.Text
         assertEquals("[The user asks about this plan id 12: \"Push A\"]\nIs this too much?", sent.text)
     }
 
@@ -76,7 +76,7 @@ class DefaultCoachServiceUTest {
         f.coach.send("hello")
 
         assertEquals(listOf("One", "hello", "Two"), f.coach.observeMessages().first().map { it.text })
-        val sent = f.claude.requests.last().messages.flatMap { it.content }.filterIsInstance<ClaudeContent.Text>().joinToString("\n") { it.text }
+        val sent = f.claude.requests.last().messages.flatMap { it.content }.filterIsInstance<AiContent.Text>().joinToString("\n") { it.text }
         assertTrue("forget this" !in sent)
     }
 
@@ -92,19 +92,19 @@ class DefaultCoachServiceUTest {
         assertEquals(listOf(CoachRole.USER, CoachRole.COACH), messages.map { it.role })
         assertEquals("You trained once.", messages.last().text)
         assertEquals(listOf("workouts"), messages.last().checked)
-        val toolResult = f.claude.requests.last().messages.last().content.single() as ClaudeContent.ToolResult
+        val toolResult = f.claude.requests.last().messages.last().content.single() as AiContent.ToolResult
         assertTrue("Bench Press" in toolResult.content)
         assertEquals(CoachActivity.Idle, f.coach.observeActivity().first())
     }
 
     @Test
     fun `a failure keeps the message, shows the error, and retry asks again`() = runBlocking {
-        f.claude.fail(ClaudeFailureKind.NO_NETWORK)
+        f.claude.fail(AiFailureKind.NO_NETWORK)
 
         f.coach.send("Plan me a push day")
 
         assertEquals(1, f.coach.observeMessages().first().size)
-        assertEquals(CoachActivity.Failed(ClaudeFailureKind.NO_NETWORK, "failure"), f.coach.observeActivity().first())
+        assertEquals(CoachActivity.Failed(AiFailureKind.NO_NETWORK, "failure"), f.coach.observeActivity().first())
         f.claude.answer("Sure.")
         f.coach.retry()
         assertEquals(listOf(CoachRole.USER, CoachRole.COACH), f.coach.observeMessages().first().map { it.role })
@@ -127,7 +127,7 @@ class DefaultCoachServiceUTest {
 
     @Test
     fun `the chosen tuning is sent with every request`() = runBlocking {
-        val tuning = ClaudeTuning(effort = ClaudeEffort.LOW, thinking = ClaudeThinking.ADAPTIVE, maxTokens = 4_000, cacheDuration = ClaudeCacheDuration.FIVE_MINUTES)
+        val tuning = AiTuning(effort = AiEffort.LOW, thinking = AiThinking.ADAPTIVE, maxTokens = 4_000, cacheDuration = AiCacheDuration.FIVE_MINUTES)
         f.settings.setClaudeTuning(tuning)
         f.claude.answer("Sure.")
 
@@ -435,7 +435,7 @@ class DefaultCoachServiceUTest {
         assertEquals(kotlinx.datetime.LocalDate(2026, 11, 2), review.weekStart)
         assertEquals(ProposalType.MULTI_PLAN, message.proposals.single().type)
         assertEquals(2, message.proposals.single().plans.size)
-        assertTrue("WEEKLY REVIEW of 2026-11-02 to 2026-11-08" in (f.claude.requests.first().messages.last().content.single() as ClaudeContent.Text).text)
+        assertTrue("WEEKLY REVIEW of 2026-11-02 to 2026-11-08" in (f.claude.requests.first().messages.last().content.single() as AiContent.Text).text)
         assertEquals(2, f.claude.requests.size)
     }
 
@@ -450,7 +450,7 @@ class DefaultCoachServiceUTest {
     @Test
     fun `a review that failed is tried again the next time`() = runBlocking {
         finishBenchWorkoutLastWeek()
-        f.claude.fail(ClaudeFailureKind.NO_NETWORK)
+        f.claude.fail(AiFailureKind.NO_NETWORK)
         f.coach.reviewLastWeekIfDue()
         f.claude.answer("Good week.")
 

@@ -32,9 +32,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeClient
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeFailureKind
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
+import com.github.sebastianp265.aitrainer.integration.ai.AiClient
+import com.github.sebastianp265.aitrainer.integration.ai.AiFailureKind
+import com.github.sebastianp265.aitrainer.integration.ai.AiTuning
 import com.github.sebastianp265.aitrainer.integration.coach.CoachRun
 import com.github.sebastianp265.aitrainer.integration.coach.CoachService
 import com.github.sebastianp265.aitrainer.integration.coach.CoachUsage
@@ -73,7 +73,7 @@ internal data class ApiKeyUiState(
 
 internal class ApiKeyViewModel(
     private val settingsService: SettingsService,
-    private val claude: ClaudeClient,
+    private val claude: AiClient,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -98,8 +98,8 @@ internal class ApiKeyViewModel(
                         settingsService.setApiKeyCheckedAt(clock.now())
                         KeyCheck.IDLE
                     }
-                    ClaudeFailureKind.KEY_REJECTED -> KeyCheck.REJECTED
-                    ClaudeFailureKind.NO_NETWORK -> KeyCheck.OFFLINE
+                    AiFailureKind.KEY_REJECTED -> KeyCheck.REJECTED
+                    AiFailureKind.NO_NETWORK -> KeyCheck.OFFLINE
                     else -> KeyCheck.OTHER
                 }
             }
@@ -190,7 +190,7 @@ internal object CoachApiKeyTags {
 internal data class ModelUiState(
     val model: String = SettingsService.DEFAULT_CLAUDE_MODEL,
     val usage: CoachUsage = CoachUsage(0, 0, 0),
-    val tuning: ClaudeTuning = ClaudeTuning(),
+    val tuning: AiTuning = AiTuning(),
     val lastRun: CoachRun? = null,
 )
 
@@ -211,13 +211,13 @@ internal class ModelPickerViewModel(
         viewModelScope.launch { withContext(NonCancellable) { settingsService.setClaudeModel(model) } }
     }
 
-    fun tune(tuning: ClaudeTuning) {
+    fun tune(tuning: AiTuning) {
         viewModelScope.launch { withContext(NonCancellable) { settingsService.setClaudeTuning(tuning) } }
     }
 }
 
 @Composable
-internal fun ModelPickerContent(state: ModelUiState, onSelect: (String) -> Unit, onTune: (ClaudeTuning) -> Unit) {
+internal fun ModelPickerContent(state: ModelUiState, onSelect: (String) -> Unit, onTune: (AiTuning) -> Unit) {
     Column(Modifier.verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         GroupCard {
             SettingsService.CLAUDE_MODELS.forEachIndexed { index, model ->

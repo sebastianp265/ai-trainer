@@ -1,11 +1,11 @@
 package com.github.sebastianp265.aitrainer.shared.e2e
 
-import com.github.sebastianp265.aitrainer.integration.coach.AiClient
-import com.github.sebastianp265.aitrainer.integration.coach.AiContent
-import com.github.sebastianp265.aitrainer.integration.coach.AiFailureKind
-import com.github.sebastianp265.aitrainer.integration.coach.AiRequest
-import com.github.sebastianp265.aitrainer.integration.coach.AiResponse
-import com.github.sebastianp265.aitrainer.integration.coach.AiResult
+import com.github.sebastianp265.aitrainer.integration.ai.AiClient
+import com.github.sebastianp265.aitrainer.integration.ai.AiContent
+import com.github.sebastianp265.aitrainer.integration.ai.AiFailureKind
+import com.github.sebastianp265.aitrainer.integration.ai.AiRequest
+import com.github.sebastianp265.aitrainer.integration.ai.AiResponse
+import com.github.sebastianp265.aitrainer.integration.ai.AiResult
 
 class FakeAiClient : AiClient {
 

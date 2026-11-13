@@ -1,12 +1,12 @@
 package com.github.sebastianp265.aitrainer.feature.coach.impl
 
 import com.github.sebastianp265.aitrainer.integration.nutrition.NutritionTarget
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeContent
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeMessage
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeRequest
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeRole
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTool
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTuning
+import com.github.sebastianp265.aitrainer.integration.ai.AiContent
+import com.github.sebastianp265.aitrainer.integration.ai.AiMessage
+import com.github.sebastianp265.aitrainer.integration.ai.AiRequest
+import com.github.sebastianp265.aitrainer.integration.ai.AiRole
+import com.github.sebastianp265.aitrainer.integration.ai.AiTool
+import com.github.sebastianp265.aitrainer.integration.ai.AiTuning
 import com.github.sebastianp265.aitrainer.integration.coach.CoachRole
 import com.github.sebastianp265.aitrainer.integration.coach.CoachService
 import com.github.sebastianp265.aitrainer.integration.coach.TopicKind
@@ -18,7 +18,7 @@ import kotlinx.datetime.LocalDate
 
 internal class CoachContext(
     val model: String,
-    val tuning: ClaudeTuning,
+    val tuning: AiTuning,
     val today: LocalDate,
     val profile: Map<String, String>,
     val notes: List<CoachNoteEntity>,
@@ -27,11 +27,11 @@ internal class CoachContext(
     val recentWorkouts: List<String>,
     val healthDays: List<HealthDay>,
     val history: List<CoachMessageEntity>,
-    val tools: List<ClaudeTool>,
+    val tools: List<AiTool>,
 )
 
-internal fun buildCoachRequest(context: CoachContext, transientUserText: String? = null): ClaudeRequest =
-    ClaudeRequest(
+internal fun buildCoachRequest(context: CoachContext, transientUserText: String? = null): AiRequest =
+    AiRequest(
         model = context.model,
         system = systemPrompt(context),
         messages = conversation(context.history, transientUserText),
@@ -39,10 +39,10 @@ internal fun buildCoachRequest(context: CoachContext, transientUserText: String?
         tuning = context.tuning,
     )
 
-private fun conversation(history: List<CoachMessageEntity>, transientUserText: String?): List<ClaudeMessage> =
+private fun conversation(history: List<CoachMessageEntity>, transientUserText: String?): List<AiMessage> =
     (history.sortedBy { it.id }.map { it.role to it.textForClaude() } + listOfNotNull(transientUserText?.let { CoachRole.USER to it }))
-        .fold(mutableListOf<Pair<ClaudeRole, String>>()) { messages, (messageRole, messageText) ->
-            val role = if (messageRole == CoachRole.USER) ClaudeRole.USER else ClaudeRole.ASSISTANT
+        .fold(mutableListOf<Pair<AiRole, String>>()) { messages, (messageRole, messageText) ->
+            val role = if (messageRole == CoachRole.USER) AiRole.USER else AiRole.ASSISTANT
             if (messages.isNotEmpty() && messages.last().first == role) {
                 messages[messages.lastIndex] = role to (messages.last().second + "\n" + messageText)
             } else {
@@ -50,8 +50,8 @@ private fun conversation(history: List<CoachMessageEntity>, transientUserText: S
             }
             messages
         }
-        .dropWhile { it.first == ClaudeRole.ASSISTANT }
-        .map { (role, text) -> ClaudeMessage(role, listOf(ClaudeContent.Text(text))) }
+        .dropWhile { it.first == AiRole.ASSISTANT }
+        .map { (role, text) -> AiMessage(role, listOf(AiContent.Text(text))) }
 
 private fun CoachMessageEntity.textForClaude(): String {
     val topic = topic ?: return text

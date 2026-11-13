@@ -55,7 +55,7 @@ import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.sebastianp265.aitrainer.R
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeFailureKind
+import com.github.sebastianp265.aitrainer.integration.ai.AiFailureKind
 import com.github.sebastianp265.aitrainer.integration.coach.CoachActivity
 import com.github.sebastianp265.aitrainer.integration.coach.CoachMessage
 import com.github.sebastianp265.aitrainer.integration.coach.CoachRole
@@ -130,7 +130,7 @@ private fun Conversation(state: CoachUiState, actions: CoachActions, modifier: M
         if (itemCount > 0) listState.animateScrollToItem(listState.layoutInfo.totalItemsCount.coerceAtLeast(1) - 1)
     }
     Column(modifier.fillMaxSize().imePadding()) {
-        if (failed?.kind == ClaudeFailureKind.NO_NETWORK) OfflineBanner()
+        if (failed?.kind == AiFailureKind.NO_NETWORK) OfflineBanner()
         LazyColumn(
             Modifier.weight(1f).fillMaxWidth(),
             state = listState,
@@ -148,7 +148,7 @@ private fun Conversation(state: CoachUiState, actions: CoachActions, modifier: M
                     MessageBubble(
                         item.message,
                         state.exercises,
-                        unsent = failed?.kind == ClaudeFailureKind.NO_NETWORK && lastIsUser && index == state.messages.lastIndex,
+                        unsent = failed?.kind == AiFailureKind.NO_NETWORK && lastIsUser && index == state.messages.lastIndex,
                         onLongPress = { deleting = item.message.id },
                     )
                 }
@@ -498,14 +498,14 @@ private fun toolPhrase(tool: String): String = when (tool) {
 @Composable
 private fun FailedRow(failed: CoachActivity.Failed, actions: CoachActions) {
     when (failed.kind) {
-        ClaudeFailureKind.NO_NETWORK -> Row(Modifier.fillMaxWidth().testTag(CoachTags.FAILED), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+        AiFailureKind.NO_NETWORK -> Row(Modifier.fillMaxWidth().testTag(CoachTags.FAILED), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
             Icon(DesignIcons.Warning, contentDescription = null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.error)
             Text(stringResource(R.string.coach_not_sent), Modifier.padding(start = 6.dp), style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp), color = MaterialTheme.colorScheme.error)
             TextButton(onClick = actions::retry, Modifier.testTag(CoachTags.RETRY), colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)) {
                 Text(stringResource(R.string.coach_retry), style = MaterialTheme.typography.labelLarge.copy(fontSize = 13.sp))
             }
         }
-        ClaudeFailureKind.KEY_REJECTED, ClaudeFailureKind.NO_KEY -> ErrorCard(R.string.coach_error_key_title, R.string.coach_error_key_text, R.string.coach_error_key_action, actions::openApiKey)
+        AiFailureKind.KEY_REJECTED, AiFailureKind.NO_KEY -> ErrorCard(R.string.coach_error_key_title, R.string.coach_error_key_text, R.string.coach_error_key_action, actions::openApiKey)
         else -> ErrorCard(R.string.coach_error_unavailable_title, R.string.coach_error_unavailable_text, R.string.coach_retry, actions::retry)
     }
 }

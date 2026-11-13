@@ -2,11 +2,11 @@ package com.github.sebastianp265.aitrainer.feature.coach
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.sebastianp265.aitrainer.feature.settings.SettingsScreen
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeFailureKind
+import com.github.sebastianp265.aitrainer.integration.ai.AiFailureKind
 import com.github.sebastianp265.aitrainer.shared.e2e.AbstractE2ETest
 import com.github.sebastianp265.aitrainer.shared.e2e.BottomBarScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.BENCH_PRESS
-import com.github.sebastianp265.aitrainer.shared.e2e.FakeClaudeClient
+import com.github.sebastianp265.aitrainer.shared.e2e.FakeAiClient
 import com.github.sebastianp265.aitrainer.shared.e2e.LogWorkoutScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.sets
 import com.github.sebastianp265.aitrainer.shared.e2e.PlanScreen
@@ -21,7 +21,7 @@ class CoachFlowE2ETest : AbstractE2ETest() {
         const val PUSH_PLAN = """{"name":"Push A","summary":"Push day with a heavier bench","sets":[{"exerciseKey":"BARBELL_BENCH_PRESS","reps":8,"weightKg":80,"rpe":8}]}"""
     }
 
-    private val claude = FakeClaudeClient()
+    private val claude = FakeAiClient()
     private val tabs = BottomBarScreen(compose)
     private val coach = CoachScreen(compose)
     private val settings = SettingsScreen(compose)
@@ -114,7 +114,7 @@ class CoachFlowE2ETest : AbstractE2ETest() {
     @Test
     fun `without a connection the message is kept and can be sent again`() {
         openCoachWithKey()
-        claude.failWith(ClaudeFailureKind.NO_NETWORK)
+        claude.failWith(AiFailureKind.NO_NETWORK)
         coach.send("Add something for abs")
         coach.assertOfflineBanner()
         coach.assertNotSent()
@@ -126,7 +126,7 @@ class CoachFlowE2ETest : AbstractE2ETest() {
     @Test
     fun `a rejected key leads to the key screen`() {
         openCoachWithKey()
-        claude.failWith(ClaudeFailureKind.KEY_REJECTED)
+        claude.failWith(AiFailureKind.KEY_REJECTED)
         coach.send("Hello")
         coach.assertErrorCard("The API key was rejected")
         coach.tapErrorAction()
@@ -136,7 +136,7 @@ class CoachFlowE2ETest : AbstractE2ETest() {
     @Test
     fun `an overloaded service can be retried and the message stays`() {
         openCoachWithKey()
-        claude.failWith(ClaudeFailureKind.OVERLOADED)
+        claude.failWith(AiFailureKind.OVERLOADED)
         coach.send("Hello again")
         coach.assertErrorCard("The coach did not answer")
         claude.answerWith("Back now.")

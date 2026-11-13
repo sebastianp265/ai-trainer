@@ -19,4 +19,4 @@
 - `Given`: sets up state through the `integration` services (`given.claudeApiKey()`, `given.plan(...)`, `given.finishedWorkout(..., on = date)`, `given.runningWorkout(...)`), with `sets(...)` to describe the sets.
 - `Screen`: base class of the screen objects.
 - Screen objects used by several test classes (`LogWorkoutScreen`, `ExercisePickerScreen`).
-- Fakes of external systems (`FakeHealthService`, `FakeClaudeClient`) always live here, even if only one test uses them so far.
+- Fakes of external systems (`FakeHealthService`, `FakeAiClient`) always live here, even if only one test uses them so far.

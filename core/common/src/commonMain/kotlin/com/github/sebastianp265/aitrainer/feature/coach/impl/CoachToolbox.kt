@@ -4,7 +4,7 @@ import com.github.sebastianp265.aitrainer.integration.workout.RPE_MAX
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_MIN
 import com.github.sebastianp265.aitrainer.integration.workout.RPE_STEP
 import com.github.sebastianp265.aitrainer.integration.nutrition.NutritionService
-import com.github.sebastianp265.aitrainer.integration.coach.ClaudeTool
+import com.github.sebastianp265.aitrainer.integration.ai.AiTool
 import com.github.sebastianp265.aitrainer.integration.coach.CoachService
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalState
 import com.github.sebastianp265.aitrainer.integration.coach.ProposalType
@@ -55,7 +55,7 @@ internal class CoachToolbox(
         const val MAX_SEARCH_RESULTS = 12
     }
 
-    val definitions: List<ClaudeTool> = listOf(
+    val definitions: List<AiTool> = listOf(
         tool("get_workouts", "Finished gym workouts from the last N days (default 28) with working sets as sets×reps×kg@RPE.", """{"type":"object","properties":{"days":{"type":"integer"}}}"""),
         tool("get_exercise_history", "History of one exercise: per session the working sets, estimated 1RM and average RPE.", """{"type":"object","properties":{"exerciseKey":{"type":"string"}},"required":["exerciseKey"]}"""),
         tool("find_exercises", "Finds exercise keys by a name fragment. Use it before proposing exercises.", """{"type":"object","properties":{"query":{"type":"string"}},"required":["query"]}"""),
@@ -349,7 +349,7 @@ internal class CoachToolbox(
 
     private fun roundKg(value: Double): String = if (value % 1.0 == 0.0) value.toLong().toString() else (kotlin.math.round(value * 10) / 10).toString()
 
-    private fun tool(name: String, description: String, schema: String) = ClaudeTool(name, description, schema)
+    private fun tool(name: String, description: String, schema: String) = AiTool(name, description, schema)
 
     private fun JsonObject.string(key: String): String = this[key]?.jsonPrimitive?.contentOrNull ?: throw IllegalArgumentException("$key is required")
 

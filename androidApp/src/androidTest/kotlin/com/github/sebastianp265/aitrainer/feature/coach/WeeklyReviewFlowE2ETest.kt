@@ -4,7 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.github.sebastianp265.aitrainer.shared.e2e.AbstractE2ETest
 import com.github.sebastianp265.aitrainer.shared.e2e.BENCH_PRESS
 import com.github.sebastianp265.aitrainer.shared.e2e.BottomBarScreen
-import com.github.sebastianp265.aitrainer.shared.e2e.FakeClaudeClient
+import com.github.sebastianp265.aitrainer.shared.e2e.FakeAiClient
 import com.github.sebastianp265.aitrainer.shared.e2e.PlanScreen
 import com.github.sebastianp265.aitrainer.shared.e2e.sets
 import kotlinx.datetime.DatePeriod
@@ -25,7 +25,7 @@ class WeeklyReviewFlowE2ETest : AbstractE2ETest() {
         {"name":"Push A","date":"${today.plus(DatePeriod(days = 1))}","sets":[{"exerciseKey":"BARBELL_BENCH_PRESS","reps":8,"weightKg":82.5}]},
         {"name":"Legs B","date":"${today.plus(DatePeriod(days = 2))}","sets":[{"exerciseKey":"BACK_SQUAT","reps":5,"weightKg":110}]}]}"""
 
-    private val claude = FakeClaudeClient()
+    private val claude = FakeAiClient()
     private val tabs = BottomBarScreen(compose)
     private val coach = CoachScreen(compose)
     private val plans = PlanScreen(compose)
